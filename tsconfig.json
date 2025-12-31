@@ -1,0 +1,58 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "module": "CommonJS",
+//     "outDir": "dist",
+//     "rootDir": ".",
+//     "baseUrl": "./src",
+
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "resolveJsonModule": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "paths": {
+//             "@domain/*": [
+//                 "domain/*"
+//             ],
+//             "@application/*": [
+//                 "application/*"
+//             ],
+//             "@infrastructure/*": [
+//                 "infrastructure/*"
+//             ],
+//             "@presentation/*": [
+//                 "presentation/*"
+//             ],
+//             "@common/*":[
+//                 "common/*"
+//             ]
+            
+//         },
+//   },
+//   "include": ["src/**/*.ts", "scripts/**/*.ts"]
+// }
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "baseUrl": "./src",
+    "paths": {
+      "@application/*": ["application/*"],
+      "@domain/*": ["domain/*"],
+      "@infrastructure/*": ["infrastructure/*"],
+      "@presentation/*": ["presentation/*"],
+      "@main/*": ["main/*"],
+      "@common/*": ["common/*"]
+    }
+  },
+  "include": ["src"]
+}
