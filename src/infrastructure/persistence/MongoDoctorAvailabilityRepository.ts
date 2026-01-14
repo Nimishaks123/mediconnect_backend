@@ -42,9 +42,7 @@ export class MongoDoctorAvailabilityRepository
     );
   }
 
-  /* ---------------- MAPPERS ---------------- */
-
-  private toDomain(
+private toDomain(
     doc: DoctorAvailabilityDB
   ): DoctorAvailability {
     return new DoctorAvailability(
