@@ -71,6 +71,7 @@ export class DoctorRepository
     console.error("CREATE DOCTOR ERROR:", error);
     throw new AppError("Failed to create doctor", 500);
   }
+  
 }
   async findByUserId(userId: string): Promise<Doctor | null> {
     return this.findOne({ userId });

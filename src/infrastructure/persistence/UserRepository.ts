@@ -43,36 +43,7 @@ export class UserRepository
     }
     return updated;
   }
-  // async findPaginated(params: {
-  //   skip: number;
-  //   limit: number;
-  //   search: string;
-  // }): Promise<{ users: User[]; total: number }> {
-  //   const { skip, limit, search } = params;
-
-  //   const query = search
-  //     ? {
-  //         $or: [
-  //           { name: { $regex: search, $options: "i" } },
-  //           { email: { $regex: search, $options: "i" } },
-  //         ],
-  //       }
-  //     : {};
-
-  //   const [docs, total] = await Promise.all([
-  //     this.model
-  //       .find(query)
-  //       .skip(skip)
-  //       .limit(limit)
-  //       .sort({ createdAt: -1 }),
-  //     this.model.countDocuments(query),
-  //   ]);
-
-  //   return {
-  //     users: docs.map(this.toDomain),
-  //     total,
-  //   };
-  // }
+  
   async findPaginated(params: {
   skip: number;
   limit: number;
@@ -82,10 +53,10 @@ export class UserRepository
 }): Promise<{ users: User[]; total: number }> {
   const { skip, limit, search, role, status } = params;
 
-  // ✅ Build query dynamically
+  //  Build query dynamically
   const query: any = {};
 
-  // 🔍 Search by name or email
+  //  Search by name or email
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: "i" } },
@@ -93,7 +64,7 @@ export class UserRepository
     ];
   }
 
-  // 🧑 Role filter
+  //  Role filter
   if (role) {
     query.role = role;
   }

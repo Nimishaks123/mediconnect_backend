@@ -1,78 +1,43 @@
-import { RRule } from "rrule";
-import { InvalidDoctorScheduleError } from "../errors/InvalidDoctorScheduleError";
+export type TimeWindow = {
+  start: string; // "09:00"
+  end: string;   // "12:00"
+};
 
 export class DoctorSchedule {
   constructor(
-    private readonly id: string | null,
-    private readonly doctorId: string,
-    private readonly rruleString: string,
-    private readonly dailyStartTime: string,
-    private readonly dailyEndTime: string,
-    private readonly slotDurationMinutes: number,
-    private readonly timezone: string = "Asia/Kolkata"
+    public readonly id: string,
+    public readonly doctorId: string,
+    public readonly rrule: string,
+    public readonly timeWindows: TimeWindow[],
+    public readonly slotDuration: number,
+    public readonly validFrom: Date,
+    public readonly validTo: Date,
+    public readonly timezone: string
   ) {
     this.validate();
   }
 
-  /* ================= VALIDATION ================= */
-
   private validate() {
-    if (!this.doctorId) {
-      throw new InvalidDoctorScheduleError("Doctor ID is required");
+    if (!Array.isArray(this.timeWindows)) {
+      throw new Error("timeWindows must be an array");
     }
 
-    if (this.slotDurationMinutes <= 0) {
-      throw new InvalidDoctorScheduleError(
-        "Slot duration must be greater than zero"
-      );
+    if (this.timeWindows.length === 0) {
+      throw new Error("At least one time window is required");
     }
 
-    if (this.dailyStartTime >= this.dailyEndTime) {
-      throw new InvalidDoctorScheduleError(
-        "Daily start time must be before end time"
-      );
+    for (const window of this.timeWindows) {
+      if (!window.start || !window.end) {
+        throw new Error("Invalid time window");
+      }
+
+      if (window.start >= window.end) {
+        throw new Error("Time window start must be before end");
+      }
     }
 
-    try {
-      RRule.fromString(this.rruleString);
-    } catch {
-      throw new InvalidDoctorScheduleError("Invalid recurrence rule (rrule)");
+    if (this.slotDuration <= 0) {
+      throw new Error("slotDuration must be positive");
     }
-  }
-
-  /* ================= GETTERS ================= */
-
-  getId() {
-    return this.id;
-  }
-
-  getDoctorId() {
-    return this.doctorId;
-  }
-
-  getRRule() {
-    return this.rruleString;
-  }
-
-  getDailyTimeWindow() {
-    return {
-      start: this.dailyStartTime,
-      end: this.dailyEndTime,
-    };
-  }
-
-  getSlotDuration() {
-    return this.slotDurationMinutes;
-  }
-
-  getTimezone() {
-    return this.timezone;
-  }
-
-  /* ================= DOMAIN BEHAVIOR ================= */
-
-  getWorkingDates(from: Date, to: Date): Date[] {
-    const rule = RRule.fromString(this.rruleString);
-    return rule.between(from, to, true);
   }
 }

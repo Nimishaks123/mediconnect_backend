@@ -2,7 +2,7 @@ import { IAdminRepository } from "../../../domain/interfaces/IAdminRepository";
 import { TokenService } from "../../services/TokenService";
 import { AppError } from "../../../common/AppError";
 import { LoginDTO } from "@application/dtos/auth/LoginDTO";
-import { AdminLoginOutputDTO } from "@application/dtos/admin/AdminLoginOutputDTO";
+import { AdminLoginOutputDTO } from "@application/dtos/admin/AdminLoginDTO";
 import { IAdminLoginUseCase } from "@application/interfaces/admin/IAdminLoginUseCase";
 import {StatusCode} from "../../../common/enums"
 import bcrypt from "bcryptjs";

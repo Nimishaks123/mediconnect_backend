@@ -10,7 +10,9 @@ import {
   // patientController,
   doctorController,
   adminController,
-  appointmentController
+  doctorScheduleController,
+  doctorSlotController  
+
 } from "../main/di";
 import { createRoutes } from "../presentation/routes";
 import cookieParser from "cookie-parser";
@@ -29,7 +31,7 @@ app.use(
 app.options("*", cors());
 app.use(cookieParser());
 
-app.use("/api", createRoutes(authController, doctorController, adminController,appointmentController));
+app.use("/api", createRoutes(authController, doctorController, adminController,doctorScheduleController,doctorSlotController  ));
 
 app.use(errorMiddleware);
 (async()=>{

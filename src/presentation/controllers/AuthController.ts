@@ -55,10 +55,6 @@ export class AuthController {
     private readonly resetPasswordUseCase: IResetPasswordUseCase,
     private readonly loginWithGoogleUseCase: ILoginWithGoogleUseCase
   ) {}
-
-  // =========================
-  // GOOGLE AUTH URL
-  // =========================
   googleAuthUrl = async (
     _req: Request,
     res: Response
@@ -68,9 +64,7 @@ export class AuthController {
     res.redirect(redirectUrl);
   };
 
-  // =========================
-  // GOOGLE CALLBACK
-  // =========================
+  
   googleCallback = async (
     req: Request,
     res: Response,
@@ -103,9 +97,6 @@ export class AuthController {
     }
   };
 
-  // =========================
-  // SIGNUP
-  // =========================
   signup = async (
     req: Request,
     res: Response,
@@ -126,9 +117,6 @@ export class AuthController {
     }
   };
 
-  // =========================
-  // RESEND OTP
-  // =========================
   resendOtp = async (
     req: Request,
     res: Response,
@@ -148,10 +136,6 @@ export class AuthController {
       next(error);
     }
   };
-
-  // =========================
-  // VERIFY OTP
-  // =========================
   verifyOtp = async (
     req: Request,
     res: Response,
@@ -172,9 +156,7 @@ export class AuthController {
     }
   };
 
-  // =========================
-  // LOGIN
-  // =========================
+  
   login = async (
     req: Request,
     res: Response,

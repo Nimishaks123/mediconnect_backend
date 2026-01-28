@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "@common/AppError";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const errorMiddleware = (
   err: unknown,
   _req: Request,
   res: Response,
   _next: NextFunction
 ) => {
-  console.error("Error:", err);
+  console.error(" Error:", err);
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({

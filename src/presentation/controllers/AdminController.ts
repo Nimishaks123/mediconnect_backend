@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
 import { GetAllUsersDTO } from "@application/dtos/admin/GetAllUsersDTO";
-
 import { IAdminLoginUseCase } from "@application/interfaces/admin/IAdminLoginUseCase";
 import { IGetPendingDoctorsUseCase } from "@application/interfaces/admin/IGetPendingDoctorsUseCase";
 import { IApproveDoctorUseCase } from "@application/interfaces/admin/IApproveDoctorUseCase";
@@ -25,7 +24,6 @@ import {
 import {
   GetPendingDoctorsOutputDTO,
 } from "@application/dtos/admin/GetPendingDoctorsOutputDTO";
-import { UserDTO } from "@application/dtos/admin/UserDTO";
 
 export class AdminController {
   constructor(
@@ -37,9 +35,6 @@ export class AdminController {
     private readonly getAllUsersUseCase: IGetAllUsersUseCase
   ) {}
 
-  // =========================
-  // Admin Login
-  // =========================
   login = async (
     req: Request,
     res: Response,
@@ -62,10 +57,6 @@ export class AdminController {
       next(error);
     }
   };
-
-  // =========================
-  // Get Pending Doctors
-  // =========================
   getPendingDoctors = async (
     _req: Request,
     res: Response,
@@ -83,11 +74,7 @@ export class AdminController {
       next(error);
     }
   };
-
-  // =========================
-  // Approve Doctor
-  // =========================
-  approveDoctor = async (
+approveDoctor = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -115,9 +102,6 @@ export class AdminController {
     }
   };
 
-  // =========================
-  // Reject Doctor
-  // =========================
   rejectDoctor = async (
     req: Request,
     res: Response,
@@ -147,9 +131,6 @@ export class AdminController {
     }
   };
 
-  // =========================
-  // Block User
-  // =========================
   blockUser = async (
     req: Request,
     res: Response,
@@ -175,9 +156,6 @@ export class AdminController {
     }
   };
 
-  // =========================
-  // Unblock User
-  // =========================
   unblockUser = async (
     req: Request,
     res: Response,
@@ -202,11 +180,7 @@ export class AdminController {
       next(error);
     }
   };
-
-  // =========================
-  // Get All Users
-  // =========================
-  getAllUsers = async (
+getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction

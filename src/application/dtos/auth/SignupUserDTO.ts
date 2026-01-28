@@ -1,6 +1,4 @@
 import { UserRole } from "@domain/enums/UserRole";
-
-
 export interface SignupUserDTO {
     name: string;
     email: string;

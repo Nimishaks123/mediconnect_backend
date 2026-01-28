@@ -1,6 +1,6 @@
 import { ILoginUseCase } from "../../interfaces/auth/ILoginUseCase";
 import { LoginDTO } from "../../dtos/auth/LoginDTO";
-import { LoginResponseDTO } from "../../dtos/auth/LoginResponseDTO";
+import { LoginResponseDTO } from "../../dtos/auth/LoginDTO";
 
 import { IUserRepository } from "../../../domain/interfaces/IUserRepository";
 import { TokenService } from "../../services/TokenService";

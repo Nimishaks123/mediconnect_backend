@@ -41,4 +41,5 @@ export interface IDoctorRepository {
   update: Partial<Doctor>
 ): Promise<Doctor>;
 findVerifiedDoctors(): Promise<Doctor[]>;
+
 }

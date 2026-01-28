@@ -1,5 +1,3 @@
-// src/infrastructure/persistence/OtpRepository.ts
-
 import { IOtpRepository } from "../../domain/interfaces/IOtpRepository";
 import { Otp } from "../../domain/entities/Otp";
 import { OtpModel } from "./models/OtpModel";

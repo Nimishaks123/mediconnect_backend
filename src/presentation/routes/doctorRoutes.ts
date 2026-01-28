@@ -1,65 +1,7 @@
-// import { Router } from "express";
-// import { DoctorController } from "../controllers/DoctorController";
-// import { authMiddleware } from "../middlewares/authMiddleware";
-// import { upload } from "../middlewares/multer";
-
-// export function doctorRoutes(doctorController: DoctorController) {
-//   const router = Router();
-
-//   // =========================
-//   // START ONBOARDING
-//   // =========================
-//   router.post(
-//     "/onboarding/start",
-//     authMiddleware,
-//     doctorController.startOnboarding
-//   );
-
-//   // =========================
-//   // UPDATE BASIC PROFILE
-//   // =========================
-//   router.patch(
-//     "/profile",
-//     authMiddleware,
-//     doctorController.updateProfile
-//   );
-
-//   // =========================
-//   // UPLOAD DOCUMENTS
-//   // =========================
-//   router.post(
-//   "/upload-documents",
-//   authMiddleware,
-//   upload.fields([
-//     { name: "licenseDocument", maxCount: 1 },
-//     { name: "profilePhoto", maxCount: 1 },
-//     { name: "certifications", maxCount: 10 },
-//   ]),
-//   doctorController.uploadDocuments
-// );
-
-//   // =========================
-//   // SUBMIT FOR VERIFICATION
-//   // =========================
-//   router.post(
-//     "/submit",
-//     authMiddleware,
-//     doctorController.submitForVerification
-//   );
-
-//   // =========================
-//   // GET PROFILE
-//   // =========================
-//   router.get(
-//     "/profile",
-//     authMiddleware,
-//     doctorController.getProfile
-//   );
-
-//   return router;
-// }
 import { Router } from "express";
 import { DoctorController } from "../controllers/DoctorController";
+import { authMiddleware } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/requireAuth";
 import { upload } from "../middlewares/multer";
 
 export function doctorRoutes(doctorController: DoctorController) {
@@ -70,6 +12,8 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.post(
     "/onboarding/start",
+    authMiddleware,
+    requireAuth,
     doctorController.startOnboarding
   );
 
@@ -78,6 +22,8 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.patch(
     "/profile",
+    authMiddleware,
+    requireAuth,
     doctorController.updateProfile
   );
 
@@ -86,6 +32,8 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.post(
     "/upload-documents",
+    authMiddleware,
+    requireAuth,
     upload.fields([
       { name: "licenseDocument", maxCount: 1 },
       { name: "profilePhoto", maxCount: 1 },
@@ -99,6 +47,8 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.post(
     "/submit",
+    authMiddleware,
+    requireAuth,
     doctorController.submitForVerification
   );
 
@@ -107,11 +57,14 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.get(
     "/profile",
+    authMiddleware,
+    requireAuth,
     doctorController.getProfile
   );
-    router.get(
+
+  router.get(
     "/verified",
-   doctorController.getVerifiedDoctors
+    doctorController.getVerifiedDoctors // public → no auth
   );
 
   return router;

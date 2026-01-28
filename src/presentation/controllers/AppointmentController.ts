@@ -1,7 +1,5 @@
-
 import { Request, Response, NextFunction } from "express";
 import { StatusCode } from "@common/enums";
-
 import { IBookAppointmentUseCase } from "@application/interfaces/appointments/IBookAppointmentUseCase";
 import { IGetDoctorAvailabilityUseCase } from "@application/interfaces/appointments/IGetDoctorAvailabilityUseCase";
 import { ICreateDoctorAvailabilityUseCase } from "@application/interfaces/appointments/ICreateDoctorAvailabilityUseCase";

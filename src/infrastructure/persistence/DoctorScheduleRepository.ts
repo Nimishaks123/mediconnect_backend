@@ -1,44 +1,61 @@
 import { IDoctorScheduleRepository } from "../../domain/interfaces/IDoctorScheduleRepository";
 import { DoctorSchedule } from "../../domain/entities/DoctorSchedule";
-import { DoctorScheduleModel } from "../../infrastructure/persistence/models/DoctorScheduleModel";
+import { DoctorScheduleModel } from "../persistence/models/DoctorScheduleModel";
 
 export class DoctorScheduleRepository
   implements IDoctorScheduleRepository
 {
-  async findByDoctorId(doctorId: string): Promise<DoctorSchedule | null> {
-    const doc = await DoctorScheduleModel.findOne({ doctorId }).lean();
+  async save(schedule: DoctorSchedule): Promise<DoctorSchedule> {
+    const doc = await DoctorScheduleModel.findOneAndUpdate(
+      { doctorId: schedule.doctorId }, // 🔑 one schedule per doctor
+      {
+        doctorId: schedule.doctorId,
+        rrule: schedule.rrule,
+        timeWindows: schedule.timeWindows,
+        slotDuration: schedule.slotDuration,
+        validFrom: schedule.validFrom,
+        validTo: schedule.validTo,
+        timezone: schedule.timezone,
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    );
 
-    if (!doc) return null;
+    if (!doc) {
+      throw new Error("Failed to save doctor schedule");
+    }
 
     return new DoctorSchedule(
-      doc._id.toString(),
+      doc.id,
       doc.doctorId,
       doc.rrule,
-      doc.dailyStartTime,
-      doc.dailyEndTime,
-      doc.slotDurationMinutes,
+      doc.timeWindows,        // ✅ FIX
+      doc.slotDuration,
+      doc.validFrom,
+      doc.validTo,
       doc.timezone
     );
   }
 
-  async save(schedule: DoctorSchedule): Promise<DoctorSchedule> {
-    const created = await DoctorScheduleModel.create({
-      doctorId: schedule.getDoctorId(),
-      rrule: schedule.getRRule(),
-      dailyStartTime: schedule.getDailyTimeWindow().start,
-      dailyEndTime: schedule.getDailyTimeWindow().end,
-      slotDurationMinutes: schedule.getSlotDuration(),
-      timezone: schedule.getTimezone(),
-    });
+  async findByDoctorId(
+    doctorId: string
+  ): Promise<DoctorSchedule[]> {
+    const docs = await DoctorScheduleModel.find({ doctorId });
 
-    return new DoctorSchedule(
-      created._id.toString(),
-      created.doctorId,
-      created.rrule,
-      created.dailyStartTime,
-      created.dailyEndTime,
-      created.slotDurationMinutes,
-      created.timezone
+    return docs.map(
+      (doc) =>
+        new DoctorSchedule(
+          doc.id,
+          doc.doctorId,
+          doc.rrule,
+          doc.timeWindows,    // ✅ FIX
+          doc.slotDuration,
+          doc.validFrom,
+          doc.validTo,
+          doc.timezone
+        )
     );
   }
 }

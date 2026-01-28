@@ -2,18 +2,24 @@
 //  REPOSITORIES (Infrastructure Layer)
 // ============================================================================
 import { UserRepository } from "@infrastructure/persistence/UserRepository";
-import { PatientRepository } from "@infrastructure/persistence/PatientRepository";
+//import { PatientRepository } from "@infrastructure/persistence/PatientRepository";
 import { DoctorRepository } from "@infrastructure/persistence/DoctorRepository";
 import { AdminRepository } from "@infrastructure/persistence/AdminRepository";
 import { OtpRepository } from "@infrastructure/persistence/OtpRepository";
-import { MongoAppointmentRepository } 
-  from "@infrastructure/persistence/MongoAppointmentRepository";
-import { MongoDoctorAvailabilityRepository } 
-  from "@infrastructure/persistence/MongoDoctorAvailabilityRepository";
+import { DoctorScheduleRepository } 
+  from "@infrastructure/persistence/DoctorScheduleRepository";
+// import { MongoAppointmentRepository } 
+//   from "@infrastructure/persistence/MongoAppointmentRepository";
+// import { MongoDoctorAvailabilityRepository } 
+//   from "@infrastructure/persistence/MongoDoctorAvailabilityRepository";
 
 // ============================================================================
 //  SERVICES (Application + Infrastructure)
 // ============================================================================
+// import { RRuleValidatorService } 
+//   from "@infrastructure/services/RRuleService";
+import { RRuleService } 
+  from "@infrastructure/services/RRuleService";
 import { TokenService } from "@application/services/TokenService";
 import { NodemailerMailer } from "@infrastructure/mailer/NodemailerMailer";
 import { CloudinaryFileStorageService } 
@@ -64,6 +70,9 @@ import {
   IGetDoctorProfileUseCase,
 } from "@application/interfaces/doctor";
 
+import { CreateDoctorScheduleUseCase } 
+  from "@application/usecases/schedule/CreateDoctorScheduleUseCase";
+
 // ============================================================================
 //  USE CASE IMPLEMENTATIONS
 // ============================================================================
@@ -90,19 +99,20 @@ import { UpdateDoctorProfileUseCase } from "@application/usecases/doctor/UpdateD
 import { UploadDoctorDocumentsUseCase } from "@application/usecases/doctor/UploadDoctorDocumentsUseCase";
 import { SubmitForVerificationUseCase } from "@application/usecases/doctor/SubmitForVerificationUseCase";
 import { GetDoctorProfileUseCase } from "@application/usecases/doctor/GetDoctorProfileUseCase";
-
-import { BookAppointmentUseCase } 
-  from "@application/usecases/appointments/BookAppointmentUseCase";
-import { ConfirmAppointmentUseCase } 
-  from "@application/usecases/appointments/ConfirmAppointmentUseCase";
-import { CancelAppointmentUseCase } 
-  from "@application/usecases/appointments/CancelAppointmentUseCase";
-import { CompleteAppointmentUseCase } 
-  from "@application/usecases/appointments/CompleteAppointmentUseCase";
-import { GetDoctorAvailabilityUseCase } 
-  from "@application/usecases/appointments/GetDoctorAvailabilityUseCase";
-import { CreateDoctorAvailabilityUseCase } 
-  from "@application/usecases/appointments/CreateDoctorAvailabilityUseCase";
+import { GenerateDoctorSlotsUseCase } 
+  from "@application/usecases/schedule/GenerateDoctorSlotsUseCase";
+// import { BookAppointmentUseCase } 
+//   from "@application/usecases/appointments/BookAppointmentUseCase";
+// import { ConfirmAppointmentUseCase } 
+//   from "@application/usecases/appointments/ConfirmAppointmentUseCase";
+// import { CancelAppointmentUseCase } 
+//   from "@application/usecases/appointments/CancelAppointmentUseCase";
+// import { CompleteAppointmentUseCase } 
+//   from "@application/usecases/appointments/CompleteAppointmentUseCase";
+// // import { GetDoctorAvailabilityUseCase } 
+// //   from "@application/usecases/appointments/GetDoctorAvailabilityUseCase";
+// import { CreateDoctorAvailabilityUseCase } 
+//   from "@application/usecases/appointments/CreateDoctorAvailabilityUseCase";
 
 
 // ============================================================================
@@ -111,8 +121,12 @@ import { CreateDoctorAvailabilityUseCase }
 import { AuthController } from "@presentation/controllers/AuthController";
 import { DoctorController } from "@presentation/controllers/DoctorController";
 import { AdminController } from "@presentation/controllers/AdminController";
-import { AppointmentController } 
-  from "@presentation/controllers/AppointmentController";
+import { DoctorScheduleController } 
+  from "@presentation/controllers/DoctorScheduleController";
+  import { DoctorSlotController } 
+  from "@presentation/controllers/DoctorSlotController";
+// import { AppointmentController } 
+//   from "@presentation/controllers/AppointmentController";
 
 // ============================================================================
 //  REPOSITORY INSTANCES
@@ -121,9 +135,15 @@ const userRepository = new UserRepository();
 const doctorRepository = new DoctorRepository();
 const adminRepository = new AdminRepository();
 const otpRepository = new OtpRepository();
-const appointmentRepository = new MongoAppointmentRepository();
-const doctorAvailabilityRepository =
-  new MongoDoctorAvailabilityRepository();
+// ============================================================================
+//  DOCTOR SCHEDULE REPOSITORY & SERVICES
+// ============================================================================
+const doctorScheduleRepository = new DoctorScheduleRepository();
+const rrulePolicy = new RRuleService();
+
+// const appointmentRepository = new MongoAppointmentRepository();
+// const doctorAvailabilityRepository =
+//   new MongoDoctorAvailabilityRepository();
 
 // ============================================================================
 //  SERVICE INSTANCES
@@ -230,37 +250,49 @@ const blockUnblockUserUseCase: IBlockUnblockUserUseCase =
 
 const getAllUsersUseCase: IGetAllUsersUseCase =
   new GetAllUsersUseCase(userRepository);
-
-  const bookAppointmentUseCase =
-  new BookAppointmentUseCase(
-    doctorAvailabilityRepository,
-    appointmentRepository
+// ============================================================================
+//  DOCTOR SCHEDULE USE CASES
+// ============================================================================
+const createDoctorScheduleUseCase =
+  new CreateDoctorScheduleUseCase(
+    doctorScheduleRepository,
+  rrulePolicy 
   );
-
-const confirmAppointmentUseCase =
-  new ConfirmAppointmentUseCase(
-    appointmentRepository
+  const generateDoctorSlotsUseCase =
+  new GenerateDoctorSlotsUseCase(
+    doctorScheduleRepository,
+    rrulePolicy        // ✅ same policy reused
   );
+//   const bookAppointmentUseCase =
+//   new BookAppointmentUseCase(
+//     doctorAvailabilityRepository,
+//     appointmentRepository
+//   );
 
-const cancelAppointmentUseCase =
-  new CancelAppointmentUseCase(
-    appointmentRepository
-  );
+// const confirmAppointmentUseCase =
+//   new ConfirmAppointmentUseCase(
+//     appointmentRepository
+//   );
 
-const completeAppointmentUseCase =
-  new CompleteAppointmentUseCase(
-    appointmentRepository
-  );
+// const cancelAppointmentUseCase =
+//   new CancelAppointmentUseCase(
+//     appointmentRepository
+//   );
 
-const getDoctorAvailabilityUseCase =
-  new GetDoctorAvailabilityUseCase(
-    doctorAvailabilityRepository
-  );
+// const completeAppointmentUseCase =
+//   new CompleteAppointmentUseCase(
+//     appointmentRepository
+//   );
 
-const createDoctorAvailabilityUseCase =
-  new CreateDoctorAvailabilityUseCase(
-    doctorAvailabilityRepository
-  );
+// // const getDoctorAvailabilityUseCase =
+// //   new GetDoctorAvailabilityUseCase(
+// //     doctorAvailabilityRepository
+// //   );
+
+// const createDoctorAvailabilityUseCase =
+//   new CreateDoctorAvailabilityUseCase(
+//     doctorAvailabilityRepository
+//   );
 
 
 // ============================================================================
@@ -296,12 +328,21 @@ export const adminController = new AdminController(
   blockUnblockUserUseCase,
   getAllUsersUseCase
 );
-export const appointmentController =
-  new AppointmentController(
-    bookAppointmentUseCase,
-    getDoctorAvailabilityUseCase,     
-    createDoctorAvailabilityUseCase,   
-    confirmAppointmentUseCase,        
-    cancelAppointmentUseCase,         
-    completeAppointmentUseCase         
-  );
+// ============================================================================
+//  DOCTOR SCHEDULE CONTROLLER
+// ============================================================================
+export const doctorScheduleController =
+  new DoctorScheduleController(createDoctorScheduleUseCase);
+  export const doctorSlotController =
+  new DoctorSlotController(generateDoctorSlotsUseCase);
+
+
+// export const appointmentController =
+//   new AppointmentController(
+//     bookAppointmentUseCase,
+//     getDoctorAvailabilityUseCase,     
+//     createDoctorAvailabilityUseCase,   
+//     confirmAppointmentUseCase,        
+//     cancelAppointmentUseCase,         
+//     completeAppointmentUseCase         
+//   );
