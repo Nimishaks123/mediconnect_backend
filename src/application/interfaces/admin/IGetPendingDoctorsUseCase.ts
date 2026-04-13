@@ -2,5 +2,10 @@
 import { GetPendingDoctorsOutputDTO } from "@application/dtos/admin/GetPendingDoctorsOutputDTO";
 
 export interface IGetPendingDoctorsUseCase {
-  execute(): Promise<GetPendingDoctorsOutputDTO>;
+  execute(input: { 
+    page: number; 
+    limit: number; 
+    search?: string; 
+    sort?: "NEWEST" | "OLDEST" 
+  }): Promise<GetPendingDoctorsOutputDTO>;
 }

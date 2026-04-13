@@ -61,7 +61,7 @@ export function authRoutes(authController: AuthController) {
     authController.resetPassword.bind(authController)
   );
 
-  // ✅ GOOGLE OAUTH — CLEAN ARCHITECTURE
+  //  GOOGLE OAUTH 
   router.get(
     "/google",
     authController.googleAuthUrl.bind(authController)

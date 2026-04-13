@@ -1,50 +1,60 @@
-// src/application/usecases/admin/RejectDoctorUseCase.ts
 import { IRejectDoctorUseCase } from "@application/interfaces/admin/IRejectDoctorUseCase";
-import { ApproveRejectDoctorDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
-import { ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
+import {
+  RejectDoctorDTO,
+  RejectDoctorResponseDTO,
+} from "@application/dtos/admin/RejectDoctorDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IEventBus } from "@application/interfaces/IEventBus";
 import { AppError } from "@common/AppError";
-import { INotificationService } from "@domain/interfaces/INotificationService";
-import { IUserRepository } from "@domain/interfaces/IUserRepository";
-import {StatusCode} from "../../../common/enums"
+import { DoctorRejectedEvent } from "@domain/events/DoctorRejectedEvent";
+import { DoctorMapper } from "@application/mappers/DoctorMapper";
+
+import { ICreateNotificationUseCase } from "@application/interfaces/notification/ICreateNotificationUseCase";
+import { NotificationType } from "@domain/enums/NotificationType";
 
 export class RejectDoctorUseCase implements IRejectDoctorUseCase {
-  constructor(private readonly doctorRepo: IDoctorRepository,
-   private readonly userRepo:IUserRepository,
-    private readonly notificationService: INotificationService,
+  constructor(
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly eventBus: IEventBus,
+    private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
 
-  async execute(dto: ApproveRejectDoctorDTO): Promise<ApproveRejectDoctorResponseDTO> {
+  async execute(dto: RejectDoctorDTO): Promise<RejectDoctorResponseDTO> {
     const { userId, adminId, reason } = dto;
-    if (!reason) throw new AppError("Rejection reason required", StatusCode.BAD_REQUEST);
+
+    if (!reason || reason.trim() === "") {
+      throw new AppError("Rejection reason is required", 400);
+    }
 
     const doctor = await this.doctorRepo.findByUserId(userId);
-    if (!doctor) throw new AppError("Doctor not found", StatusCode.NOT_FOUND);
-    const user=await this.userRepo.findById(userId);
-    if(!user) throw new AppError("User not found",StatusCode.NOT_FOUND)
+    if (!doctor) {
+      throw new AppError("Doctor not found", 404);
+    }
 
+    // Apply Domain Logic
     doctor.reject(adminId, reason);
 
-    const updated = await this.doctorRepo.updateByUserId(userId, {
-      verificationStatus: doctor.verificationStatus,
-      onboardingStatus: doctor.onboardingStatus,
-      verifiedBy: doctor.verifiedBy,
-      verifiedAt: doctor.verifiedAt,
-      rejectionReason: doctor.rejectionReason,
-    });
-    await this.notificationService.sendDoctorRejected(user.email,reason);
+    // Persist Aggregate Root
+    const savedDoctor = await this.doctorRepo.save(doctor);
 
-    return {
-      message: "Doctor rejected",
-      doctor: {
-        id: updated.id ?? "",
-        userId: updated.userId,
-        verificationStatus: updated.verificationStatus,
-        onboardingStatus: updated.onboardingStatus,
-        verifiedBy: updated.verifiedBy ?? null,
-        verifiedAt: updated.verifiedAt ? updated.verifiedAt.toISOString() : null,
-        rejectionReason: updated.rejectionReason ?? null,
-      },
-    };
+    // Emit Event for Side Effects (Notifications)
+    await this.eventBus.publish(
+      new DoctorRejectedEvent(
+        savedDoctor.getId()!,
+        savedDoctor.getUserId(),
+        adminId,
+        reason
+      )
+    );
+
+    await this.createNotificationUseCase.execute({
+      userId: userId,
+      title: "Verification Rejected",
+      message: `Your professional profile verification was rejected. Reason: ${reason}`,
+      type: NotificationType.SYSTEM
+    });
+
+    // Delegate Response Mapping
+    return DoctorMapper.toRejectDoctorResponse(savedDoctor);
   }
 }

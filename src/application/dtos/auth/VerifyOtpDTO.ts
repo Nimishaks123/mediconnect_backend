@@ -1,10 +1,10 @@
-export interface VerifyOtpDTO {
+export type VerifyOtpDTO = {
     email: string;
     code: string;
   }
   import { UserRole } from "@domain/enums/UserRole";
   
-  export interface VerifyOtpResponseDTO {
+  export type VerifyOtpResponseDTO = {
     success: boolean;
     message: string;
     user: {

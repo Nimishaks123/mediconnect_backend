@@ -40,3 +40,16 @@ export const unblockUserSchema = z.object({
     userId: z.string().min(1, "userId is required"),
   }),
 });
+
+/**
+ * 6️⃣ Get All Users Schema
+ */
+export const getAllUsersSchema = z.object({
+  query: z.object({
+    page: z.string().optional(),
+    limit: z.string().optional(),
+    search: z.string().optional(),
+    role: z.string().optional(),
+    status: z.string().optional(),
+  })
+});

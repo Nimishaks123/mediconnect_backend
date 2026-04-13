@@ -21,7 +21,8 @@ export const config = {
   mailFrom: process.env.FROM_EMAIL || "",
   mailPort: Number(process.env.SMTP_PORT) || 587,
 
-  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+  frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
+
     isProduction: process.env.NODE_ENV === "production",
     cloudinaryCloudName:process.env.CLOUDINARY_CLOUD_NAME,
     cloudinaryApiKey:process.env.CLOUDINARY_API_KEY,
@@ -29,7 +30,10 @@ export const config = {
     googleClientId: process.env.GOOGLE_CLIENT_ID || "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   googleRedirectUri: process.env.GOOGLE_REDIRECT_URI || "",
-  frontendBaseUrl: process.env.FRONTEND_BASE_URL || "http://localhost:5173",
-  nodeEnv:process.env.NODE_ENV||"development"
-    
+  // frontendBaseUrl: process.env.FRONTEND_BASE_URL || "http://localhost:5173",
+  nodeEnv:process.env.NODE_ENV||"development",
+
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
 };
+

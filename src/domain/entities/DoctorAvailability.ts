@@ -15,8 +15,6 @@ export class DoctorAvailability {
     this.isBooked = isBooked;
   }
 
-  /* ================= GETTERS ================= */
-
   getId() {
     return this.id;
   }
@@ -41,7 +39,7 @@ export class DoctorAvailability {
     return this.isBooked;
   }
 
-  /* ================= BEHAVIOR ================= */
+//behaviour
 
   book() {
     if (this.isBooked) {

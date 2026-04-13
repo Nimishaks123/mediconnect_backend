@@ -1,75 +1,59 @@
-import { IVerifyOtpUseCase } from "../../interfaces/auth/IVerifyOtpUseCase";
-import { VerifyOtpDTO } from "../../dtos/auth/VerifyOtpDTO";
-import { VerifyOtpResponseDTO } from "../../dtos/auth/VerifyOtpDTO";
-
-import { IOtpRepository } from "../../../domain/interfaces/IOtpRepository";
-import { IUserRepository } from "../../../domain/interfaces/IUserRepository";
-
-import { AppError } from "../../../common/AppError";
-import { MESSAGES } from "../../../common/constants";
-import { StatusCode } from "../../../common/enums";
-
-import bcrypt from "bcryptjs";
+import { IVerifyOtpUseCase } from "@application/interfaces/auth/IVerifyOtpUseCase";
+import { VerifyOtpDTO, VerifyOtpResponseDTO } from "@application/dtos/auth/VerifyOtpDTO";
+import { IOtpRepository } from "@domain/interfaces/IOtpRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { ICodeVerifier } from "@domain/interfaces/ICodeVerifier";
+import { OtpCode } from "@domain/value-objects/OtpCode";
+import { OtpContext } from "@domain/entities/Otp";
+import { AuthMapper } from "@application/mappers/AuthMapper";
+import { AppError } from "@common/AppError";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { UserRole } from "@domain/enums/UserRole";
 
 export class VerifyOtpUseCase implements IVerifyOtpUseCase {
   constructor(
     private readonly otpRepo: IOtpRepository,
-    private readonly userRepo: IUserRepository
+    private readonly userRepo: IUserRepository,
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly codeVerifier: ICodeVerifier
   ) {}
 
   async execute(input: VerifyOtpDTO): Promise<VerifyOtpResponseDTO> {
-    const { email, code } = input;
+    const { email, code: rawCode } = input;
 
-    // 1️⃣ Validate input
-    if (!email || !code) {
-      throw new AppError(MESSAGES.OTP_INVALID, StatusCode.BAD_REQUEST);
-    }
+    const providedCode = new OtpCode(rawCode);
 
-    // 2️⃣ Fetch latest OTP
-    const otp = await this.otpRepo.findLatestByEmail(email,"SIGNUP");
+    const otp = await this.otpRepo.findLatestByEmail(email, OtpContext.SIGNUP);
+
     if (!otp) {
       throw new AppError(MESSAGES.OTP_INVALID, StatusCode.NOT_FOUND);
     }
 
-    // 3️⃣ Check expiry
-    if (otp.isExpired()) {
-      throw new AppError(MESSAGES.OTP_EXPIRED, StatusCode.BAD_REQUEST);
-    }
+ 
+    await otp.verify(providedCode, this.codeVerifier);
+    
+    otp.consume();
+    
+    await this.otpRepo.save(otp);
 
-    // 4️⃣ Compare OTP securely
-    const isValid = await bcrypt.compare(code, otp.code);
-
-    if (!isValid) {
-      if (otp.id && this.otpRepo.incrementAttempts) {
-        await this.otpRepo.incrementAttempts(otp.id);
-      }
-
-      throw new AppError(MESSAGES.OTP_INVALID, StatusCode.BAD_REQUEST);
-    }
-
-    // 5️⃣ Find user
     const user = await this.userRepo.findByEmail(email);
     if (!user) {
       throw new AppError(MESSAGES.USER_NOT_FOUND, StatusCode.NOT_FOUND);
     }
 
-    // 6️⃣ Mark user as verified
     user.verify();
-    await this.userRepo.updateById(user.id!, { isVerified: true });
+    await this.userRepo.save(user);
 
-    // 7️⃣ Cleanup OTP
     await this.otpRepo.deleteByEmail(email);
+    
+    let onboardingStatus;
+    if (user.role === UserRole.DOCTOR) {
+        const doc = await this.doctorRepo.findByUserId(user.id!);
+        onboardingStatus = doc?.onboardingStatus;
+    }
 
-    // 8️⃣ Return response
-    return {
-      success: true,
-      message: MESSAGES.OTP_VERIFIED_LOGIN,
-      user: {
-        id: user.id!,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    };
+    return AuthMapper.toVerifyOtpResponse(user, onboardingStatus);
   }
 }

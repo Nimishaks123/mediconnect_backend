@@ -1,11 +1,10 @@
-/**
- * DoctorSlotDTO
- * --------------
- * Represents a single bookable time slot for a doctor.
- * This is a READ-ONLY DTO used in slot generation responses.
- */
+
+// Represents a single bookable time slot for a doctor.
+
 export interface DoctorSlotDTO {
-  date: string;       // YYYY-MM-DD (e.g. 2026-02-01)
-  startTime: string;  // HH:mm (e.g. 09:00)
-  endTime: string;    // HH:mm (e.g. 09:15)
+  _id: string;        // Unique slot identifier (mapped as _id for frontend)
+  id: string;         // Alias for backward compatibility
+  date: string;       // YYYY-MM-DD
+  startTime: string;  // HH:mm
+  endTime: string;    // HH:mm
 }

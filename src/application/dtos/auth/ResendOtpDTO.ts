@@ -1,7 +1,7 @@
-export interface ResendOtpDTO {
+export type ResendOtpDTO ={
     email: string;
   }
-  export interface ResendOtpResponseDTO {
+  export type ResendOtpResponseDTO = {
   success: boolean;
   message: string;
   email: string;

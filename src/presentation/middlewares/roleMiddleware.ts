@@ -1,7 +1,8 @@
 import { Response, NextFunction } from "express";
 import { AuthenticatedRequest } from "./authMiddleware";
+import { UserRole } from "@application/constants/UserRole";
 
-export const allowRoles = (...roles: ("PATIENT" | "DOCTOR" | "ADMIN")[]) => {
+export const allowRoles = (...roles: UserRole[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });

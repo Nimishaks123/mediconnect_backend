@@ -1,4 +1,4 @@
-export interface OAuthUserDTO {
+export type OAuthUserDTO ={
   email: string;
   name: string;
   providerId: string;

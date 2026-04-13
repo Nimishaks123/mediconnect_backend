@@ -1,123 +1,128 @@
-import { Request, Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "@presentation/middlewares/authMiddleware";
+import { ICreateAppointmentUseCase } from "@application/interfaces/appointment/ICreateAppointmentUseCase";
+import { IConfirmAppointmentUseCase } from "@application/interfaces/appointment/IConfirmAppointmentUseCase";
 import { StatusCode } from "@common/enums";
-import { IBookAppointmentUseCase } from "@application/interfaces/appointments/IBookAppointmentUseCase";
-import { IGetDoctorAvailabilityUseCase } from "@application/interfaces/appointments/IGetDoctorAvailabilityUseCase";
-import { ICreateDoctorAvailabilityUseCase } from "@application/interfaces/appointments/ICreateDoctorAvailabilityUseCase";
-import { IConfirmAppointmentUseCase } from "@application/interfaces/appointments/IConfirmAppointmentUseCase";
-import { ICancelAppointmentUseCase } from "@application/interfaces/appointments/ICancelAppointmentUseCase";
-import { ICompleteAppointmentUseCase } from "@application/interfaces/appointments/ICompleteAppointmentUseCase";
+
+import { Response, Request } from "express";
+import { IGetPatientAppointmentUseCase } from "@application/interfaces/appointment/IGetPatientAppointmentsUseCase";
+import { GetPatientAppointmentsWithDoctor } from "@application/queries/GetPatientAppointmentsWithDoctor";
+import { CancelAppointmentByPatientUseCase } from "@application/usecases/appointment/CancelAppointmentByPatientUseCase";
+import { CreateCheckoutSessionUseCase } from "@application/usecases/appointment/CreateCheckoutSessionUseCase";
+import { VerifyWebhookUseCase } from "@application/usecases/appointment/VerifyWebhookUseCase";
+import { catchAsync } from "@presentation/utils/catchAsync";
+import { AppointmentPresentationMapper } from "../mappers/appointment/AppointmentPresentationMapper";
+import logger from "@common/logger";
+
 
 export class AppointmentController {
   constructor(
-    private readonly bookAppointmentUC: IBookAppointmentUseCase,
-    private readonly getAvailabilityUC: IGetDoctorAvailabilityUseCase,
-    private readonly createAvailabilityUC: ICreateDoctorAvailabilityUseCase,
+    private readonly createAppointmentUC: ICreateAppointmentUseCase,
     private readonly confirmAppointmentUC: IConfirmAppointmentUseCase,
-    private readonly cancelAppointmentUC: ICancelAppointmentUseCase,
-    private readonly completeAppointmentUC: ICompleteAppointmentUseCase
-  ) {}
+    private readonly getPatientAppointmentsUC: IGetPatientAppointmentUseCase,
+    private readonly getPatientAppointmentsWithDoctor: GetPatientAppointmentsWithDoctor,
+    private readonly cancelAppointmentByPatientUC: CancelAppointmentByPatientUseCase,
+    private readonly createCheckoutSessionUC: CreateCheckoutSessionUseCase,
+    private readonly verifyWebhookUC: VerifyWebhookUseCase
+  ) { }
 
-  bookAppointment = async (req: Request, res: Response, next: NextFunction) => {
+  /**
+   * PATIENT → Create appointment
+   */
+  create = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AppointmentPresentationMapper.toCreateAppointmentDTO(req);
+    const appointment = await this.createAppointmentUC.execute(dto);
+
+    res.status(StatusCode.CREATED).json({
+      success: true,
+      appointmentId: appointment.id,
+      status: appointment.status,
+    });
+  });
+
+  /**
+   * PAYMENT SUCCESS → Confirm appointment 
+   */
+  confirm = catchAsync(async (req: Request, res: Response) => {
+    const dto = AppointmentPresentationMapper.toConfirmAppointmentDTO(req);
+    await this.confirmAppointmentUC.execute(dto);
+
+    res.status(StatusCode.OK).json({
+      success: true,
+      message: "Appointment confirmed",
+    });
+  });
+
+  /**
+   * STRIPE WEBHOOK
+   */
+  stripeWebhook = catchAsync(async (req: Request, res: Response) => {
+    let event;
     try {
-      await this.bookAppointmentUC.execute({
-        doctorId: req.body.doctorId,
-        patientId: (req as any).user.id,
-        availabilityId: req.body.availabilityId,
-      });
-
-      res.status(StatusCode.CREATED).json({
-        message: "Appointment booked successfully",
-      });
-    } catch (error) {
-      next(error);
+      const sig = req.headers["stripe-signature"] as string;
+      event = this.verifyWebhookUC.execute(req.body, sig);
+    } catch (err: any) {
+      logger.error(` Webhook Signature Error: ${err.message}`);
+      return res.status(StatusCode.BAD_REQUEST).send(`Webhook Error: ${err.message}`);
     }
-  };
+    logger.info(`Received Stripe Event: ${event.type}`);
 
-  getDoctorAvailability = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const result = await this.getAvailabilityUC.execute({
-        doctorId: req.params.doctorId,
-        date: req.query.date as string,
-      });
-
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      next(error);
+    // Stripe Checkout
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as any;
+      const appointmentId = session.metadata?.appointmentId;
+      if (appointmentId) {
+        logger.info(`Processing checkout.session.completed for Appointment: ${appointmentId}`);
+        await this.confirmAppointmentUC.execute({ appointmentId });
+      }
     }
-  };
 
-  createAvailability = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await this.createAvailabilityUC.execute({
-        doctorId: (req as any).user.id,
-        date: req.body.date,
-        slots: req.body.slots,
-      });
-
-      res.status(StatusCode.CREATED).json({
-        message: "Availability created successfully",
-      });
-    } catch (error) {
-      next(error);
+    // Handle payment intent succeeded 
+    if (event.type === "payment_intent.succeeded") {
+      const intent = event.data.object as any;
+      const appointmentId = intent.metadata?.appointmentId;
+      if (appointmentId) {
+        logger.info(`Processing payment_intent.succeeded for Appointment: ${appointmentId}`);
+        await this.confirmAppointmentUC.execute({ appointmentId });
+      }
     }
-  };
 
-  confirmAppointment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await this.confirmAppointmentUC.execute({
-        appointmentId: req.params.id,
-        doctorId: (req as any).user.id,
-      });
+    res.json({ received: true });
+  });
 
-      res.status(StatusCode.OK).json({ message: "Appointment confirmed" });
-    } catch (error) {
-      next(error);
-    }
-  };
+  /**
+   * PATIENT → Cancel appointment and get refund 
+   */
+  cancelByPatient = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AppointmentPresentationMapper.toCancelByPatientDTO(req);
+    const { refundAmount } = await this.cancelAppointmentByPatientUC.execute(dto);
 
-  cancelAppointment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await this.cancelAppointmentUC.execute({
-        appointmentId: req.params.id,
-        actorId: (req as any).user.id,
-      });
+    res.status(StatusCode.OK).json({
+      success: true,
+      message: refundAmount > 0
+        ? `Appointment cancelled. ₹${refundAmount} has been refunded to your wallet.`
+        : "Appointment cancelled. No refund applicable as per cancellation policy.",
+      refundAmount
+    });
+  });
 
-      res.status(StatusCode.OK).json({ message: "Appointment cancelled" });
-    } catch (error) {
-      next(error);
-    }
-  };
+  /**
+   * CREATE STRIPE CHECKOUT SESSION
+   */
+  createCheckoutSession = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AppointmentPresentationMapper.toCreateCheckoutSessionDTO(req);
+    const session = await this.createCheckoutSessionUC.execute(dto);
 
-  completeAppointment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await this.completeAppointmentUC.execute({
-        appointmentId: req.params.id,
-        doctorId: (req as any).user.id,
-      });
+    res.status(StatusCode.OK).json({
+      checkoutUrl: session.url,
+    });
+  });
 
-      res.status(StatusCode.OK).json({ message: "Appointment completed" });
-    } catch (error) {
-      next(error);
-    }
-  };
+  /**
+   * GET APPOINTMENTS
+   */
+  getMyAppointments = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const patientId = AppointmentPresentationMapper.toGetPatientAppointmentsDTO(req);
+    const data = await this.getPatientAppointmentsWithDoctor.execute(patientId);
+    res.status(StatusCode.OK).json({ success: true, data });
+  });
 }

@@ -1,91 +1,71 @@
-import { ISignupUserUseCase } from "../../interfaces/auth/ISignupUserUseCase";
-import { SignupUserDTO } from "../../dtos/auth/SignupUserDTO";
-import { SignupUserResponseDTO } from "../../dtos/auth/SignupUserDTO";
-
-import { IUserRepository } from "../../../domain/interfaces/IUserRepository";
-import { IOtpRepository } from "../../../domain/interfaces/IOtpRepository";
-import { IMailer } from "../../../domain/interfaces/IMailer";
-
-import { User } from "../../../domain/entities/User";
-import { Otp } from "../../../domain/entities/Otp";
-
-import { AppError } from "../../../common/AppError";
-import { MESSAGES } from "../../../common/constants";
-import { StatusCode } from "../../../common/enums";
-import logger from "../../../common/logger";
-
-import bcrypt from "bcryptjs";
+import { ISignupUserUseCase } from "@application/interfaces/auth/ISignupUserUseCase";
+import { SignupUserDTO, SignupUserResponseDTO } from "@application/dtos/auth/SignupUserDTO";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IOtpRepository } from "@domain/interfaces/IOtpRepository";
+import { IPasswordHasher } from "@domain/interfaces/IPasswordHasher";
+import { IOtpGenerator } from "@application/interfaces/services/IOtpGenerator";
+import { IEventBus } from "@application/interfaces/IEventBus";
+import { User } from "@domain/entities/User";
+import { Otp, OtpContext } from "@domain/entities/Otp";
+import { UserSignedUpEvent } from "@domain/events/UserSignedUpEvent";
+import { AppError } from "@common/AppError";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { Doctor } from "@domain/entities/Doctor";
+import { UserRole } from "@domain/enums/UserRole";
 
 export class SignupUserUseCase implements ISignupUserUseCase {
   constructor(
     private readonly userRepo: IUserRepository,
+    private readonly doctorRepo: IDoctorRepository,
     private readonly otpRepo: IOtpRepository,
-    private readonly mailer: IMailer,
+    private readonly passwordHasher: IPasswordHasher,
+    private readonly otpGenerator: IOtpGenerator,
+    private readonly eventBus: IEventBus,
     private readonly otpExpiryMin: number = 5
   ) {}
 
   async execute(input: SignupUserDTO): Promise<SignupUserResponseDTO> {
     const { name, email, phoneNumber, password, role } = input;
 
-    //  Validate input
-    if (!name || !email || !password) {
-      throw new AppError(
-        MESSAGES.SIGNUP_INPUT_INVALID ?? "Name, email and password are required",
-        StatusCode.BAD_REQUEST
-      );
-    }
-
-    //  Check if user already exists
     const existing = await this.userRepo.findByEmail(email);
     if (existing) {
-      throw new AppError(
-        MESSAGES.EMAIL_ALREADY_REGISTERED,
-        StatusCode.CONFLICT
-      );
+      throw new AppError(MESSAGES.EMAIL_ALREADY_REGISTERED, StatusCode.CONFLICT);
     }
 
-    //  Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await this.passwordHasher.hash(password);
 
-    //  Create domain user (unverified by default)
-    const user = new User(
+    const user = User.create({
       name,
       email,
       phoneNumber,
       passwordHash,
-      role ?? "PATIENT",
-      false, // isVerified
-      false  // blocked
-    );
+      role: role as any,
+    });
 
     const createdUser = await this.userRepo.create(user);
 
-    //  Generate OTP
-    const plainOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpHash=await bcrypt.hash(plainOtp,10);
+    if (createdUser.role === UserRole.DOCTOR) {
+        const doc = Doctor.startOnboarding(createdUser.id!);
+        await this.doctorRepo.createDoctor(doc);
+    }
 
-    const otp = new Otp(
+    const plainOtp = this.otpGenerator.generate();
+    console.log("OTP GENERATED:", plainOtp, "for:", email)
+    const otpHash = await this.passwordHasher.hash(plainOtp);
+
+    const otp = Otp.create(
       email,
       otpHash,
-      new Date(Date.now() + this.otpExpiryMin * 60 * 1000) // expiresAt
+      new Date(Date.now() + this.otpExpiryMin * 60 * 1000),
+      OtpContext.SIGNUP
     );
 
     await this.otpRepo.create(otp);
-    if (process.env.NODE_ENV !== "production") {
-  logger.info(`Signup OTP for ${email}: ${plainOtp}`);
-}
 
-    //  Send OTP email
-    try {
-      await this.mailer.sendOtp(email, plainOtp);
-    } catch (err) {
-      throw new AppError(
-        MESSAGES.OTP_EMAIL_SEND_FAILED ?? "Failed to send OTP email",
-        StatusCode.INTERNAL_ERROR
-      );
-    }
+    await this.eventBus.publish(new UserSignedUpEvent(createdUser, plainOtp));
 
-    //  Return response DTO
     return {
       success: true,
       message: MESSAGES.USER_CREATED_OTP_SENT,

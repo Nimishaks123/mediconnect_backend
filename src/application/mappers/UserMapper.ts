@@ -12,4 +12,16 @@ export class UserMapper {
       isVerified: user.isVerified,
     };
   }
+
+  static toBlockResponse(user: User, message: string) {
+    return {
+      message,
+      user: {
+        id: user.id ?? "",
+        name: user.name,
+        email: user.email,
+        blocked: user.blocked,
+      },
+    };
+  }
 }

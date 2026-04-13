@@ -1,11 +1,15 @@
 export interface UploadDoctorDocumentsDTO {
   userId: string;
-  files: any; 
+  files: {
+    licenseDocument?: Express.Multer.File[];
+    certifications?: Express.Multer.File[];
+  };
+  profilePhotoUrl?: string;
 }
-import { DoctorResponseDTO } from "./DoctorResponseDTO";
+import { Doctor } from "@domain/entities/Doctor";
 
 export interface UploadDoctorDocumentsResponseDTO {
- doctor: DoctorResponseDTO;
+ doctor: Doctor;
   message: string;
 }
 

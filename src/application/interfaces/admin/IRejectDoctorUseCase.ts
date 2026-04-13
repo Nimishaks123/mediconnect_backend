@@ -1,7 +1,5 @@
-// src/application/interfaces/admin/IRejectDoctorUseCase.ts
-import { ApproveRejectDoctorDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
-import { ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorResponseDTO";
+import { RejectDoctorDTO, RejectDoctorResponseDTO } from "@application/dtos/admin/RejectDoctorDTO";
 
 export interface IRejectDoctorUseCase {
-  execute(dto: ApproveRejectDoctorDTO): Promise<ApproveRejectDoctorResponseDTO>;
+  execute(dto: RejectDoctorDTO): Promise<RejectDoctorResponseDTO>;
 }

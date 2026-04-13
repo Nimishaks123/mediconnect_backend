@@ -1,211 +1,98 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response} from "express";
 import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
-import { GetAllUsersDTO } from "@application/dtos/admin/GetAllUsersDTO";
+import { catchAsync } from "../utils/catchAsync";
+import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
+import { AdminMapper } from "../mappers/AdminMapper";
+
 import { IAdminLoginUseCase } from "@application/interfaces/admin/IAdminLoginUseCase";
-import { IGetPendingDoctorsUseCase } from "@application/interfaces/admin/IGetPendingDoctorsUseCase";
+import { IGetAdminDoctorsUseCase } from "@application/interfaces/admin/IGetAdminDoctorsUseCase";
 import { IApproveDoctorUseCase } from "@application/interfaces/admin/IApproveDoctorUseCase";
 import { IRejectDoctorUseCase } from "@application/interfaces/admin/IRejectDoctorUseCase";
 import { IBlockUnblockUserUseCase } from "@application/interfaces/admin/IBlockUnblockUserUseCase";
 import { IGetAllUsersUseCase } from "@application/interfaces/admin/IGetAllUsersUseCase";
 
-import {
-  AdminLoginDTO,
-  AdminLoginOutputDTO,
-} from "@application/dtos/admin/AdminLoginDTO";
-import {
-  ApproveRejectDoctorDTO,
-  ApproveRejectDoctorResponseDTO,
-} from "@application/dtos/admin/ApproveRejectDoctorDTO";
-import {
-  BlockUnblockUserDTO,
-  BlockUnblockUserResponseDTO,
-} from "@application/dtos/admin/BlockUnblockUserDTO";
-import {
-  GetPendingDoctorsOutputDTO,
-} from "@application/dtos/admin/GetPendingDoctorsOutputDTO";
+import { AdminLoginOutputDTO } from "@application/dtos/admin/AdminLoginDTO";
+import { ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
+import { RejectDoctorResponseDTO } from "@application/dtos/admin/RejectDoctorDTO";
+import { BlockUnblockUserResponseDTO } from "@application/dtos/admin/BlockUnblockUserDTO";
+import { AdminDoctorListResponseDTO } from "@application/dtos/admin/AdminDoctorListDTO";
 
 export class AdminController {
   constructor(
     private readonly adminLoginUseCase: IAdminLoginUseCase,
-    private readonly getPendingDoctorsUseCase: IGetPendingDoctorsUseCase,
+    private readonly getAdminDoctorsUseCase: IGetAdminDoctorsUseCase,
     private readonly approveDoctorUseCase: IApproveDoctorUseCase,
     private readonly rejectDoctorUseCase: IRejectDoctorUseCase,
     private readonly blockUnblockUserUseCase: IBlockUnblockUserUseCase,
     private readonly getAllUsersUseCase: IGetAllUsersUseCase
   ) {}
 
-  login = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const dto: AdminLoginDTO = {
-        email: req.body.email,
-        password: req.body.password,
-      };
+  login = catchAsync(async (req: Request, res: Response) => {
+    const dto = AdminMapper.toLoginDTO(req);
+    const result: AdminLoginOutputDTO = await this.adminLoginUseCase.execute(dto);
 
-      const result: AdminLoginOutputDTO =
-        await this.adminLoginUseCase.execute(dto);
+    logger.info("Admin login successful", { email: dto.email });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      logger.info("Admin login successful", { email: dto.email });
+  getDoctors = catchAsync(async (req: Request, res: Response) => {
+    const status = (req.query.status as any) || "PENDING";
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const search = req.query.search as string | undefined;
+    const sort = (req.query.sort as "NEWEST" | "OLDEST") || "NEWEST";
 
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Admin login failed");
-      next(error);
-    }
-  };
-  getPendingDoctors = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const result: GetPendingDoctorsOutputDTO =
-        await this.getPendingDoctorsUseCase.execute();
+    const result = await this.getAdminDoctorsUseCase.execute({
+      status,
+      page,
+      limit,
+      search,
+      sort
+    });
 
-      logger.info("Fetched pending doctors", { count: result.count });
+    logger.info("Admin fetched doctors list", { status, total: result.total, page });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Failed to fetch pending doctors");
-      next(error);
-    }
-  };
-approveDoctor = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const adminId = (req as any).user?.id;
+  approveDoctor = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AdminMapper.toApproveDoctorDTO(req);
+    const result: ApproveRejectDoctorResponseDTO = await this.approveDoctorUseCase.execute(dto);
 
-      const dto: ApproveRejectDoctorDTO = {
-        userId: req.body.userId,
-        adminId,
-      };
+    logger.info("Doctor approved", { userId: dto.userId, adminId: dto.adminId });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      const result: ApproveRejectDoctorResponseDTO =
-        await this.approveDoctorUseCase.execute(dto);
+  rejectDoctor = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AdminMapper.toRejectDoctorDTO(req);
+    const result: RejectDoctorResponseDTO = await this.rejectDoctorUseCase.execute(dto);
 
-      logger.info("Doctor approved", {
-        userId: dto.userId,
-        adminId,
-      });
+    logger.info("Doctor rejected", { userId: dto.userId, adminId: dto.adminId });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Approve doctor failed");
-      next(error);
-    }
-  };
+  blockUser = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AdminMapper.toBlockUnblockDTO(req);
+    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.block(dto);
 
-  rejectDoctor = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const adminId = (req as any).user?.id;
+    logger.info("User blocked", { userId: dto.userId, adminId: dto.adminId });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      const dto: ApproveRejectDoctorDTO = {
-        userId: req.body.userId,
-        reason: req.body.reason,
-        adminId,
-      };
+  unblockUser = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const dto = AdminMapper.toBlockUnblockDTO(req);
+    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.unblock(dto);
 
-      const result: ApproveRejectDoctorResponseDTO =
-        await this.rejectDoctorUseCase.execute(dto);
+    logger.info("User unblocked", { userId: dto.userId, adminId: dto.adminId });
+    res.status(StatusCode.OK).json(result);
+  });
 
-      logger.info("Doctor rejected", {
-        userId: dto.userId,
-        adminId,
-      });
-
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Reject doctor failed");
-      next(error);
-    }
-  };
-
-  blockUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const adminId = (req as any).user?.id;
-
-      const dto: BlockUnblockUserDTO = {
-        userId: req.body.userId,
-        adminId,
-      };
-
-      const result: BlockUnblockUserResponseDTO =
-        await this.blockUnblockUserUseCase.block(dto);
-
-      logger.info("User blocked", { userId: dto.userId, adminId });
-
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Block user failed");
-      next(error);
-    }
-  };
-
-  unblockUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const adminId = (req as any).user?.id;
-
-      const dto: BlockUnblockUserDTO = {
-        userId: req.body.userId,
-        adminId,
-      };
-
-      const result: BlockUnblockUserResponseDTO =
-        await this.blockUnblockUserUseCase.unblock(dto);
-
-      logger.info("User unblocked", { userId: dto.userId, adminId });
-
-      res.status(StatusCode.OK).json(result);
-    } catch (error) {
-      logger.error("Unblock user failed");
-      next(error);
-    }
-  };
-getAllUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-     res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
+  getAllUsers = catchAsync(async (req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 6;
-    const search = (req.query.search as string) || "";
-const role = req.query.role as string | undefined;
-const status = req.query.status as "ACTIVE" | "BLOCKED" | undefined;
 
-   const dto: GetAllUsersDTO = {
-  page,
-  limit,
-  search,
-  role,
-  status,
-};
-
+    const dto = AdminMapper.toGetAllUsersDTO(req);
     const result = await this.getAllUsersUseCase.execute(dto);
 
     logger.info("Fetched users with pagination", {
@@ -216,9 +103,5 @@ const status = req.query.status as "ACTIVE" | "BLOCKED" | undefined;
     });
 
     res.status(StatusCode.OK).json(result);
-  } catch (error) {
-    logger.error("Get all users failed");
-    next(error);
-  }
-};
+  });
 }

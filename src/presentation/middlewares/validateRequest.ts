@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodType } from "zod";
+import { ZodType, ZodError } from "zod";
+import { AppError } from "@common/AppError";
+import { StatusCode } from "@common/enums";
 
 export const validateRequest = (schema: ZodType) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -8,23 +10,23 @@ export const validateRequest = (schema: ZodType) => {
         body: req.body,
         params: req.params,
         query: req.query,
-      }) as {
-        body: any;
-        params: Record<string, string>;
-        query: Record<string, any>;
-      };
+      }) as any;
 
-      req.body = validated.body;
-      req.params = validated.params as any;
-      req.query = validated.query as any;
+      if (validated.body) req.body = validated.body;
+      if (validated.params) req.params = validated.params;
+      if (validated.query) req.query = validated.query;
 
       next();
     } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation Failed",
-        errors: error.errors,
-      });
+      if (error instanceof ZodError) {
+        const message = error.issues
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join(", ");
+        
+        console.error("Validation Error:", message);
+        return next(new AppError(message, StatusCode.BAD_REQUEST));
+      }
+      next(error);
     }
   };
 };

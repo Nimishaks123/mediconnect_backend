@@ -1,129 +1,60 @@
-import { IDoctorScheduleRepository } 
-  from "../../../domain/interfaces/IDoctorScheduleRepository";
-import { RRulePolicy } from "../../../domain/policies/RRulePolicy";
-import { DoctorSchedule } from "../../../domain/entities/DoctorSchedule";
-import { DoctorSlotDTO } from "../../dtos/doctorSchedule/DoctorSlotDTO";
+import { IDoctorScheduleRepository } from "@domain/interfaces/IDoctorScheduleRepository";
+import { IRRulePolicy } from "@domain/policies/IRRulePolicy";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepository";
+import { AppError } from "@common/AppError";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
+import { DateRange } from "@domain/value-objects/DateRange";
+import { SlotAvailabilityService } from "@domain/services/SlotAvailabilityService";
+import { Slot } from "@domain/entities/Slot";
 
 export class GenerateDoctorSlotsUseCase {
   constructor(
     private readonly scheduleRepository: IDoctorScheduleRepository,
-    private readonly rrulePolicy: RRulePolicy
-  ) {}
+    private readonly doctorRepository: IDoctorRepository,
+    private readonly appointmentRepository: IAppointmentRepository,
+    private readonly rrulePolicy: IRRulePolicy,
+    private readonly availabilityService: SlotAvailabilityService
+  ) { }
 
   async execute(
     doctorId: string,
     from: Date,
     to: Date
-  ): Promise<DoctorSlotDTO[]> {
+  ): Promise<Slot[]> {
+    const queryRange = DateRange.create(from, to);
+    // 🔗 Fetch Doctor Context: Try finding by Profile ID first, then fallback to User ID
+    let doctor = await this.doctorRepository.findById(doctorId);
+    if (!doctor) {
+      doctor = await this.doctorRepository.findByUserId(doctorId);
+    }
+    
+    if (!doctor) {
+      console.warn(`[GenerateDoctorSlots] Doctor not found with ID: ${doctorId}`);
+      throw new AppError(MESSAGES.DOCTOR_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
+    }
 
-    // Normalize query range
-    const queryFrom = new Date(from);
-    queryFrom.setHours(0, 0, 0, 0);
+    const doctorProfileId = doctor.getId();
 
-    const queryTo = new Date(to);
-    queryTo.setHours(23, 59, 59, 999);
-
-    const schedules =
-      await this.scheduleRepository.findByDoctorId(doctorId);
+    const [schedules, appointments] = await Promise.all([
+      this.scheduleRepository.findByDoctorId(doctorProfileId),
+      this.appointmentRepository.findByDoctorAndDateRange(
+        doctorProfileId,
+        queryRange.from.toISOString().split("T")[0],
+        queryRange.to.toISOString().split("T")[0]
+      )
+    ]);
+    
+    console.log(`[GenerateDoctorSlots] ID: ${doctorProfileId}, Schedules found: ${schedules.length}`);
 
     if (schedules.length === 0) return [];
 
-    const slots: DoctorSlotDTO[] = [];
-
-    for (const schedule of schedules) {
-      //  Normalize schedule range
-      const scheduleFrom = new Date(schedule.validFrom);
-      scheduleFrom.setHours(0, 0, 0, 0);
-
-      const scheduleTo = new Date(schedule.validTo);
-      scheduleTo.setHours(23, 59, 59, 999);
-
-      //  Effective range
-      const effectiveFrom =
-        queryFrom > scheduleFrom ? queryFrom : scheduleFrom;
-
-      const effectiveTo =
-        queryTo < scheduleTo ? queryTo : scheduleTo;
-
-      if (effectiveFrom > effectiveTo) continue;
-
-      const workingDates = this.rrulePolicy.generateDates(
-        schedule.rrule,
-        effectiveFrom,
-        effectiveTo
-      );
-
-      for (const date of workingDates) {
-        slots.push(
-          ...this.generateSlotsForDate(schedule, date)
-        );
-      }
-    }
-
-    // Deduplicate
-    return slots.filter(
-      (slot, index, self) =>
-        index ===
-        self.findIndex(
-          (s) =>
-            s.date === slot.date &&
-            s.startTime === slot.startTime
-        )
+    // 🧬 Domain Generation: Delegate to aggregate roots
+    const allSlots = schedules.flatMap(schedule => 
+      schedule.generateSlots(queryRange, this.rrulePolicy)
     );
-  }
-
-  // Generate slots for one day
-  
-  private generateSlotsForDate(
-    schedule: DoctorSchedule,
-    date: Date
-  ): DoctorSlotDTO[] {
-    const slots: DoctorSlotDTO[] = [];
-
-    for (const window of schedule.timeWindows) {
-      const [sh, sm] = window.start.split(":").map(Number);
-      const [eh, em] = window.end.split(":").map(Number);
-
-      // date creation 
-      let current = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        sh,
-        sm,
-        0,
-        0
-      );
-
-      const end = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        eh,
-        em,
-        0,
-        0
-      );
-
-      while (
-        current.getTime() + schedule.slotDuration * 60000 <=
-        end.getTime()
-      ) {
-        const slotStart = new Date(current);
-        const slotEnd = new Date(
-          current.getTime() + schedule.slotDuration * 60000
-        );
-
-        slots.push({
-          date: slotStart.toISOString().split("T")[0],
-          startTime: slotStart.toTimeString().slice(0, 5),
-          endTime: slotEnd.toTimeString().slice(0, 5),
-        });
-
-        current = slotEnd;
-      }
-    }
-
-    return slots;
+    const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
+    return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
   }
 }

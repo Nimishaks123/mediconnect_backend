@@ -1,5 +1,5 @@
 import { LoginWithGoogleDTO } from "@application/dtos/auth/LoginWithGoogleDTO";
-import { LoginResponseDTO } from "@application/dtos/auth/LoginResponseDTO";
+import { LoginResponseDTO } from "@application/dtos/auth/LoginDTO";
 
 export interface ILoginWithGoogleUseCase {
   getGoogleAuthUrl(): string;

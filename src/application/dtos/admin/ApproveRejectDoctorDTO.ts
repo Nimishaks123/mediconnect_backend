@@ -1,10 +1,9 @@
-// src/application/dtos/admin/ApproveRejectDoctorDTO.ts
-export interface ApproveRejectDoctorDTO {
+export type ApproveRejectDoctorDTO ={
   userId: string; // doctor's userId
   adminId: string;
   reason?: string; // required for reject
 }
-export interface ApproveRejectDoctorResponseDTO {
+export type ApproveRejectDoctorResponseDTO = {
   message: string;
   doctor: {
     id: string;

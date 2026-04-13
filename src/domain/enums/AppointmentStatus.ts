@@ -1,7 +1,8 @@
-// domain/enums/AppointmentStatus.ts
 export enum AppointmentStatus {
-  PENDING = "PENDING",
+  PAYMENT_PENDING = "PAYMENT_PENDING",
   CONFIRMED = "CONFIRMED",
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
+  RESCHEDULED = "RESCHEDULED",
+  EXPIRED = "EXPIRED",
 }

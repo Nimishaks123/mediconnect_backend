@@ -1,31 +1,31 @@
 import { Doctor } from "../../../domain/entities/Doctor";
-import { DoctorDB } from "../../../infrastructure/persistence/models/DoctorModel";
+import { DoctorDB } from "../models/DoctorModel";
 
-export class DoctorMapper {
-  static toDomain(doc: DoctorDB): Doctor {
-    return new Doctor(
-      doc.userId.toString(),
-      doc.specialty ?? "",
-      doc.qualification ?? "",
-      doc.experience ?? 0,
-      doc.consultationFee ?? 0,
-      doc.registrationNumber ?? "",
-      doc.licenseDocument,
-      doc.certifications ?? [],
-      doc.aboutMe ?? "",
-      doc.profilePhoto,
-      doc.onboardingStatus,
-      doc.verificationStatus,
-      doc.verifiedBy?.toString(),
-      doc.verifiedAt || null,
-      doc.rejectionReason || null,
-      doc._id.toString()
-    );
+export class DoctorPersistenceMapper {
+static toDomain(doc: DoctorDB): Doctor {
+    return Doctor.rehydrate({
+      id: doc._id.toString(),
+      userId: doc.userId.toString(),
+      specialty: doc.specialty,
+      qualification: doc.qualification,
+      experience: doc.experience,
+      consultationFee: doc.consultationFee,
+      registrationNumber: doc.registrationNumber,
+      licenseDocument: doc.licenseDocument,
+      certifications: doc.certifications,
+      aboutMe: doc.aboutMe,
+      profilePhoto: doc.profilePhoto,
+      onboardingStatus: doc.onboardingStatus,
+      verificationStatus: doc.verificationStatus,
+      verifiedBy: doc.verifiedBy,
+      verifiedAt: doc.verifiedAt,
+      rejectionReason: doc.rejectionReason,
+    });
   }
 
-  static toPersistence(doctor: Doctor) {
+  static toPersistence(doctor: Doctor): Partial<DoctorPersistenceDTO> {
     return {
-      userId: doctor.userId,
+      userId: doctor.getUserId(),
       specialty: doctor.specialty,
       qualification: doctor.qualification,
       experience: doctor.experience,
@@ -35,10 +35,29 @@ export class DoctorMapper {
       certifications: doctor.certifications,
       aboutMe: doctor.aboutMe,
       profilePhoto: doctor.profilePhoto,
+      onboardingStatus: doctor.onboardingStatus,
       verificationStatus: doctor.verificationStatus,
       verifiedBy: doctor.verifiedBy,
       verifiedAt: doctor.verifiedAt,
       rejectionReason: doctor.rejectionReason,
     };
   }
+}
+
+interface DoctorPersistenceDTO {
+  userId: string;
+  specialty: string | null;
+  qualification: string | null;
+  experience: number | null;
+  consultationFee: number | null;
+  registrationNumber: string | null;
+  licenseDocument: string | null;
+  certifications: string[];
+  aboutMe: string | null;
+  profilePhoto: string | null;
+  onboardingStatus: string;
+  verificationStatus: string;
+  verifiedBy: string | null;
+  verifiedAt: Date | null;
+  rejectionReason: string | null;
 }

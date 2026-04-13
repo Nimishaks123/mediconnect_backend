@@ -1,6 +1,6 @@
 import { UserRole } from "@domain/enums/UserRole";
 
-export interface UserDTO {
+export type UserDTO = {
   id: string;
   name: string;
   email: string;

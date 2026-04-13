@@ -1,7 +1,7 @@
-export interface RefreshTokenDTO {
+export type RefreshTokenDTO = {
   refreshToken: string;
 }
-export interface RefreshTokenResponseDTO {
+export type RefreshTokenResponseDTO = {
   accessToken: string;
   refreshToken?: string; 
 }

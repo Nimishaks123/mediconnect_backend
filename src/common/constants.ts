@@ -34,8 +34,11 @@ export const MESSAGES = {
   DOCTOR_PROFILE_UPDATE_INVALID: "Invalid doctor profile update request",
   DOCTOR_DOCUMENTS_INVALID: "Invalid document upload request",
   DOCTOR_DOCUMENTS_UPLOADED: "Documents uploaded successfully",
- DEFAULT_DOCTOR_AVATAR :
-  "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff"
-
-  };
-  
+  DEFAULT_DOCTOR_AVATAR:
+    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff",
+  OTP_ALREADY_VERIFIED: "OTP already verified",
+  PATIENT_PROFILE_ALREADY_EXISTS: "Patient profile already exists",
+  PATIENT_PROFILE_CREATED_SUCCESSFULLY: "Patient profile created successfully",
+  PATIENT_PROFILE_UPDATED_SUCCESSFULLY: "Patient profile updated successfully",
+  PATIENT_PROFILE_NOT_FOUND: "Patient profile not found",
+};

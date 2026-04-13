@@ -1,25 +1,18 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-/* ======================
-   Time Window Subschema
-   ====================== */
 const TimeWindowSchema = new Schema(
   {
-    start: { type: String, required: true }, // "09:00"
-    end: { type: String, required: true },   // "13:00"
+    start: { type: String, required: true }, 
+    end: { type: String, required: true },   
   },
   { _id: false }
 );
 
-/* ======================
-   Doctor Schedule Schema
-   ====================== */
 const DoctorScheduleSchema = new Schema(
   {
     doctorId: {
       type: String,
       required: true,
-      unique: true,
       index: true,
     },
 
@@ -52,13 +45,15 @@ const DoctorScheduleSchema = new Schema(
       type: String,
       required: true,
     },
+
+    cancelledSlots: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );
 
-/* ======================
-   Document Interface
-   ====================== */
 export interface DoctorScheduleDocument extends Document {
   doctorId: string;
   rrule: string;
@@ -70,11 +65,9 @@ export interface DoctorScheduleDocument extends Document {
   validFrom: Date;
   validTo: Date;
   timezone: string;
+  cancelledSlots: string[];
 }
 
-/* ======================
-   Model Export ✅
-   ====================== */
 export const DoctorScheduleModel =
   mongoose.models.DoctorSchedule ||
   mongoose.model<DoctorScheduleDocument>(

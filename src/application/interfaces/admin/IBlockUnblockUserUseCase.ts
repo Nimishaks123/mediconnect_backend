@@ -1,5 +1,4 @@
-import { BlockUnblockUserDTO } from "@application/dtos/admin/BlockUnblockUserDTO";
-import { BlockUnblockUserResponseDTO } from "@application/dtos/admin/BlockUnblockUserResponseDTO";
+import { BlockUnblockUserDTO, BlockUnblockUserResponseDTO } from "@application/dtos/admin/BlockUnblockUserDTO";
 
 export interface IBlockUnblockUserUseCase {
   block(input: BlockUnblockUserDTO): Promise<BlockUnblockUserResponseDTO>;

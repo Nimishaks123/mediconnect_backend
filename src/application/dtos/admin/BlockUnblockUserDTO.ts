@@ -1,9 +1,8 @@
-// src/application/dtos/admin/BlockUnblockUserDTO.ts
-export interface BlockUnblockUserDTO {
+export type BlockUnblockUserDTO = {
   userId: string;
   adminId: string;
 }
-export interface BlockUnblockUserResponseDTO {
+export type BlockUnblockUserResponseDTO ={
   message: string;
   user: {
     id: string;

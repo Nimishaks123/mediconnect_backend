@@ -1,63 +1,47 @@
 import { Router } from "express";
-import { AppointmentController } from "../controllers/AppointmentController";
-import { authMiddleware } from "../middlewares/authMiddleware";
-import { allowRoles } from "../middlewares/roleMiddleware";
+import { AppointmentController } from "@presentation/controllers/AppointmentController";
+import { authMiddleware } from "@presentation/middlewares/authMiddleware";
+import { allowRoles } from "@presentation/middlewares/roleMiddleware";
+import { UserRole } from "@application/constants/UserRole";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
+import { createAppointmentSchema } from "@presentation/validation/appointmentValidation";
+import { paramIdSchema } from "@presentation/validation/commonValidation";
 
 export function appointmentRoutes(
-  controller: AppointmentController
-) {
+  appointmentController: AppointmentController
+): Router {
   const router = Router();
 
-  /* =========================
-     PUBLIC
-     ========================= */
+  const requirePatient = [authMiddleware, allowRoles(UserRole.PATIENT)];
+  const requireAdmin = [authMiddleware, allowRoles(UserRole.ADMIN)];
+
+  // Create appointment (payment pending)
+  router.post(
+    "/",
+    ...requirePatient,
+    validateRequest(createAppointmentSchema),
+    appointmentController.create
+  );
+
+  // Create Stripe Checkout session
+  router.post(
+    "/:id/checkout",
+    ...requirePatient,
+    validateRequest(paramIdSchema),
+    appointmentController.createCheckoutSession
+  );
+
+  router.post(
+    "/:id/confirm",
+    ...requireAdmin,
+    validateRequest(paramIdSchema),
+    appointmentController.confirm
+  );
+
   router.get(
-    "/doctors/:doctorId/availability",
-    controller.getDoctorAvailability
-  );
-
-  /* =========================
-     PATIENT
-     ========================= */
-  router.post(
-    "/appointments",
-    authMiddleware,
-    allowRoles("PATIENT"),
-    controller.bookAppointment
-  );
-
-  /* =========================
-     DOCTOR
-     ========================= */
-  router.post(
-    "/availability",
-    authMiddleware,
-    allowRoles("DOCTOR"),
-    controller.createAvailability
-  );
-
-  router.patch(
-    "/appointments/:id/confirm",
-    authMiddleware,
-    allowRoles("DOCTOR"),
-    controller.confirmAppointment
-  );
-
-  router.patch(
-    "/appointments/:id/complete",
-    authMiddleware,
-    allowRoles("DOCTOR"),
-    controller.completeAppointment
-  );
-
-  /* =========================
-     DOCTOR OR PATIENT
-     ========================= */
-  router.patch(
-    "/appointments/:id/cancel",
-    authMiddleware,
-    allowRoles("DOCTOR", "PATIENT"),
-    controller.cancelAppointment
+    "/me",
+    ...requirePatient,
+    appointmentController.getMyAppointments
   );
 
   return router;

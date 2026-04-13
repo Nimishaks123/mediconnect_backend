@@ -44,18 +44,18 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface PatientDB extends Document {
   userId: string; // ✅ STRING
-
-  dateOfBirth: Date | null;
+  name: string;
+  age: number;
   gender: "MALE" | "FEMALE" | "OTHER" | null;
-
+  phone: string;
+  address: string | null;
+  profileImage: string | null;
+  dateOfBirth: Date | null;
   medicalHistory: Record<string, any>;
   allergies: string[];
-
   bloodGroup: string | null;
-
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,19 +67,20 @@ const PatientSchema = new Schema<PatientDB>(
       required: true,
       unique: true,
     },
-
-    dateOfBirth: { type: Date, default: null },
+    name: { type: String, required: true },
+    age: { type: Number, required: true },
     gender: {
       type: String,
       enum: ["MALE", "FEMALE", "OTHER"],
       default: null,
     },
-
+    phone: { type: String, required: true },
+    address: { type: String, default: null },
+    profileImage: { type: String, default: null },
+    dateOfBirth: { type: Date, default: null },
     medicalHistory: { type: Object, default: {} },
     allergies: { type: [String], default: [] },
-
     bloodGroup: { type: String, default: null },
-
     emergencyContactName: { type: String, default: null },
     emergencyContactPhone: { type: String, default: null },
   },

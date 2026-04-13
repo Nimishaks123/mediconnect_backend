@@ -1,7 +1,7 @@
-export interface SendForgotPasswordOtpDTO {
+export type SendForgotPasswordOtpDTO= {
   email: string;
 }
-export interface SendForgotPasswordOtpResponseDTO {
+export type SendForgotPasswordOtpResponseDTO = {
   message: string;
 }
 

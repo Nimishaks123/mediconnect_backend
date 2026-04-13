@@ -1,11 +1,14 @@
-// src/domain/interfaces/IPatientRepository.ts
 import { Patient } from "../entities/Patient";
 
 export interface IPatientRepository {
-  create(patient: Patient): Promise<Patient>;     // inherited behavior
+  /**
+   * Finder methods for aggregate retrieval.
+   */
   findByUserId(userId: string): Promise<Patient | null>;
-  updateByUserId(
-    userId: string,
-    update: Partial<Patient>
-  ): Promise<Patient | null>;
+  findById(id: string): Promise<Patient | null>;
+
+  /**
+   * Aggregate Save Pattern Standard for all persistence .
+   */
+  save(patient: Patient): Promise<Patient>;
 }

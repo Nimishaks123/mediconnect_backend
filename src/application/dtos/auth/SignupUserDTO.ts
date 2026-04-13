@@ -1,12 +1,12 @@
 import { UserRole } from "@domain/enums/UserRole";
-export interface SignupUserDTO {
+export type SignupUserDTO ={
     name: string;
     email: string;
     phoneNumber?: string;
     password: string;
     role:UserRole;
   }
-  export interface SignupUserResponseDTO {
+  export type SignupUserResponseDTO ={
   success: boolean;
   message: string;
   userId: string;

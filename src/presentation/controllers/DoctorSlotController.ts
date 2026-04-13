@@ -1,235 +1,75 @@
-// // // import { Response, NextFunction } from "express";
-// // // import { GenerateDoctorSlotsUseCase } from "../../application/usecases/schedule/GenerateDoctorSlotsUseCase";
-// // // import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-
-// // // export class DoctorSlotController {
-// // //   constructor(
-// // //     private readonly generateSlotsUseCase: GenerateDoctorSlotsUseCase
-// // //   ) {}
-
-// // //   async getSlots(
-// // //     req: AuthenticatedRequest,
-// // //     res: Response,
-// // //     next: NextFunction
-// // //   ) {
-// // //     try {
-// // //       const { from, to } = req.query;
-
-// // //       const slots = await this.generateSlotsUseCase.execute(
-// // //         req.user.id,
-// // //         new Date(from as string),
-// // //         new Date(to as string)
-// // //       );
-
-// // //       res.status(200).json(slots);
-// // //     } catch (error) {
-// // //       next(error);
-// // //     }
-// // //   }
-// // // }
-// // import { Response, NextFunction } from "express";
-// // import { GenerateDoctorSlotsUseCase } from "../../application/usecases/schedule/GenerateDoctorSlotsUseCase";
-// // import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-
-// // export class DoctorSlotController {
-// //   constructor(
-// //     private readonly generateSlotsUseCase: GenerateDoctorSlotsUseCase
-// //   ) {}
-
-// //   // 👨‍⚕️ DOCTOR → view own slots
-// //   async getDoctorSlots(
-// //     req: AuthenticatedRequest,
-// //     res: Response,
-// //     next: NextFunction
-// //   ) {
-// //     try {
-// //       const { from, to } = req.query;
-
-// //       const slots = await this.generateSlotsUseCase.execute(
-// //         req.user.id, // doctorId from auth
-// //         new Date(from as string),
-// //         new Date(to as string)
-// //       );
-
-// //       res.status(200).json(slots);
-// //     } catch (error) {
-// //       next(error);
-// //     }
-// //   }
-
-// //   // 🧑‍⚕️ PATIENT → view selected doctor's slots
-// //   async getSlotsForPatient(
-// //     req: AuthenticatedRequest,
-// //     res: Response,
-// //     next: NextFunction
-// //   ) {
-// //     try {
-// //       const { doctorId } = req.params;
-// //       const { from, to } = req.query;
-
-// //       const slots = await this.generateSlotsUseCase.execute(
-// //         doctorId, // ✅ IMPORTANT FIX
-// //         new Date(from as string),
-// //         new Date(to as string)
-// //       );
-
-// //       res.status(200).json(slots);
-// //     } catch (error) {
-// //       next(error);
-// //     }
-// //   }
-// // }
-// import { Response, NextFunction } from "express";
-// import { GenerateDoctorSlotsUseCase } from "../../application/usecases/schedule/GenerateDoctorSlotsUseCase";
-// import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-
-// export class DoctorSlotController {
-//   constructor(
-//     private readonly generateSlotsUseCase: GenerateDoctorSlotsUseCase
-//   ) {}
-
-//   // 👨‍⚕️ Doctor → own slots
-//   async getDoctorSlots(
-//     req: AuthenticatedRequest,
-//     res: Response,
-//     next: NextFunction
-//   ) {
-//     try {
-//       const { from, to } = req.query;
-
-//       const slots = await this.generateSlotsUseCase.execute(
-//         req.user.id, // ✅ doctorId from token
-//         new Date(from as string),
-//         new Date(to as string)
-//       );
-
-//       res.status(200).json(slots);
-//     } catch (error) {
-//       next(error);
-//     }
-//   }
-
-//   // 🧑‍⚕️ Patient → selected doctor slots
-//   async getSlotsForPatient(
-//     req: AuthenticatedRequest,
-//     res: Response,
-//     next: NextFunction
-//   ) {
-//     try {
-//       const { doctorId } = req.params;
-//       const { from, to } = req.query;
-
-//       const slots = await this.generateSlotsUseCase.execute(
-//         doctorId, // doctorId from URL
-//         new Date(from as string),
-//         new Date(to as string)
-//       );
-
-//       res.status(200).json(slots);
-//     } catch (error) {
-//       next(error);
-//     }
-//   }
-// }
-import { Response, NextFunction } from "express";
+import { StatusCode } from "@common/enums";
+import { Response } from "express";
 import { GenerateDoctorSlotsUseCase } from "../../application/usecases/schedule/GenerateDoctorSlotsUseCase";
+import { DeleteDoctorSlotUseCase } from "../../application/usecases/schedule/DeleteDoctorSlotUseCase";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import { AppError } from "../../common/AppError";
+import { catchAsync } from "../utils/catchAsync";
+import { DoctorMapper } from "../mappers/doctor/DoctorMapper";
 
 export class DoctorSlotController {
   constructor(
-    private readonly generateSlotsUseCase: GenerateDoctorSlotsUseCase
+    private readonly generateSlotsUseCase: GenerateDoctorSlotsUseCase,
+    private readonly deleteDoctorSlotUseCase: DeleteDoctorSlotUseCase
   ) {}
 
-  /**
-   * 👨‍⚕️ Doctor → view own slots
-   * GET /api/doctor/schedules/slots?from=YYYY-MM-DD&to=YYYY-MM-DD
-   */
-  async getDoctorSlots(
+  // Doctor → view own slots
+  getDoctorSlots = catchAsync(async (
     req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { from, to } = req.query;
-
-      if (!from || !to) {
-        throw new AppError("from and to dates are required", 400);
-      }
-
-      const slots = await this.generateSlotsUseCase.execute(
-        req.user.id,                 // ✅ doctorId from token
-        new Date(from as string),
-        new Date(to as string)
-      );
-
-      res.status(200).json(slots);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Patient → view selected doctor's slots
-   * GET /api/patient/doctors/:doctorId/slots?from=YYYY-MM-DD&to=YYYY-MM-DD
-   */
-//   async getSlotsForPatient(
-//     req: AuthenticatedRequest,
-//     res: Response,
-//     next: NextFunction
-//   ) {
-//     try {
-//       const { doctorId } = req.params;
-//       const { from, to } = req.query;
-
-//       if (!doctorId) {
-//         throw new AppError("doctorId is required", 400);
-//       }
-
-//       if (!from || !to) {
-//         throw new AppError("from and to dates are required", 400);
-//       }
-
-//       const slots = await this.generateSlotsUseCase.execute(
-//         doctorId,                    // ✅ FIXED: doctorId from URL
-//         new Date(from as string),
-//         new Date(to as string)
-//       );
-
-//       res.status(200).json(slots);
-//     } catch (error) {
-//       next(error);
-//     }
-//   }
-async getSlotsForPatient(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const { doctorId } = req.params;
-    const { from, to } = req.query;
-
-    if (!from || !to) {
-      return res.status(400).json({ message: "from and to required" });
+    res: Response
+   ) => {
+    if (!req.query.from || !req.query.to) {
+      throw new AppError("from and to dates are required", 400);
     }
 
-    const fromDate = new Date(from as string);
-    fromDate.setHours(0, 0, 0, 0);
-
-    const toDate = new Date(to as string);
-    toDate.setHours(23, 59, 59, 999);
-
-    const slots = await this.generateSlotsUseCase.execute(
-      doctorId,
-      fromDate,
-      toDate
+    const dto = DoctorMapper.toGenerateSlotsDTO(req);
+    const domainSlots = await this.generateSlotsUseCase.execute(
+      dto.doctorId,               
+      dto.from,
+      dto.to
     );
 
-    res.status(200).json(slots);
-  } catch (error) {
-    next(error);
-  }
-}
+    // ✅ Map domain entities to response DTOs
+    const slots = domainSlots.map(s => DoctorMapper.toSlotResponse(s));
 
+    res.status(StatusCode.OK).json(slots);
+  });
+
+  getSlotsForPatient = catchAsync(async (
+    req: AuthenticatedRequest,
+    res: Response
+  ) => {
+    if (!req.query.from || !req.query.to) {
+      throw new AppError("from and to required", 400);
+    }
+
+    // Disable caching for patient slots
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
+    const dto = DoctorMapper.toGetSlotsForPatientDTO(req);
+    const domainSlots = await this.generateSlotsUseCase.execute(
+      dto.doctorId,
+      dto.from,
+      dto.to
+    );
+
+    // ✅ Map domain entities to response DTOs
+    const slots = domainSlots.map(s => DoctorMapper.toSlotResponse(s));
+
+    res.status(StatusCode.OK).json(slots);
+  });
+
+  deleteSlotController = catchAsync(async (
+    req: AuthenticatedRequest,
+    res: Response
+  ) => {
+    const slotId = req.params.slotId;
+    const doctorUserId = req.user.id;
+
+    await this.deleteDoctorSlotUseCase.execute(slotId, doctorUserId);
+
+    res.status(StatusCode.OK).json({ success: true, message: "Slot deleted successfully" });
+  });
 }

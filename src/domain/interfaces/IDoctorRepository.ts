@@ -1,45 +1,31 @@
-// import { Doctor } from "../entities/Doctor";
-
-// export interface IDoctorRepository {
-//   createDoctor(doctor: Doctor): Promise<Doctor>;
-
-//   findByUserId(userId: string): Promise<Doctor | null>;
-
-//   findDoctor(filter: Partial<Doctor>): Promise<Doctor | null>;
-//   findDoctors(filter?: Partial<Doctor>): Promise<Doctor[]>;
-
-//   updateByUserId(userId: string, update: Partial<Doctor>): Promise<Doctor>;
-//   uploadDocuments(
-//     userId: string,
-//     update: {
-//       licenseDocument?: string;
-//       profilePhoto?: string;
-//       certifications?: string[];
-//     }
-//   ): Promise<Doctor>;
-// }
 import { Doctor } from "@domain/entities/Doctor";
+
 export interface IDoctorRepository {
+  /**
+   * Persists a new doctor aggregate.
+   */
   createDoctor(doctor: Doctor): Promise<Doctor>;
 
+  /**
+   * Finder methods for aggregate retrieval.
+   */
   findByUserId(userId: string): Promise<Doctor | null>;
+  findById(id: string): Promise<Doctor | null>;
+  findOneByRegistrationNumber(regNumber: string): Promise<Doctor | null>;
 
   findByOnboardingStatus(
     status: Doctor["onboardingStatus"]
   ): Promise<Doctor[]>;
-    findByVerificationStatus(
+
+  findByVerificationStatus(
     status: Doctor["verificationStatus"]
   ): Promise<Doctor[]>;
 
-  updateByUserId(
-    userId: string,
-    update: Partial<Doctor>
-  ): Promise<Doctor>;
+  findVerifiedDoctors(): Promise<Doctor[]>;
 
- uploadDocuments(
-  userId: string,
-  update: Partial<Doctor>
-): Promise<Doctor>;
-findVerifiedDoctors(): Promise<Doctor[]>;
-
+  /**
+   * ✅ Aggregate Save Pattern: Used for all updates to ensure atomic state persistence.
+   * Partial update methods (like updateByUserId) have been decommissioned for DDD compliance.
+   */
+  save(doctor: Doctor): Promise<Doctor>;
 }

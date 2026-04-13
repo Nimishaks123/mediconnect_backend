@@ -1,8 +1,8 @@
-export interface ResetPasswordDTO {
+export type ResetPasswordDTO = {
   email: string;
   newPassword: string;
 }
-export interface ResetPasswordResponseDTO {
+export type ResetPasswordResponseDTO ={
   message: string;
 }
 

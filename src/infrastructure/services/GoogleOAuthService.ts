@@ -6,8 +6,8 @@ import { config } from "@common/config";
 
 export class GoogleOAuthService implements IOAuthService {
 
-  getAuthUrl(): string {
-    const params = querystring.stringify({
+  getAuthUrl(state?: string): string {
+    const paramsOptions: any = {
       client_id: config.googleClientId,
       redirect_uri: config.googleRedirectUri,
       response_type: "code",
@@ -18,7 +18,13 @@ export class GoogleOAuthService implements IOAuthService {
       ].join(" "),
       access_type: "offline",
       prompt: "consent",
-    });
+    };
+
+    if (state) {
+      paramsOptions.state = state;
+    }
+
+    const params = querystring.stringify(paramsOptions);
 
     return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   }

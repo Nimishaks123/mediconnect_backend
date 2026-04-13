@@ -1,25 +1,3 @@
-// import {User} from "../../domain/entities/User"
-// export interface IUserRepository {
-//   create(user: User): Promise<User>;
-
-//   findByEmail(email: string): Promise<User | null>;
-//   findById(id: string): Promise<User | null>;
-
-//   findAll(): Promise<User[]>;
-
-//   updateById(
-//     id: string,
-//     update: Partial<User>
-//   ): Promise<User>;
-//   findPaginated(params: {
-//     skip: number;
-//     limit: number;
-//     search: string;
-//   }): Promise<{
-//     users: User[];
-//     total: number;
-//   }>;
-// }
 import { User } from "../../domain/entities/User";
 
 export interface IUserRepository {
@@ -27,6 +5,7 @@ export interface IUserRepository {
 
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
+  findByIds(ids: string[]): Promise<User[]>;
 
   findAll(): Promise<User[]>;
 
@@ -46,4 +25,6 @@ export interface IUserRepository {
     users: User[];
     total: number;
   }>;
+
+  save(user: User): Promise<User>;
 }

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { TokenService } from "../../application/services/TokenService";
+import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 import { config } from "../../common/config";
 
-const tokenService = new TokenService(
+const tokenService = new JwtTokenService(
   config.accessTokenSecret,
   config.accessTokenExpiry,
   config.refreshTokenSecret,

@@ -29,6 +29,11 @@ export class UserRepository
     return this.findOne({ _id: id });
   }
 
+  async findByIds(ids: string[]): Promise<User[]> {
+    const docs = await this.model.find({ _id: { $in: ids } });
+    return docs.map((doc) => this.toDomain(doc));
+  }
+
   async findAll(): Promise<User[]> {
     return this.findMany();
   }
@@ -45,52 +50,55 @@ export class UserRepository
   }
   
   async findPaginated(params: {
-  skip: number;
-  limit: number;
-  search?: string;
-  role?: string;
-  status?: "ACTIVE" | "BLOCKED";
-}): Promise<{ users: User[]; total: number }> {
-  const { skip, limit, search, role, status } = params;
+    skip: number;
+    limit: number;
+    search?: string;
+    role?: string;
+    status?: "ACTIVE" | "BLOCKED";
+  }): Promise<{ users: User[]; total: number }> {
+    const { skip, limit, search, role, status } = params;
 
-  //  Build query dynamically
-  const query: any = {};
+    const query: any = {};
 
-  //  Search by name or email
-  if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
-    ];
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (role) {
+      query.role = role;
+    }
+
+    if (status === "ACTIVE") {
+      query.blocked = false;
+    }
+
+    if (status === "BLOCKED") {
+      query.blocked = true;
+    }
+
+    const [docs, total] = await Promise.all([
+      this.model
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      this.model.countDocuments(query),
+    ]);
+
+    return {
+      users: docs.map((doc) => this.toDomain(doc)),
+      total,
+    };
   }
 
-  //  Role filter
-  if (role) {
-    query.role = role;
+  async save(user: User): Promise<User> {
+    const updated = await this.update({ _id: user.id }, this.toPersistence(user));
+    if (!updated) {
+      throw new AppError("Failed to save user", 500);
+    }
+    return updated;
   }
-
-  // 🚦 Status filter
-  if (status === "ACTIVE") {
-    query.blocked = false;
-  }
-
-  if (status === "BLOCKED") {
-    query.blocked = true;
-  }
-
-  const [docs, total] = await Promise.all([
-    this.model
-      .find(query)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 }),
-    this.model.countDocuments(query),
-  ]);
-
-  return {
-    users: docs.map(this.toDomain),
-    total,
-  };
-}
-
 }

@@ -8,7 +8,7 @@ export function publicDoctorRoutes(
 ) {
   const router = Router();
 
-  // USER / PATIENT — view verified doctors
+  // view verified doctors
   router.get(
     "/verified",
     authMiddleware, // user must be logged in

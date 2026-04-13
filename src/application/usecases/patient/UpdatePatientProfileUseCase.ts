@@ -1,31 +1,47 @@
+import { IPatientRepository } from "@domain/interfaces/IPatientRepository";
+import { AppError } from "@common/AppError";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
+import { Patient } from "@domain/entities/Patient";
+import { UpdatePatientProfileDTO } from "@application/dtos/patient/UpdatePatientProfileDTO";
 
-
-import { IPatientRepository } from "../../../domain/interfaces/IPatientRepository";
-import { AppError } from "../../../common/AppError";
+export interface UpdatePatientProfileResponseDTO {
+  message: string;
+  patient: Patient; 
+}
 
 export class UpdatePatientProfileUseCase {
   constructor(
     private readonly patientRepo: IPatientRepository,
   ) {}
 
-  async execute(userId: string, updates: Partial<{
-    dateOfBirth: Date | null;
-    gender: "MALE" | "FEMALE" | "OTHER" | null;
-    medicalHistory: Record<string, any>;
-    allergies: string[];
-    bloodGroup: string | null;
-    emergencyContactName: string | null;
-    emergencyContactPhone: string | null;
-  }>) {
+ 
+  async execute(input: UpdatePatientProfileDTO): Promise<UpdatePatientProfileResponseDTO> {
+    const { userId, updates } = input;
 
     const existing = await this.patientRepo.findByUserId(userId);
-    if (!existing) throw new AppError("Patient profile not found", 404);
+    if (!existing) {
+      throw new AppError(MESSAGES.PATIENT_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
+    }
 
-    const updated = await this.patientRepo.updateByUserId(userId, updates);
+    let age = updates.age;
+    if (updates.dateOfBirth) {
+      const today = new Date();
+      const birthDate = new Date(updates.dateOfBirth);
+      age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+    }
+
+    existing.updateProfile({ ...updates, age });
+
+    const saved = await this.patientRepo.save(existing);
 
     return {
-      message: "Patient profile updated successfully",
-      patient: updated
+      message: MESSAGES.PATIENT_PROFILE_UPDATED_SUCCESSFULLY,
+      patient: saved
     };
   }
 }

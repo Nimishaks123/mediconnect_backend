@@ -1,8 +1,10 @@
-
-
-import { IUserRepository } from "../../../domain/interfaces/IUserRepository";
-import { IPatientRepository } from "../../../domain/interfaces/IPatientRepository";
-import { AppError } from "../../../common/AppError";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IPatientRepository } from "@domain/interfaces/IPatientRepository";
+import { AppError } from "@common/AppError";
+import { GetPatientProfileDTO } from "@application/dtos/patient/GetPatientProfileDTO";
+import { GetPatientProfileResponseDTO } from "@application/dtos/patient/GetPatientProfileResponseDTO";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
 
 export class GetPatientProfileUseCase {
   constructor(
@@ -10,27 +12,26 @@ export class GetPatientProfileUseCase {
     private readonly patientRepo: IPatientRepository,
   ) {}
 
-  async execute(userId: string) {
+ 
+  async execute(input: GetPatientProfileDTO): Promise<GetPatientProfileResponseDTO> {
+    const { userId } = input;
 
     const user = await this.userRepo.findById(userId);
-    if (!user) throw new AppError("User not found", 404);
-
-    if (user.role !== "PATIENT") {
-      throw new AppError("User is not a patient", 400);
+    if (!user) {
+      throw new AppError(MESSAGES.USER_NOT_FOUND, StatusCode.NOT_FOUND);
+    }
+    if (!user.isPatient()) {
+      throw new AppError("Access denied: User is not a patient", StatusCode.BAD_REQUEST);
     }
 
     const patient = await this.patientRepo.findByUserId(userId);
-    if (!patient) throw new AppError("Patient profile not found", 404);
+    if (!patient) {
+      throw new AppError(MESSAGES.PATIENT_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
+    }
 
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role
-      },
-      patient: patient
+      user,
+      patient
     };
   }
 }

@@ -1,8 +1,8 @@
-export interface VerifyForgotPasswordOtpDTO {
+export type VerifyForgotPasswordOtpDTO ={
   email: string;
   code: string;
 }
-export interface VerifyForgotPasswordOtpResponseDTO {
+export type VerifyForgotPasswordOtpResponseDTO = {
   message: string;
 }
 

@@ -1,48 +1,49 @@
-// src/application/usecases/admin/ApproveDoctorUseCase.ts
 import { IApproveDoctorUseCase } from "@application/interfaces/admin/IApproveDoctorUseCase";
-import { ApproveRejectDoctorDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
-import { ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
+import { ApproveRejectDoctorDTO, ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
-import { INotificationService } from "@domain/interfaces/INotificationService";
-import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IEventBus } from "@application/interfaces/IEventBus";
+import { DoctorApprovedEvent } from "@domain/events/DoctorApprovedEvent";
 import { AppError } from "@common/AppError";
+import { StatusCode } from "@common/enums";
+import { DoctorMapper } from "../../mappers/DoctorMapper";
+
+import { ICreateNotificationUseCase } from "@application/interfaces/notification/ICreateNotificationUseCase";
+import { NotificationType } from "@domain/enums/NotificationType";
 
 export class ApproveDoctorUseCase implements IApproveDoctorUseCase {
-  constructor(private readonly doctorRepo: IDoctorRepository,
-   private readonly userRepo:IUserRepository,
-    private readonly notificationService: INotificationService,
+  constructor(
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly eventBus: IEventBus,
+    private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
 
   async execute(dto: ApproveRejectDoctorDTO): Promise<ApproveRejectDoctorResponseDTO> {
     const { userId, adminId } = dto;
 
     const doctor = await this.doctorRepo.findByUserId(userId);
-    if (!doctor) throw new AppError("Doctor not found", 404);
-    const user=await this.userRepo.findById(userId);
-    if(!user) throw new AppError("User not found");
-    // call domain method
+    if (!doctor) {
+      throw new AppError("Doctor not found", StatusCode.NOT_FOUND);
+    }
+
     doctor.approve(adminId);
 
-    const updated = await this.doctorRepo.updateByUserId(userId, {
-      verificationStatus: doctor.verificationStatus,
-      onboardingStatus: doctor.onboardingStatus,
-      verifiedBy: doctor.verifiedBy,
-      verifiedAt: doctor.verifiedAt,
-      rejectionReason: doctor.rejectionReason,
-    });
-    await this.notificationService.sendDoctorApproved(user.email)
+    const savedDoctor = await this.doctorRepo.save(doctor);
 
-    return {
-      message: "Doctor approved",
-      doctor: {
-        id: updated.id ?? "",
-        userId: updated.userId,
-        verificationStatus: updated.verificationStatus,
-        onboardingStatus: updated.onboardingStatus,
-        verifiedBy: updated.verifiedBy ?? null,
-        verifiedAt: updated.verifiedAt ? updated.verifiedAt.toISOString() : null,
-        rejectionReason: updated.rejectionReason ?? null,
-      },
-    };
+    await this.eventBus.publish(
+      new DoctorApprovedEvent(
+        savedDoctor.getId()!,
+        savedDoctor.getUserId(),
+        adminId
+      )
+    );
+
+    await this.createNotificationUseCase.execute({
+      userId: userId,
+      title: "Profile Verified",
+      message: "Congratulations! Your professional profile has been verified.",
+      type: NotificationType.SYSTEM
+    });
+
+    return DoctorMapper.toApproveDoctorResponse(savedDoctor);
   }
 }

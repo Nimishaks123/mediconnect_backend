@@ -1,5 +1,6 @@
 export interface VerifiedDoctorResponseDTO {
-  id: string;
+  doctorId: string;
+  userId: string;
   name: string;
   specialty: string;
   about: string;

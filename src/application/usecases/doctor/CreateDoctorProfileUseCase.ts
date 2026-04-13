@@ -1,24 +1,15 @@
-import { ICreateDoctorProfileUseCase } from "../../interfaces/doctor/ICreateDoctorProfileUseCase";
-import { CreateDoctorProfileDTO } from "../../dtos/doctor/CreateDoctorProfileDTO";
-import { CreateDoctorProfileResponseDTO } from "../../dtos/doctor/CreateDoctorProfileDTO";
+import { ICreateDoctorProfileUseCase } from "@application/interfaces/doctor/ICreateDoctorProfileUseCase";
+import { CreateDoctorProfileDTO, CreateDoctorProfileResponseDTO } from "@application/dtos/doctor/CreateDoctorProfileDTO";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { AppError } from "@common/AppError";
+import { MESSAGES } from "@common/constants";
+import { StatusCode } from "@common/enums";
+import { DoctorMapper } from "@application/mappers/DoctorMapper";
 
-import { IDoctorRepository } from "../../../domain/interfaces/IDoctorRepository";
-
-import { AppError } from "../../../common/AppError";
-import { MESSAGES } from "../../../common/constants";
-import { StatusCode } from "../../../common/enums";
-import { DoctorMapper } from "../../mappers/DoctorMapper";
-
-
-export class CreateDoctorProfileUseCase
-  implements ICreateDoctorProfileUseCase
-{
+export class CreateDoctorProfileUseCase implements ICreateDoctorProfileUseCase {
   constructor(private readonly doctorRepo: IDoctorRepository) {}
 
-  async execute(
-    input: CreateDoctorProfileDTO
-  ): Promise<CreateDoctorProfileResponseDTO> {
-
+  async execute(input: CreateDoctorProfileDTO): Promise<CreateDoctorProfileResponseDTO> {
     const doctor = await this.doctorRepo.findByUserId(input.userId);
     if (!doctor) {
       throw new AppError(
@@ -27,36 +18,28 @@ export class CreateDoctorProfileUseCase
       );
     }
 
-    doctor.specialty = input.specialty;
-    doctor.qualification = input.qualification;
-    doctor.experience = input.experience;
-    doctor.consultationFee = input.consultationFee;
-    doctor.registrationNumber = input.registrationNumber;
-    doctor.aboutMe = input.aboutMe;
+    const trimmedRegNumber = input.registrationNumber.trim().toUpperCase();
+    
+    // Check uniqueness of registration number
+    const existingReg = await this.doctorRepo.findOneByRegistrationNumber(trimmedRegNumber);
+    if (existingReg && existingReg.getUserId() !== input.userId) {
+      throw new AppError("Registration number already exists", StatusCode.BAD_REQUEST);
+    }
 
-    doctor.completeBasicInfo();;
-
-    const updated = await this.doctorRepo.updateByUserId(input.userId, {
-      specialty: doctor.specialty,
-      qualification: doctor.qualification,
-      experience: doctor.experience,
-      consultationFee: doctor.consultationFee,
-      registrationNumber: doctor.registrationNumber,
-      aboutMe: doctor.aboutMe,
-      onboardingStatus: doctor.onboardingStatus,
+    doctor.updateBasicInfo({
+      specialty: input.specialty.trim(),
+      qualification: input.qualification.trim(),
+      experience: input.experience,
+      consultationFee: input.consultationFee,
+      registrationNumber: trimmedRegNumber,
+      aboutMe: input.aboutMe.trim(),
     });
 
-    if (!updated) {
-      throw new AppError(
-        MESSAGES.DOCTOR_PROFILE_UPDATE_FAILED ?? "Failed to update doctor profile",
-        StatusCode.INTERNAL_ERROR
-      );
-    }
+    const updated = await this.doctorRepo.save(doctor);
+
     return {
-     doctor: DoctorMapper.toResponse(updated),
-      message:
-        MESSAGES.DOCTOR_BASIC_PROFILE_CREATED ??
-        "Doctor basic profile created successfully",
+      doctor: DoctorMapper.toResponse(updated),
+      message: MESSAGES.DOCTOR_BASIC_PROFILE_CREATED ?? "Doctor basic profile created successfully",
     };
   }
 }

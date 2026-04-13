@@ -3,6 +3,15 @@ import { DoctorController } from "../controllers/DoctorController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { requireAuth } from "../middlewares/requireAuth";
 import { upload } from "../middlewares/multer";
+import { validateRequest } from "../middlewares/validateRequest";
+import { requireValidCloudinaryUrls } from "../middlewares/validateCloudinaryUrl";
+import {
+  startOnboardingSchema,
+  updateDoctorProfileSchema,
+  uploadDoctorDocumentsSchema,
+  submitForVerificationSchema,
+  getDoctorProfileSchema
+} from "../validation/doctorValidation";
 
 export function doctorRoutes(doctorController: DoctorController) {
   const router = Router();
@@ -14,6 +23,7 @@ export function doctorRoutes(doctorController: DoctorController) {
     "/onboarding/start",
     authMiddleware,
     requireAuth,
+    validateRequest(startOnboardingSchema),
     doctorController.startOnboarding
   );
 
@@ -24,6 +34,7 @@ export function doctorRoutes(doctorController: DoctorController) {
     "/profile",
     authMiddleware,
     requireAuth,
+    validateRequest(updateDoctorProfileSchema),
     doctorController.updateProfile
   );
 
@@ -36,9 +47,10 @@ export function doctorRoutes(doctorController: DoctorController) {
     requireAuth,
     upload.fields([
       { name: "licenseDocument", maxCount: 1 },
-      { name: "profilePhoto", maxCount: 1 },
       { name: "certifications", maxCount: 10 },
     ]),
+    requireValidCloudinaryUrls(["profilePhotoUrl"]),
+    validateRequest(uploadDoctorDocumentsSchema),
     doctorController.uploadDocuments
   );
 
@@ -49,6 +61,7 @@ export function doctorRoutes(doctorController: DoctorController) {
     "/submit",
     authMiddleware,
     requireAuth,
+    validateRequest(submitForVerificationSchema),
     doctorController.submitForVerification
   );
 
@@ -59,13 +72,14 @@ export function doctorRoutes(doctorController: DoctorController) {
     "/profile",
     authMiddleware,
     requireAuth,
+    validateRequest(getDoctorProfileSchema),
     doctorController.getProfile
   );
 
   router.get(
     "/verified",
-    doctorController.getVerifiedDoctors // public → no auth
+    doctorController.getVerifiedDoctors // public 
   );
-
+  
   return router;
 }

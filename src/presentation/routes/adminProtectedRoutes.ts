@@ -3,6 +3,7 @@ import {
   rejectDoctorSchema,
   blockUserSchema,
   unblockUserSchema,
+  getAllUsersSchema,
 } from "../validation/adminValidation";
 
 import { AdminController } from "../controllers/AdminController";
@@ -13,7 +14,7 @@ import { validateRequest } from "../middlewares/validateRequest";
 export function adminProtectedRoutes(adminController: AdminController) {
   const router = Router();
 
-  router.get("/pending-doctors", adminController.getPendingDoctors);
+  router.get("/doctors", adminController.getDoctors);
 
   router.post(
     "/approve-doctor",
@@ -39,7 +40,11 @@ export function adminProtectedRoutes(adminController: AdminController) {
     adminController.unblockUser
   );
 
-  router.get("/users", adminController.getAllUsers);
+  router.get(
+    "/users",
+    validateRequest(getAllUsersSchema),
+    adminController.getAllUsers
+  );
 
   return router;
 }
