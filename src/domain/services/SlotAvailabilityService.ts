@@ -39,8 +39,9 @@ export class SlotAvailabilityService {
         );
       });
 
+      const compositeId = `${slot.scheduleId}|${slot.id}`;
       return {
-        _id: slot.scheduleId,
+        _id: compositeId,
         id: slot.id,
         date: slot.date,
         startTime: slot.startTime,

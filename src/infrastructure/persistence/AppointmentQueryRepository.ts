@@ -184,6 +184,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
 
     return docs.map((doc: any) => ({
       appointmentId: doc.appointmentId,
+      patientId: doc.patientId?._id?.toString() ?? "Unknown",
       patientName: doc.patientId?.name ?? "Unknown",
       patientEmail: doc.patientId?.email,
       date: doc.date,
@@ -229,6 +230,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
           cancellationCharge: 1,
           doctor: {
             id: { $toString: "$doctor._id" },
+            userId: { $toString: "$doctor.userId" },
             name: { $ifNull: ["$doctorUser.name", "Unknown"] },
             specialty: { $ifNull: ["$doctor.specialty", "Medical Specialist"] },
             profilePhoto: { $ifNull: ["$doctor.photo", null] }

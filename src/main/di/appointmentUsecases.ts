@@ -7,7 +7,8 @@ import {
   RescheduleAppointmentUseCase,
   CancelAppointmentByPatientUseCase,
   CreateCheckoutSessionUseCase,
-  VerifyWebhookUseCase
+  VerifyWebhookUseCase,
+  HandleStripeWebhookUseCase
 } from "@application/usecases/appointment";
 import { 
   appointmentRepository, 
@@ -29,7 +30,10 @@ export const createAppointmentUseCase =
 export const cancelAppointmentUseCase =
   new CancelAppointmentUseCase(
     appointmentRepository,
-    eventBus
+    eventBus,
+    createNotificationUseCase,
+    doctorRepository,
+    userRepository
   );
 
 export const confirmAppointmentUseCase =
@@ -48,7 +52,8 @@ export const getPatientAppointmentUseCase =
 
 export const getDoctorAppointmentsUseCase = 
   new GetDoctorAppointmentsUseCase(
-    appointmentRepository
+    appointmentRepository,
+    doctorRepository
   );
 
 export const rescheduleAppointmentUseCase = 
@@ -56,13 +61,19 @@ export const rescheduleAppointmentUseCase =
     appointmentRepository,
     doctorScheduleRepository,
     eventBus,
-    rrulePolicy
+    rrulePolicy,
+    createNotificationUseCase,
+    doctorRepository,
+    userRepository
   );
 
 export const cancelAppointmentByPatientUseCase = 
   new CancelAppointmentByPatientUseCase(
     appointmentRepository,
-    eventBus
+    eventBus,
+    createNotificationUseCase,
+    doctorRepository,
+    userRepository
   );
 
 export const createCheckoutSessionUseCase = 
@@ -74,4 +85,9 @@ export const createCheckoutSessionUseCase =
 export const verifyWebhookUseCase =
   new VerifyWebhookUseCase(
     paymentService
+  );
+
+export const handleStripeWebhookUseCase =
+  new HandleStripeWebhookUseCase(
+    confirmAppointmentUseCase
   );

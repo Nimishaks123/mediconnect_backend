@@ -6,7 +6,9 @@ import { CreatePatientProfileResponseDTO } from "@application/dtos/patient/Creat
 import { MESSAGES } from "@common/constants";
 import { StatusCode } from "@common/enums";
 
-export class CreatePatientProfileUseCase {
+import { ICreatePatientProfileUseCase } from "../../interfaces/patient/ICreatePatientProfileUseCase";
+
+export class CreatePatientProfileUseCase implements ICreatePatientProfileUseCase {
   constructor(
     private readonly patientRepo: IPatientRepository,
   ) { }

@@ -30,8 +30,9 @@ export class DoctorMapper {
   }
 
   static toSlotResponse(slot: Slot): DoctorSlotDTO {
+    const compositeId = slot.scheduleId ? `${slot.scheduleId}|${slot.id}` : slot.id;
     return {
-      _id: slot.id,
+      _id: compositeId,
       id: slot.id,
       date: slot.date,
       startTime: slot.startTime,

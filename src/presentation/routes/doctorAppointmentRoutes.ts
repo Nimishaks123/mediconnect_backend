@@ -1,46 +1,34 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { DoctorAppointmentController } from '@presentation/controllers/DoctorAppointmentController';
-import { authMiddleware } from '@presentation/middlewares/authMiddleware';
 import { allowRoles } from '@presentation/middlewares/roleMiddleware';
 import { UserRole } from "@application/constants/UserRole";
-import { z } from 'zod';
 import { validateRequest } from '@presentation/middlewares/validateRequest';
+import {
+  GetDoctorAppointmentsSchema,
+  CancelAppointmentByDoctorSchema,
+  RescheduleAppointmentSchema
+} from '@presentation/validators/doctorAppointment.validator';
 
-export function doctorAppointmentRoutes(controller: DoctorAppointmentController) {
+export function doctorAppointmentRoutes(controller: DoctorAppointmentController, authMiddleware: RequestHandler) {
   const router = Router();
+
+  router.use(authMiddleware, allowRoles(UserRole.DOCTOR));
 
   router.get(
     '/',
-    authMiddleware,
-    allowRoles(UserRole.DOCTOR),
+    validateRequest(GetDoctorAppointmentsSchema),
     controller.getAppointments
   );
 
-  const cancelSchema = z.object({
-    body: z.object({
-      reason: z.enum(['EXPIRED', 'FAILED', 'CANCELLED']).optional(),
-    }),
-  });
-
   router.patch(
     '/:id/cancel',
-    authMiddleware,
-    allowRoles(UserRole.DOCTOR),
-    validateRequest(cancelSchema),
+    validateRequest(CancelAppointmentByDoctorSchema),
     controller.cancel
   );
 
-  const rescheduleSchema = z.object({
-    body: z.object({
-      newSlotId: z.string(), //availability id 
-    }),
-  });
-
   router.patch(
     '/:id/reschedule',
-    authMiddleware,
-    allowRoles(UserRole.DOCTOR),
-    validateRequest(rescheduleSchema),
+    validateRequest(RescheduleAppointmentSchema),
     controller.reschedule
   );
 

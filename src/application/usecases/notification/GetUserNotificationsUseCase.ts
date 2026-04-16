@@ -4,7 +4,8 @@ import { INotificationRepository } from "../../../domain/interfaces/INotificatio
 export class GetUserNotificationsUseCase implements IGetUserNotificationsUseCase {
   constructor(private readonly notificationRepo: INotificationRepository) {}
 
-  async execute(userId: string, page: number, limit: number) {
+  async execute(dto: { userId: string; page: number; limit: number }) {
+    const { userId, page, limit } = dto;
     const { notifications, total, unreadCount } = await this.notificationRepo.findByUser(userId, page, limit);
 
     return {

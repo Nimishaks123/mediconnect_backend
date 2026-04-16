@@ -1,6 +1,5 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { AppointmentController } from "@presentation/controllers/AppointmentController";
-import { authMiddleware } from "@presentation/middlewares/authMiddleware";
 import { allowRoles } from "@presentation/middlewares/roleMiddleware";
 import { UserRole } from "@application/constants/UserRole";
 import { validateRequest } from "@presentation/middlewares/validateRequest";
@@ -8,7 +7,8 @@ import { createAppointmentSchema } from "@presentation/validation/appointmentVal
 import { paramIdSchema } from "@presentation/validation/commonValidation";
 
 export function appointmentRoutes(
-  appointmentController: AppointmentController
+  appointmentController: AppointmentController,
+  authMiddleware: RequestHandler
 ): Router {
   const router = Router();
 

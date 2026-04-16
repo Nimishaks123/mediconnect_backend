@@ -1,7 +1,5 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { DoctorScheduleController } from "../controllers/DoctorScheduleController";
-import { authMiddleware } from "../middlewares/authMiddleware";
-import { requireAuth } from "../middlewares/requireAuth";
 import { validateRequest } from "../middlewares/validateRequest";
 import {
   createDoctorScheduleSchema,
@@ -9,21 +7,21 @@ import {
 } from "../validation/doctorValidation";
 
 export function doctorScheduleRoutes(
-  controller: DoctorScheduleController
+  controller: DoctorScheduleController,
+  authMiddleware: RequestHandler
 ) {
   const router = Router();
 
+  router.use(authMiddleware);
+
   router.post(
     "/",
-    authMiddleware,
-    requireAuth,
     validateRequest(createDoctorScheduleSchema),
     controller.create
   );
 
   router.get(
     "/slots-with-booking",
-    authMiddleware,
     validateRequest(getSlotsWithBookingSchema),
     controller.getSlotsWithBooking
   );

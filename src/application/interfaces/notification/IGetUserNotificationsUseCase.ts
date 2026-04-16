@@ -1,7 +1,8 @@
 import { Notification } from "@domain/entities/Notification";
+import { GetUserNotificationsDTO } from "../../dtos/notification/GetUserNotificationsDTO";
 
 export interface IGetUserNotificationsUseCase {
-  execute(userId: string, page: number, limit: number): Promise<{
+  execute(dto: GetUserNotificationsDTO): Promise<{
     notifications: Notification[];
     total: number;
     unreadCount: number;

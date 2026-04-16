@@ -8,23 +8,35 @@ export class DeleteDoctorSlotUseCase {
     private readonly doctorRepository: IDoctorRepository
   ) {}
 
-  async execute(compositeId: string, doctorUserId: string): Promise<void> {
+  async execute(dto: {
+    slotId: string;
+    doctorUserId: string;
+  }): Promise<void> {
+    const { slotId, doctorUserId } = dto;
     const doctor = await this.doctorRepository.findByUserId(doctorUserId);
     if (!doctor) {
       throw new AppError("Doctor profile not found", 404);
     }
 
-    const [scheduleId] = compositeId.split("|");
+    if (!slotId.includes("|")) {
+       throw new AppError("Invalid slot identifier format", 400);
+    }
+
+    const [scheduleId, slotReference] = slotId.split("|");
+    if (!slotReference || slotReference.trim() === "") {
+        throw new AppError("Slot reference is missing in identifier", 400);
+    }
+
     const schedule = await this.scheduleRepository.findById(scheduleId);
 
     if (!schedule) {
-      throw new AppError("Slot not found", 404);
+      throw new AppError("Associated schedule not found", 404);
     }
 
     if (schedule.doctorId !== doctor.getId()) {
-      throw new AppError("Unauthorized access to delete this slot", 403);
+      throw new AppError("Permission denied: You do not own this schedule", 403);
     }
 
-    await this.scheduleRepository.deleteSlotById(compositeId);
+    await this.scheduleRepository.deleteSlotById(slotId);
   }
 }

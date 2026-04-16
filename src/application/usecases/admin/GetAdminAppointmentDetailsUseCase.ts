@@ -3,7 +3,9 @@ import { AdminAppointmentDetailsDTO } from "@application/dtos/admin/AdminAppoint
 import { AppError } from "@common/AppError";
 import { StatusCode } from "@common/enums";
 
-export class GetAdminAppointmentDetailsUseCase {
+import { IGetAdminAppointmentDetailsUseCase } from "@application/interfaces/admin/IGetAdminAppointmentDetailsUseCase";
+
+export class GetAdminAppointmentDetailsUseCase implements IGetAdminAppointmentDetailsUseCase {
   constructor(private readonly appointmentQueryRepo: IAppointmentQueryRepository) {}
 
   async execute(id: string): Promise<AdminAppointmentDetailsDTO> {

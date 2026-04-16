@@ -8,6 +8,8 @@ import {
   forgotPasswordSendOtpSchema,
   forgotPasswordVerifyOtpSchema,
   forgotPasswordResetSchema,
+  refreshTokenSchema,
+  googleCallbackSchema,
 } from "../validation/authValidation";
 import { validateRequest } from "../middlewares/validateRequest";
 
@@ -17,62 +19,62 @@ export function authRoutes(authController: AuthController) {
   router.post(
     "/signup",
     validateRequest(signupSchema),
-    authController.signup.bind(authController)
+    authController.signup
   );
 
   router.post(
     "/verify-otp",
     validateRequest(verifyOtpSchema),
-    authController.verifyOtp.bind(authController)
+    authController.verifyOtp
   );
 
   router.post(
     "/resend-otp",
     validateRequest(resendOtpSchema),
-    authController.resendOtp.bind(authController)
+    authController.resendOtp
   );
 
   router.post(
     "/login",
     validateRequest(loginSchema),
-    authController.login.bind(authController)
+    authController.login
   );
 
   router.post(
     "/refresh",
-    authController.refresh.bind(authController)
+    validateRequest(refreshTokenSchema),
+    authController.refresh
   );
 
   router.post(
     "/forgot-password/send-otp",
     validateRequest(forgotPasswordSendOtpSchema),
-    authController.sendForgotPasswordOtp.bind(authController)
+    authController.sendForgotPasswordOtp
   );
 
   router.post(
     "/forgot-password/verify-otp",
     validateRequest(forgotPasswordVerifyOtpSchema),
-    authController.verifyForgotPasswordOtp.bind(authController)
+    authController.verifyForgotPasswordOtp
   );
 
   router.post(
     "/forgot-password/reset",
     validateRequest(forgotPasswordResetSchema),
-    authController.resetPassword.bind(authController)
+    authController.resetPassword
   );
 
   //  GOOGLE OAUTH 
   router.get(
     "/google",
-    authController.googleAuthUrl.bind(authController)
+    authController.googleAuthUrl
   );
 
   router.get(
     "/google/callback",
-    authController.googleCallback.bind(authController)
+    validateRequest(googleCallbackSchema),
+    authController.googleCallback
   );
-
-  console.log("AUTH ROUTES LOADED ✔");
 
   return router;
 }

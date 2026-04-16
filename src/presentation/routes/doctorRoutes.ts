@@ -1,7 +1,5 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { DoctorController } from "../controllers/DoctorController";
-import { authMiddleware } from "../middlewares/authMiddleware";
-import { requireAuth } from "../middlewares/requireAuth";
 import { upload } from "../middlewares/multer";
 import { validateRequest } from "../middlewares/validateRequest";
 import { requireValidCloudinaryUrls } from "../middlewares/validateCloudinaryUrl";
@@ -13,16 +11,21 @@ import {
   getDoctorProfileSchema
 } from "../validation/doctorValidation";
 
-export function doctorRoutes(doctorController: DoctorController) {
+export function doctorRoutes(doctorController: DoctorController, authMiddleware: RequestHandler) {
   const router = Router();
+
+  router.get(
+    "/verified",
+    doctorController.getVerifiedDoctors
+  );
+
+  router.use(authMiddleware);
 
   // =========================
   // START ONBOARDING
   // =========================
   router.post(
     "/onboarding/start",
-    authMiddleware,
-    requireAuth,
     validateRequest(startOnboardingSchema),
     doctorController.startOnboarding
   );
@@ -32,8 +35,6 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.patch(
     "/profile",
-    authMiddleware,
-    requireAuth,
     validateRequest(updateDoctorProfileSchema),
     doctorController.updateProfile
   );
@@ -43,8 +44,6 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.post(
     "/upload-documents",
-    authMiddleware,
-    requireAuth,
     upload.fields([
       { name: "licenseDocument", maxCount: 1 },
       { name: "certifications", maxCount: 10 },
@@ -59,8 +58,6 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.post(
     "/submit",
-    authMiddleware,
-    requireAuth,
     validateRequest(submitForVerificationSchema),
     doctorController.submitForVerification
   );
@@ -70,15 +67,8 @@ export function doctorRoutes(doctorController: DoctorController) {
   // =========================
   router.get(
     "/profile",
-    authMiddleware,
-    requireAuth,
     validateRequest(getDoctorProfileSchema),
     doctorController.getProfile
-  );
-
-  router.get(
-    "/verified",
-    doctorController.getVerifiedDoctors // public 
   );
   
   return router;

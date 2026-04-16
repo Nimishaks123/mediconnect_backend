@@ -2,50 +2,71 @@ import { catchAsync } from '@presentation/utils/catchAsync';
 import { AuthenticatedRequest } from '@presentation/middlewares/authMiddleware';
 import { Response } from 'express';
 import { StatusCode } from '@common/enums';
-import {
-  GetDoctorAppointmentsUseCase,
-  RescheduleAppointmentUseCase,
-  CancelAppointmentUseCase,
-} from '@application/usecases/appointment';
-import { IDoctorRepository } from '@domain/interfaces/IDoctorRepository';
 import { AppError } from '@common/AppError';
 import { AppointmentPresentationMapper } from '../mappers/appointment/AppointmentPresentationMapper';
+import {
+  IGetDoctorAppointmentsUseCase
+} from '@application/interfaces/appointment/IGetDoctorAppointmentsUseCase';
+import {
+  IRescheduleAppointmentUseCase
+} from '@application/interfaces/appointment/IRescheduleAppointmentUseCase';
+import { RescheduleAppointmentDTO } from '@application/dtos/appointment/RescheduleAppointmentDTO';
+import {
+  ICancelAppointmentByDoctorUseCase
+} from '@application/interfaces/appointment/ICancelAppointmentByDoctorUseCase';
 
 export class DoctorAppointmentController {
   constructor(
-    private readonly getDoctorAppointmentsUC: GetDoctorAppointmentsUseCase,
-    private readonly rescheduleAppointmentUC: RescheduleAppointmentUseCase,
-    private readonly cancelAppointmentUC: CancelAppointmentUseCase,
-    private readonly doctorRepo: IDoctorRepository
+    private readonly getDoctorAppointmentsUC: IGetDoctorAppointmentsUseCase,
+    private readonly rescheduleAppointmentUC: IRescheduleAppointmentUseCase,
+    private readonly cancelAppointmentUC: ICancelAppointmentByDoctorUseCase
   ) {}
 
-  private async resolveDoctorId(userId: string): Promise<string> {
-    const doctor = await this.doctorRepo.findByUserId(userId);
-    if (!doctor) throw new AppError('Doctor profile not found', 404);
-    return doctor.getId();
-  }
 
   getAppointments = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const doctorId = await this.resolveDoctorId(req.user!.id);
-    const result = await this.getDoctorAppointmentsUC.execute(doctorId);
-    
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', StatusCode.UNAUTHORIZED);
+    }
+
+    const result = await this.getDoctorAppointmentsUC.execute(req.user.id);
     const data = AppointmentPresentationMapper.toGroupedDoctorAppointmentsDTO(result);
-    res.status(StatusCode.OK).json({ success: true, data });
+    res.status(StatusCode.OK).json(data);
   });
 
   cancel = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const doctorId = await this.resolveDoctorId(req.user!.id);
-    const dto = AppointmentPresentationMapper.toCancelByDoctorDTO(req, doctorId);
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', StatusCode.UNAUTHORIZED);
+    }
 
-    await this.cancelAppointmentUC.execute(dto);
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    const cancelDTO = {
+      appointmentId: id,
+      doctorId: req.user.id,
+      reason: reason,
+    };
+
+    await this.cancelAppointmentUC.execute(cancelDTO);
     res.status(StatusCode.OK).json({ success: true, message: 'Appointment cancelled' });
   });
 
   reschedule = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const doctorId = await this.resolveDoctorId(req.user!.id);
-    const dto = AppointmentPresentationMapper.toRescheduleAppointmentDTO(req, doctorId);
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', StatusCode.UNAUTHORIZED);
+    }
 
-    await this.rescheduleAppointmentUC.execute(dto);
+    const { id } = req.params;
+    const { newSlotId, reason } = req.body;
+
+    const rescheduleDTO: RescheduleAppointmentDTO = {
+      appointmentId: id,
+      doctorId: req.user.id,
+      newDateTime: newSlotId, 
+      reason: reason,
+    };
+
+    await this.rescheduleAppointmentUC.execute(rescheduleDTO);
     res.status(StatusCode.OK).json({ success: true, message: 'Appointment rescheduled' });
   });
 }

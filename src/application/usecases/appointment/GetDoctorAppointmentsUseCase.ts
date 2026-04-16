@@ -1,6 +1,8 @@
 import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepository";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { Appointment } from "@domain/entities/Appointment";
-import { PaymentStatus } from "@domain/enums/PaymentStatus";
+import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
+import logger from "@common/logger";
 
 export interface GroupedAppointments {
   upcoming: Appointment[];
@@ -10,30 +12,56 @@ export interface GroupedAppointments {
 
 export class GetDoctorAppointmentsUseCase {
   constructor(
-    private readonly appointmentRepo: IAppointmentRepository
+    private readonly appointmentRepo: IAppointmentRepository,
+    private readonly doctorRepo: IDoctorRepository
   ) {}
 
-  async execute(doctorId: string): Promise<GroupedAppointments> {
-    const allAppointments = await this.appointmentRepo.findAllByDoctorId(doctorId);
+  async execute(userId: string): Promise<GroupedAppointments> {
+    // 0. Resolve userId to doctorId
+    let doctor = await this.doctorRepo.findByUserId(userId);
+    if (!doctor) {
+      // Fallback: check if the provided ID is already a doctorId
+      doctor = await this.doctorRepo.findById(userId);
+    }
 
-    // 1. Exclude pending payment
+    if (!doctor) {
+      logger.warn(`[GetDoctorAppointments] No doctor profile found for user ${userId}`);
+      return { upcoming: [], past: [], recent: [] };
+    }
+
+    const doctorId = doctor.getId();
+    console.log("Doctor ID:", doctorId);
+    
+    const allAppointments = await this.appointmentRepo.findAllByDoctorId(doctorId);
+    console.log("Appointments fetched:", allAppointments.length);
+
+    // 1. Filter out ephemeral/pending payment appointments if they haven't been confirmed yet
     const validAppointments = allAppointments.filter(
-      (appt) => appt.getPaymentStatus() !== PaymentStatus.PENDING
+      (appt) => appt.getStatus() !== AppointmentStatus.PAYMENT_PENDING
     );
 
-    // 2. Recent = last 5 created
-    const recent = [...validAppointments]
-      .sort((a, b) => {
-        const timeA = a.getCreatedAt()?.getTime() || 0;
-        const timeB = b.getCreatedAt()?.getTime() || 0;
-        return timeB - timeA;
-      })
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
+    // Upcoming: Future dates or future time today (must be confirmed/rescheduled)
+    const upcoming = validAppointments.filter(appt => appt.isUpcoming());
+
+    // Past: Older dates or passed time today
+    const past = validAppointments.filter(appt => appt.isPast());
+
+    // Recent: All appointments from TODAY + top 5 from the PAST category
+    const todayAppointments = validAppointments.filter(appt => appt.getDate() === todayStr);
+    const recentFromPast = past
+      .filter(appt => appt.getDate() !== todayStr)
+      .sort((a, b) => b.getDate().localeCompare(a.getDate()))
       .slice(0, 5);
 
+    const recent = [...todayAppointments, ...recentFromPast];
+
     return {
-      upcoming: validAppointments.filter(appt => appt.isUpcoming()),
-      past: validAppointments.filter(appt => appt.isPast()),
-      recent: recent
+      upcoming,
+      past,
+      recent
     };
   }
 }

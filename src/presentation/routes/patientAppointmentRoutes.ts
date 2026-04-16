@@ -1,6 +1,5 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { AppointmentController } from "../controllers/AppointmentController";
-import { authMiddleware } from "../middlewares/authMiddleware";
 import { allowRoles } from "../middlewares/roleMiddleware";
 import { UserRole } from "@application/constants/UserRole";
 import { z } from "zod";
@@ -12,7 +11,7 @@ const paramIdSchema = z.object({
   }),
 });
 
-export function patientAppointmentRoutes(controller: AppointmentController) {
+export function patientAppointmentRoutes(controller: AppointmentController, authMiddleware: RequestHandler) {
   const router = Router();
   router.get(
     "/appointments",

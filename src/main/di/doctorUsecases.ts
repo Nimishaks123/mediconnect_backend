@@ -16,7 +16,6 @@ import {
 } from "./repositories";
 
 import {
-  doctorDocumentService,
   fileStorageService,
 } from "./services";
 

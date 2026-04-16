@@ -50,3 +50,19 @@ export const forgotPasswordResetSchema = z.object({
     newPassword: z.string().min(6),
   }),
 });
+
+// Refresh token
+export const refreshTokenSchema = z.object({
+  cookies: z.object({
+    refreshToken: z.string().min(1, "Refresh token is required")
+  })
+});
+
+// Google OAuth
+export const googleCallbackSchema = z.object({
+  query: z.object({
+    code: z.string().optional(),
+    state: z.string().optional(),
+    error: z.string().optional()
+  })
+});

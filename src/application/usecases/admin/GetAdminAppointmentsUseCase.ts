@@ -1,7 +1,9 @@
 import { IAppointmentQueryRepository } from "@application/interfaces/queries/IAppointmentQueryRepository";
 import { GetAdminAppointmentsDTO, AdminAppointmentListResponseDTO } from "@application/dtos/admin/AdminAppointmentDTO";
 
-export class GetAdminAppointmentsUseCase {
+import { IGetAdminAppointmentsUseCase } from "@application/interfaces/admin/IGetAdminAppointmentsUseCase";
+
+export class GetAdminAppointmentsUseCase implements IGetAdminAppointmentsUseCase {
   constructor(private readonly appointmentQueryRepo: IAppointmentQueryRepository) {}
 
   async execute(input: GetAdminAppointmentsDTO): Promise<AdminAppointmentListResponseDTO> {

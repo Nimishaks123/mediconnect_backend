@@ -11,6 +11,10 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { DateRange } from "@domain/value-objects/DateRange";
 import { IRRulePolicy } from "@domain/policies/IRRulePolicy";
+import { ICreateNotificationUseCase } from "@application/interfaces/notification/ICreateNotificationUseCase";
+import { NotificationType } from "@domain/enums/NotificationType";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,11 +24,20 @@ export class RescheduleAppointmentUseCase {
     private readonly appointmentRepo: IAppointmentRepository,
     private readonly scheduleRepo: IDoctorScheduleRepository,
     private readonly eventBus: IEventBus,
-    private readonly rrulePolicy: IRRulePolicy
+    private readonly rrulePolicy: IRRulePolicy,
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly userRepo: IUserRepository
   ) {}
 
   async execute(dto: RescheduleAppointmentDTO): Promise<void> {
-    const { appointmentId, doctorId, date, startTime, endTime } = dto;
+    const { appointmentId, doctorId, newDateTime } = dto;
+    
+    // Parse newDateTime into separate date, startTime, and endTime
+    const parsedDateTime = dayjs.tz(newDateTime);
+    const date = parsedDateTime.format('YYYY-MM-DD');
+    const startTime = parsedDateTime.format('HH:mm');
+    const endTime = parsedDateTime.add(1, 'hour').format('HH:mm'); // Assuming 1-hour appointment
 
     const appointment = await this.appointmentRepo.findById(appointmentId);
     if (!appointment) {
@@ -103,5 +116,28 @@ export class RescheduleAppointmentUseCase {
         endTime
       )
     );
+
+    const doctor = await this.doctorRepo.findById(appointment.getDoctorId());
+    const patient = await this.userRepo.findById(appointment.getPatientId());
+    
+    const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
+    const doctorName = doctorUser ? doctorUser.name : "your doctor";
+    const patientName = patient ? patient.name : "the patient";
+
+    // NOTIFY PATIENT
+    await this.createNotificationUseCase.execute({
+      userId: appointment.getPatientId(),
+      title: "Appointment Rescheduled",
+      message: `Your appointment with Dr. ${doctorName} has been rescheduled to ${date} at ${startTime}`,
+      type: NotificationType.APPOINTMENT_RESCHEDULED
+    });
+
+    // NOTIFY DOCTOR
+    await this.createNotificationUseCase.execute({
+      userId: doctorUser?.id || appointment.getDoctorId(),
+      title: "Appointment Rescheduled",
+      message: `You have successfully rescheduled the appointment with ${patientName}`,
+      type: NotificationType.APPOINTMENT_RESCHEDULED
+    });
   }
 }

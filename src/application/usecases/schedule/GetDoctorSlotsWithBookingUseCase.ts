@@ -7,6 +7,7 @@ import { StatusCode } from "@common/enums";
 import { DateRange } from "@domain/value-objects/DateRange";
 import { SlotAvailabilityService } from "@domain/services/SlotAvailabilityService";
 import { IRRulePolicy } from "@domain/policies/IRRulePolicy";
+import { DoctorSlotWithBookingDTO } from "../../dtos/appointment/DoctorSlotWithBookingDTO";
 
 export class GetDoctorSlotsWithBookingUseCase {
   constructor(
@@ -25,7 +26,7 @@ export class GetDoctorSlotsWithBookingUseCase {
     doctorUserId: string;
     from: string;
     to: string;
-  }): Promise<any[]> {
+  }): Promise<DoctorSlotWithBookingDTO[]> {
   
     const range = DateRange.create(from, to);
     const doctor = await this.doctorRepository.findByUserId(doctorUserId);

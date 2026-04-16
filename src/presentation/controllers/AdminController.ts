@@ -3,7 +3,14 @@ import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
 import { catchAsync } from "../utils/catchAsync";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import { AdminMapper } from "../mappers/AdminMapper";
+import { 
+  AdminLoginSchema, 
+  AdminDoctorsQuerySchema, 
+  ApproveDoctorSchema, 
+  RejectDoctorSchema, 
+  BlockUnblockUserSchema, 
+  GetAllUsersSchema 
+} from "../validators/admin.validator";
 
 import { IAdminLoginUseCase } from "@application/interfaces/admin/IAdminLoginUseCase";
 import { IGetAdminDoctorsUseCase } from "@application/interfaces/admin/IGetAdminDoctorsUseCase";
@@ -16,7 +23,7 @@ import { AdminLoginOutputDTO } from "@application/dtos/admin/AdminLoginDTO";
 import { ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
 import { RejectDoctorResponseDTO } from "@application/dtos/admin/RejectDoctorDTO";
 import { BlockUnblockUserResponseDTO } from "@application/dtos/admin/BlockUnblockUserDTO";
-import { AdminDoctorListResponseDTO } from "@application/dtos/admin/AdminDoctorListDTO";
+
 
 export class AdminController {
   constructor(
@@ -29,61 +36,63 @@ export class AdminController {
   ) {}
 
   login = catchAsync(async (req: Request, res: Response) => {
-    const dto = AdminMapper.toLoginDTO(req);
-    const result: AdminLoginOutputDTO = await this.adminLoginUseCase.execute(dto);
+    const validated = AdminLoginSchema.parse(req.body);
+    const result: AdminLoginOutputDTO = await this.adminLoginUseCase.execute(validated);
 
-    logger.info("Admin login successful", { email: dto.email });
+    logger.info("Admin login successful", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 
   getDoctors = catchAsync(async (req: Request, res: Response) => {
-    const status = (req.query.status as any) || "PENDING";
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-    const search = req.query.search as string | undefined;
-    const sort = (req.query.sort as "NEWEST" | "OLDEST") || "NEWEST";
+    const validated = AdminDoctorsQuerySchema.parse(req.query);
+    const result = await this.getAdminDoctorsUseCase.execute(validated);
 
-    const result = await this.getAdminDoctorsUseCase.execute({
-      status,
-      page,
-      limit,
-      search,
-      sort
-    });
-
-    logger.info("Admin fetched doctors list", { status, total: result.total, page });
+    logger.info("Admin fetched doctors list", { status: validated.status, total: result.total, page: validated.page });
     res.status(StatusCode.OK).json(result);
   });
 
   approveDoctor = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AdminMapper.toApproveDoctorDTO(req);
-    const result: ApproveRejectDoctorResponseDTO = await this.approveDoctorUseCase.execute(dto);
+    const validated = ApproveDoctorSchema.parse({
+      userId: req.body.userId,
+      adminId: req.user?.id
+    });
+    const result: ApproveRejectDoctorResponseDTO = await this.approveDoctorUseCase.execute(validated);
 
-    logger.info("Doctor approved", { userId: dto.userId, adminId: dto.adminId });
+    logger.info("Doctor approved", { userId: validated.userId, adminId: validated.adminId });
     res.status(StatusCode.OK).json(result);
   });
 
   rejectDoctor = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AdminMapper.toRejectDoctorDTO(req);
-    const result: RejectDoctorResponseDTO = await this.rejectDoctorUseCase.execute(dto);
+    const validated = RejectDoctorSchema.parse({
+      userId: req.body.userId,
+      reason: req.body.reason,
+      adminId: req.user?.id
+    });
+    const result: RejectDoctorResponseDTO = await this.rejectDoctorUseCase.execute(validated);
 
-    logger.info("Doctor rejected", { userId: dto.userId, adminId: dto.adminId });
+    logger.info("Doctor rejected", { userId: validated.userId, adminId: validated.adminId });
     res.status(StatusCode.OK).json(result);
   });
 
   blockUser = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AdminMapper.toBlockUnblockDTO(req);
-    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.block(dto);
+    const validated = BlockUnblockUserSchema.parse({
+      userId: req.body.userId,
+      adminId: req.user?.id
+    });
+    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.block(validated);
 
-    logger.info("User blocked", { userId: dto.userId, adminId: dto.adminId });
+    logger.info("User blocked", { userId: validated.userId, adminId: validated.adminId });
     res.status(StatusCode.OK).json(result);
   });
 
   unblockUser = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AdminMapper.toBlockUnblockDTO(req);
-    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.unblock(dto);
+    const validated = BlockUnblockUserSchema.parse({
+      userId: req.body.userId,
+      adminId: req.user?.id
+    });
+    const result: BlockUnblockUserResponseDTO = await this.blockUnblockUserUseCase.unblock(validated);
 
-    logger.info("User unblocked", { userId: dto.userId, adminId: dto.adminId });
+    logger.info("User unblocked", { userId: validated.userId, adminId: validated.adminId });
     res.status(StatusCode.OK).json(result);
   });
 
@@ -92,8 +101,8 @@ export class AdminController {
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    const dto = AdminMapper.toGetAllUsersDTO(req);
-    const result = await this.getAllUsersUseCase.execute(dto);
+    const validated = GetAllUsersSchema.parse(req.query);
+    const result = await this.getAllUsersUseCase.execute(validated);
 
     logger.info("Fetched users with pagination", {
       count: result.users.length,

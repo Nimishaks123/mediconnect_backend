@@ -10,14 +10,16 @@ export const validateRequest = (schema: ZodType) => {
         body: req.body,
         params: req.params,
         query: req.query,
-      }) as any;
+        cookies: req.cookies,
+      }) as any
 
       if (validated.body) req.body = validated.body;
       if (validated.params) req.params = validated.params;
       if (validated.query) req.query = validated.query;
+      if (validated.cookies) req.cookies = validated.cookies;
 
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ZodError) {
         const message = error.issues
           .map((issue) => `${issue.path.join(".")}: ${issue.message}`)

@@ -2,23 +2,23 @@ import { Request, Response } from "express";
 import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
 import { catchAsync } from "../utils/catchAsync";
-import { AdminMapper } from "../mappers/AdminMapper";
-import { GetAdminAppointmentsUseCase } from "@application/usecases/admin/GetAdminAppointmentsUseCase";
-import { GetAdminAppointmentDetailsUseCase } from "@application/usecases/admin/GetAdminAppointmentDetailsUseCase";
+import { AdminAppointmentsQuerySchema } from "../validators/adminAppointment.validator";
+import { IGetAdminAppointmentsUseCase } from "@application/interfaces/admin/IGetAdminAppointmentsUseCase";
+import { IGetAdminAppointmentDetailsUseCase } from "@application/interfaces/admin/IGetAdminAppointmentDetailsUseCase";
 
 export class AdminAppointmentController {
   constructor(
-    private readonly getAppointmentsUC: GetAdminAppointmentsUseCase,
-    private readonly getDetailsUC: GetAdminAppointmentDetailsUseCase
+    private readonly getAppointmentsUC: IGetAdminAppointmentsUseCase,
+    private readonly getDetailsUC: IGetAdminAppointmentDetailsUseCase
   ) {}
 
   getAppointments = catchAsync(async (req: Request, res: Response) => {
-    const dto = AdminMapper.toGetAdminAppointmentsDTO(req);
-    const result = await this.getAppointmentsUC.execute(dto);
+    const validated = AdminAppointmentsQuerySchema.parse(req.query);
+    const result = await this.getAppointmentsUC.execute(validated);
 
     logger.info("Admin fetched appointments", { 
-      type: dto.type, 
-      page: dto.page, 
+      type: validated.type, 
+      page: validated.page, 
       count: result.data.length 
     });
     

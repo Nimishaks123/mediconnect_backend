@@ -1,6 +1,5 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { PatientController } from "../controllers/PatientController";
-import { authMiddleware } from "../middlewares/authMiddleware";
 import { requireAuth } from "../middlewares/requireAuth";
 import { validateRequest } from "../middlewares/validateRequest";
 import { requireValidCloudinaryUrls } from "../middlewares/validateCloudinaryUrl";
@@ -10,7 +9,7 @@ import {
   getPatientProfileSchema,
 } from "../validation/patientValidation";
 
-export function patientRoutes(patientController: PatientController) {
+export function patientRoutes(patientController: PatientController, authMiddleware: RequestHandler) {
   const router = Router();
 
   /**

@@ -1,10 +1,9 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { PatientWalletController } from "../controllers/PatientWalletController";
-import { authMiddleware } from "../middlewares/authMiddleware";
 import { allowRoles } from "../middlewares/roleMiddleware";
 import { UserRole } from "@application/constants/UserRole";
 
-export function patientWalletRoutes(controller: PatientWalletController) {
+export function patientWalletRoutes(controller: PatientWalletController, authMiddleware: RequestHandler) {
   const router = Router();
 
   router.get(

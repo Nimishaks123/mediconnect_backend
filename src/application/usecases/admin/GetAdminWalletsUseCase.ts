@@ -1,7 +1,8 @@
 import { IWalletQueryRepository } from "../../interfaces/queries/IWalletQueryRepository";
+import { IGetAdminWalletsUseCase } from "../../interfaces/admin/IGetAdminWalletsUseCase";
 import { GetAdminWalletsInputDTO, AdminWalletListResponseDTO } from "../../dtos/admin/AdminWalletDTO";
 
-export class GetAdminWalletsUseCase {
+export class GetAdminWalletsUseCase implements IGetAdminWalletsUseCase {
   constructor(private readonly walletQueryRepo: IWalletQueryRepository) {}
 
   async execute(input: GetAdminWalletsInputDTO): Promise<AdminWalletListResponseDTO> {

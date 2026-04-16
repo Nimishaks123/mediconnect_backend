@@ -9,7 +9,9 @@ import { DateRange } from "@domain/value-objects/DateRange";
 import { SlotAvailabilityService } from "@domain/services/SlotAvailabilityService";
 import { Slot } from "@domain/entities/Slot";
 
-export class GenerateDoctorSlotsUseCase {
+import { IGenerateDoctorSlotsUseCase } from "../../interfaces/schedule/IGenerateDoctorSlotsUseCase";
+
+export class GenerateDoctorSlotsUseCase implements IGenerateDoctorSlotsUseCase {
   constructor(
     private readonly scheduleRepository: IDoctorScheduleRepository,
     private readonly doctorRepository: IDoctorRepository,
@@ -18,11 +20,12 @@ export class GenerateDoctorSlotsUseCase {
     private readonly availabilityService: SlotAvailabilityService
   ) { }
 
-  async execute(
-    doctorId: string,
-    from: Date,
-    to: Date
-  ): Promise<Slot[]> {
+  async execute(dto: {
+    doctorId: string;
+    from: string;
+    to: string;
+  }): Promise<Slot[]> {
+    const { doctorId, from, to } = dto;
     const queryRange = DateRange.create(from, to);
     // 🔗 Fetch Doctor Context: Try finding by Profile ID first, then fallback to User ID
     let doctor = await this.doctorRepository.findById(doctorId);

@@ -4,11 +4,18 @@ import { AppError } from "@common/AppError";
 import { StatusCode } from "@common/enums";
 import { IEventBus } from "@application/interfaces/IEventBus";
 import { CancelAppointmentEvent } from "@domain/events/CancelAppointmentEvent";
+import { ICreateNotificationUseCase } from "@application/interfaces/notification/ICreateNotificationUseCase";
+import { NotificationType } from "@domain/enums/NotificationType";
+import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
 
 export class CancelAppointmentUseCase {
   constructor(
     private readonly appointmentRepo: IAppointmentRepository,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly userRepo: IUserRepository
   ) {}
 
   async execute(dto: { appointmentId: string; reason: "EXPIRED" | "FAILED" | "CANCELLED", doctorId?: string }): Promise<void> {
@@ -52,6 +59,32 @@ export class CancelAppointmentUseCase {
         dto.reason
       )
     );
+
+    // Only notify if cancelled by doctor (not expired/failed)
+    if (dto.doctorId && dto.reason === "CANCELLED") {
+      const doctor = await this.doctorRepo.findById(appointment.getDoctorId());
+      const patient = await this.userRepo.findById(appointment.getPatientId());
+      
+      const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
+      const doctorName = doctorUser ? doctorUser.name : "your doctor";
+      const patientName = patient ? patient.name : "the patient";
+
+      // NOTIFY PATIENT
+      await this.createNotificationUseCase.execute({
+        userId: appointment.getPatientId(),
+        title: "Appointment Cancelled",
+        message: `Your appointment with Dr. ${doctorName} on ${appointment.getDate()} at ${appointment.getStartTime()} has been cancelled by the doctor`,
+        type: NotificationType.APPOINTMENT_CANCELLED
+      });
+
+      // NOTIFY DOCTOR
+      await this.createNotificationUseCase.execute({
+        userId: doctorUser?.id || appointment.getDoctorId(),
+        title: "Appointment Cancelled",
+        message: `You have cancelled the appointment with ${patientName}`,
+        type: NotificationType.APPOINTMENT_CANCELLED
+      });
+    }
   }
 }
 

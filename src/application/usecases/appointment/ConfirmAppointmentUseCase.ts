@@ -22,6 +22,7 @@ export class ConfirmAppointmentUseCase implements IConfirmAppointmentUseCase {
   ) {}
 
   async execute(dto: ConfirmAppointmentDTO): Promise<void> {
+    console.log("Updating appointment:", dto.appointmentId);
     const appointment = await this.appointmentRepo.findById(dto.appointmentId);
 
     if (!appointment) {

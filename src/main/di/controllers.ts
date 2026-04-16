@@ -9,7 +9,7 @@ import { AppointmentController } from "@presentation/controllers/AppointmentCont
 import { DoctorAppointmentController } from "@presentation/controllers/DoctorAppointmentController";
 import { PatientWalletController } from "@presentation/controllers/PatientWalletController";
 import { GetUserWalletUseCase } from "@application/usecases/wallet/GetUserWalletUseCase";
-import {  tokenService,  passwordHasher, eventBus, notificationService } from "./services";
+import {  tokenService,  passwordHasher, eventBus } from "./services";
 import * as authUC from "./authUsecases";
 import * as doctorUC from "./doctorUsecases";
 import * as scheduleUC from "./scheduleUsecases";
@@ -17,6 +17,10 @@ import * as appointmentUC from "./appointmentUsecases";
 import * as patientUC from "./patientUsecases";
 import * as notificationUC from "./notificationUsecases";
 import { PatientController } from "@presentation/controllers/PatientController";
+import { ChatController } from "@presentation/controllers/ChatController";
+import { CallController } from "@presentation/controllers/CallController";
+import { sendMessageUseCase, getMessagesUseCase, markConversationAsReadUseCase, getConversationListUseCase } from "./chatUsecases";
+import { checkCallEligibilityUseCase } from "./callUsecases";
 import { 
   adminRepository,
   userRepository,
@@ -146,7 +150,8 @@ export const appointmentController = new AppointmentController(
   getPatientAppointmentsWithDoctor,
   appointmentUC.cancelAppointmentByPatientUseCase,
   appointmentUC.createCheckoutSessionUseCase,
-  appointmentUC.verifyWebhookUseCase
+  appointmentUC.verifyWebhookUseCase,
+  appointmentUC.handleStripeWebhookUseCase
 );
 
 export const patientController = new PatientController(
@@ -164,3 +169,12 @@ const getCloudinarySignatureUseCase = new GetCloudinarySignatureUseCase(fileStor
 export const uploadController = new UploadController(getCloudinarySignatureUseCase);
 
 export const patientWalletController = new PatientWalletController(getUserWalletUseCase);
+
+export const chatController = new ChatController(
+  sendMessageUseCase,
+  getMessagesUseCase,
+  markConversationAsReadUseCase,
+  getConversationListUseCase
+);
+
+export const callController = new CallController(checkCallEligibilityUseCase);

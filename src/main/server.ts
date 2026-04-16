@@ -21,15 +21,19 @@ import {
   patientController,
   uploadController,
   adminWalletController,
-  notificationController
+  notificationController,
+  chatController,
+  callController,
+  tokenService
 } from "../main/di";
 
 import { createRoutes } from "../presentation/routes";
 const app = express();
+// Stripe Webhook MUST be before express.json()
 app.post(
-  "/api/webhook",
-  express.raw({ type: "application/json" }),
-  appointmentController.stripeWebhook
+  "/api/webhook/stripe",
+  express.raw({ type: "*/*" }),
+  (req, res) => appointmentController.stripeWebhook(req, res)
 );
 
 app.use(express.json());
@@ -63,7 +67,10 @@ app.use(
     patientController,
     uploadController,
     adminWalletController,
-    notificationController
+    notificationController,
+    chatController,
+    callController,
+    tokenService
   )
 );
 app.use(errorMiddleware);

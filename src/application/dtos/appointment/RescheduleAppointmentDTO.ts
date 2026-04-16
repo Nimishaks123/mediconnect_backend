@@ -1,7 +1,6 @@
 export interface RescheduleAppointmentDTO {
   appointmentId: string;
   doctorId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  newDateTime: string;
+  reason?: string;
 }

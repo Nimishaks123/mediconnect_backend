@@ -1,10 +1,9 @@
-// src/presentation/routes/publicDoctorRoutes.ts
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { DoctorController } from "../controllers/DoctorController";
-import { authMiddleware } from "../middlewares/authMiddleware";
 
 export function publicDoctorRoutes(
-  doctorController: DoctorController
+  doctorController: DoctorController,
+  authMiddleware: RequestHandler
 ) {
   const router = Router();
 

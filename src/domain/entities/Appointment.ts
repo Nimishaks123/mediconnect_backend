@@ -93,6 +93,10 @@ export class Appointment {
   getRefundAmount() { return this.refundAmount; }
 
   confirm() {
+    if (this.status === AppointmentStatus.CONFIRMED) {
+      return; // Already confirmed
+    }
+
     if (this.status !== AppointmentStatus.PAYMENT_PENDING) {
       throw new Error("Only pending appointments can be confirmed");
     }
@@ -130,21 +134,33 @@ export class Appointment {
   }
 
   isUpcoming(): boolean {
-    const today = new Date().toISOString().split("T")[0];
-    return (
-      this.status !== AppointmentStatus.CANCELLED &&
-      this.status !== AppointmentStatus.COMPLETED &&
-      this.date >= today
-    );
+    if (this.status === AppointmentStatus.CANCELLED || this.status === AppointmentStatus.COMPLETED) {
+      return false;
+    }
+    
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const timeStr = now.toTimeString().slice(0, 5); // HH:mm
+
+    if (this.date > todayStr) return true;
+    if (this.date === todayStr) return this.startTime > timeStr;
+    
+    return false;
   }
 
   isPast(): boolean {
-    const today = new Date().toISOString().split("T")[0];
-    return (
-      this.status === AppointmentStatus.COMPLETED ||
-      this.status === AppointmentStatus.CANCELLED ||
-      this.date < today
-    );
+    if (this.status === AppointmentStatus.CANCELLED || this.status === AppointmentStatus.COMPLETED) {
+      return true;
+    }
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const timeStr = now.toTimeString().slice(0, 5); // HH:mm
+
+    if (this.date < todayStr) return true;
+    if (this.date === todayStr) return this.endTime < timeStr;
+
+    return false;
   }
 
 

@@ -1,9 +1,9 @@
-
 import { AdminController } from "../controllers/AdminController";
 
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { validateRequest } from "../middlewares/validateRequest";
-//import { adminLoginSchema } from "../validation/adminValidation";
+import { allowRoles } from "../middlewares/roleMiddleware";
+import { UserRole } from "@application/constants/UserRole";
 import {
   approveDoctorSchema,
   rejectDoctorSchema,
@@ -12,7 +12,7 @@ import {
   unblockUserSchema,
 } from "../validation/adminValidation";
 
-export function adminAuthRoutes(adminController: AdminController) {
+export function adminAuthRoutes(adminController: AdminController, authMiddleware: RequestHandler) {
   const router = Router();
 
   router.post(
@@ -20,11 +20,17 @@ export function adminAuthRoutes(adminController: AdminController) {
     validateRequest(adminLoginSchema),
     adminController.login
   );
-  router.get("/pending-doctors", adminController.getPendingDoctors);
+  router.get("/pending-doctors", 
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
+    adminController.getDoctors
+  );
 
   // Approve doctor
   router.post(
     "/approve-doctor",
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
     validateRequest(approveDoctorSchema),
     adminController.approveDoctor
   );
@@ -32,6 +38,8 @@ export function adminAuthRoutes(adminController: AdminController) {
   // Reject doctor
   router.post(
     "/reject-doctor",
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
     validateRequest(rejectDoctorSchema),
     adminController.rejectDoctor
   );
@@ -39,6 +47,8 @@ export function adminAuthRoutes(adminController: AdminController) {
   // Block user
   router.post(
     "/block-user",
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
     validateRequest(blockUserSchema),
     adminController.blockUser
   );
@@ -46,10 +56,16 @@ export function adminAuthRoutes(adminController: AdminController) {
   // Unblock user
   router.post(
     "/unblock-user",
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
     validateRequest(unblockUserSchema),
     adminController.unblockUser
   );
-  router.get("/users", adminController.getAllUsers);
+  router.get("/users", 
+    authMiddleware,
+    allowRoles(UserRole.ADMIN),
+    adminController.getAllUsers
+  );
 
   return router;
 }

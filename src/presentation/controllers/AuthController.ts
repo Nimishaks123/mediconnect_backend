@@ -3,7 +3,17 @@ import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
 import { config } from "@common/config";
 import { catchAsync } from "@presentation/utils/catchAsync";
-import { AuthMapper } from "../mappers/auth/AuthMapper";
+import { 
+  SignupSchema,
+  LoginSchema,
+  VerifyOtpSchema,
+  ResendOtpSchema,
+  LoginWithGoogleSchema,
+  RefreshTokenSchema,
+  SendForgotPasswordOtpSchema,
+  VerifyForgotPasswordOtpSchema,
+  ResetPasswordSchema
+} from "../validators/auth.validator";
 
 import {
   ISignupUserUseCase,
@@ -37,8 +47,8 @@ export class AuthController {
   });
   
   googleCallback = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toLoginWithGoogleDTO(req);
-    const result = await this.loginWithGoogleUseCase.execute(dto);
+    const validated = LoginWithGoogleSchema.parse(req.query);
+    const result = await this.loginWithGoogleUseCase.execute(validated);
 
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
@@ -53,32 +63,32 @@ export class AuthController {
   });
 
   signup = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toSignupDTO(req);
-    const result = await this.signupUserUseCase.execute(dto);
+    const validated = SignupSchema.parse(req.body);
+    const result = await this.signupUserUseCase.execute(validated);
 
-    logger.info("User signup successful", { email: dto.email });
+    logger.info("User signup successful", { email: validated.email });
     res.status(StatusCode.CREATED).json(result);
   });
 
   resendOtp = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toResendOtpDTO(req);
-    const result = await this.resendOtpUseCase.execute(dto);
+    const validated = ResendOtpSchema.parse(req.body);
+    const result = await this.resendOtpUseCase.execute(validated);
 
-    logger.info("OTP resent", { email: dto.email });
+    logger.info("OTP resent", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 
   verifyOtp = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toVerifyOtpDTO(req);
-    const result = await this.verifyOtpUseCase.execute(dto);
+    const validated = VerifyOtpSchema.parse(req.body);
+    const result = await this.verifyOtpUseCase.execute(validated);
 
-    logger.info("OTP verified", { email: dto.email });
+    logger.info("OTP verified", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
   
   login = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toLoginDTO(req);
-    const result = await this.loginUseCase.execute(dto);
+    const validated = LoginSchema.parse(req.body);
+    const result = await this.loginUseCase.execute(validated);
 
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
@@ -88,13 +98,13 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    logger.info("User login successful", { email: dto.email });
+    logger.info("User login successful", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 
   refresh = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toRefreshTokenDTO(req);
-    const result = await this.refreshTokenUseCase.execute(dto);
+    const validated = RefreshTokenSchema.parse(req.cookies);
+    const result = await this.refreshTokenUseCase.execute(validated);
 
     if (result.refreshToken) {
       res.cookie("refreshToken", result.refreshToken, {
@@ -111,26 +121,26 @@ export class AuthController {
   });
 
   sendForgotPasswordOtp = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toSendForgotPasswordOtpDTO(req);
-    const result = await this.sendForgotPasswordOtpUseCase.execute(dto);
+    const validated = SendForgotPasswordOtpSchema.parse(req.body);
+    const result = await this.sendForgotPasswordOtpUseCase.execute(validated);
 
-    logger.info("Forgot password OTP sent", { email: dto.email });
+    logger.info("Forgot password OTP sent", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 
   verifyForgotPasswordOtp = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toVerifyForgotPasswordOtpDTO(req);
-    const result = await this.verifyForgotPasswordOtpUseCase.execute(dto);
+    const validated = VerifyForgotPasswordOtpSchema.parse(req.body);
+    const result = await this.verifyForgotPasswordOtpUseCase.execute(validated);
 
-    logger.info("Forgot password OTP verified", { email: dto.email });
+    logger.info("Forgot password OTP verified", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 
   resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const dto = AuthMapper.toResetPasswordDTO(req);
-    const result = await this.resetPasswordUseCase.execute(dto);
+    const validated = ResetPasswordSchema.parse(req.body);
+    const result = await this.resetPasswordUseCase.execute(validated);
 
-    logger.info("Password reset successful", { email: dto.email });
+    logger.info("Password reset successful", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
 }

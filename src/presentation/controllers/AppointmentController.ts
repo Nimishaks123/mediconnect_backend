@@ -5,13 +5,19 @@ import { StatusCode } from "@common/enums";
 
 import { Response, Request } from "express";
 import { IGetPatientAppointmentUseCase } from "@application/interfaces/appointment/IGetPatientAppointmentsUseCase";
-import { GetPatientAppointmentsWithDoctor } from "@application/queries/GetPatientAppointmentsWithDoctor";
-import { CancelAppointmentByPatientUseCase } from "@application/usecases/appointment/CancelAppointmentByPatientUseCase";
-import { CreateCheckoutSessionUseCase } from "@application/usecases/appointment/CreateCheckoutSessionUseCase";
-import { VerifyWebhookUseCase } from "@application/usecases/appointment/VerifyWebhookUseCase";
+import { IGetPatientAppointmentsWithDoctor } from "@application/interfaces/queries/IGetPatientAppointmentsWithDoctor";
+import { ICancelAppointmentByPatientUseCase } from "@application/interfaces/appointment/ICancelAppointmentByPatientUseCase";
+import { ICreateCheckoutSessionUseCase } from "@application/interfaces/appointment/ICreateCheckoutSessionUseCase";
+import { IVerifyWebhookUseCase } from "@application/interfaces/appointment/IVerifyWebhookUseCase";
+import { IHandleStripeWebhookUseCase } from "@application/interfaces/appointment/IHandleStripeWebhookUseCase";
 import { catchAsync } from "@presentation/utils/catchAsync";
-import { AppointmentPresentationMapper } from "../mappers/appointment/AppointmentPresentationMapper";
-import logger from "@common/logger";
+import { 
+  CreateAppointmentSchema,
+  ConfirmAppointmentSchema,
+  CancelByPatientSchema,
+  CreateCheckoutSessionSchema,
+  GetPatientAppointmentsSchema
+} from "../validators/appointment.validator";
 
 
 export class AppointmentController {
@@ -19,18 +25,28 @@ export class AppointmentController {
     private readonly createAppointmentUC: ICreateAppointmentUseCase,
     private readonly confirmAppointmentUC: IConfirmAppointmentUseCase,
     private readonly getPatientAppointmentsUC: IGetPatientAppointmentUseCase,
-    private readonly getPatientAppointmentsWithDoctor: GetPatientAppointmentsWithDoctor,
-    private readonly cancelAppointmentByPatientUC: CancelAppointmentByPatientUseCase,
-    private readonly createCheckoutSessionUC: CreateCheckoutSessionUseCase,
-    private readonly verifyWebhookUC: VerifyWebhookUseCase
+    private readonly getPatientAppointmentsWithDoctor: IGetPatientAppointmentsWithDoctor,
+    private readonly cancelAppointmentByPatientUC: ICancelAppointmentByPatientUseCase,
+    private readonly createCheckoutSessionUC: ICreateCheckoutSessionUseCase,
+    private readonly verifyWebhookUC: IVerifyWebhookUseCase,
+    private readonly handleStripeWebhookUC: IHandleStripeWebhookUseCase
   ) { }
 
   /**
    * PATIENT → Create appointment
    */
   create = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AppointmentPresentationMapper.toCreateAppointmentDTO(req);
-    const appointment = await this.createAppointmentUC.execute(dto);
+    if (!req.user?.id) {
+      res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
+      return;
+    }
+    
+    const validated = CreateAppointmentSchema.parse({
+      doctorId: req.body.doctorId,
+      availabilityId: req.body.availabilityId,
+      patientId: req.user.id,
+    });
+    const appointment = await this.createAppointmentUC.execute(validated);
 
     res.status(StatusCode.CREATED).json({
       success: true,
@@ -43,8 +59,10 @@ export class AppointmentController {
    * PAYMENT SUCCESS → Confirm appointment 
    */
   confirm = catchAsync(async (req: Request, res: Response) => {
-    const dto = AppointmentPresentationMapper.toConfirmAppointmentDTO(req);
-    await this.confirmAppointmentUC.execute(dto);
+    const validated = ConfirmAppointmentSchema.parse({
+      appointmentId: req.params.id,
+    });
+    await this.confirmAppointmentUC.execute(validated);
 
     res.status(StatusCode.OK).json({
       success: true,
@@ -56,36 +74,14 @@ export class AppointmentController {
    * STRIPE WEBHOOK
    */
   stripeWebhook = catchAsync(async (req: Request, res: Response) => {
-    let event;
-    try {
-      const sig = req.headers["stripe-signature"] as string;
-      event = this.verifyWebhookUC.execute(req.body, sig);
-    } catch (err: any) {
-      logger.error(` Webhook Signature Error: ${err.message}`);
-      return res.status(StatusCode.BAD_REQUEST).send(`Webhook Error: ${err.message}`);
+    const sig = req.headers["stripe-signature"] as string;
+    if (!sig) {
+      throw new Error("Invalid signature");
     }
-    logger.info(`Received Stripe Event: ${event.type}`);
-
-    // Stripe Checkout
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as any;
-      const appointmentId = session.metadata?.appointmentId;
-      if (appointmentId) {
-        logger.info(`Processing checkout.session.completed for Appointment: ${appointmentId}`);
-        await this.confirmAppointmentUC.execute({ appointmentId });
-      }
-    }
-
-    // Handle payment intent succeeded 
-    if (event.type === "payment_intent.succeeded") {
-      const intent = event.data.object as any;
-      const appointmentId = intent.metadata?.appointmentId;
-      if (appointmentId) {
-        logger.info(`Processing payment_intent.succeeded for Appointment: ${appointmentId}`);
-        await this.confirmAppointmentUC.execute({ appointmentId });
-      }
-    }
-
+    
+    const event = await this.verifyWebhookUC.execute(req.body, sig);
+    await this.handleStripeWebhookUC.execute(event);
+    
     res.json({ received: true });
   });
 
@@ -93,13 +89,21 @@ export class AppointmentController {
    * PATIENT → Cancel appointment and get refund 
    */
   cancelByPatient = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AppointmentPresentationMapper.toCancelByPatientDTO(req);
-    const { refundAmount } = await this.cancelAppointmentByPatientUC.execute(dto);
+    if (!req.user?.id) {
+      res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
+      return;
+    }
+    
+    const validated = CancelByPatientSchema.parse({
+      appointmentId: req.params.id,
+      patientId: req.user.id,
+    });
+    const { refundAmount } = await this.cancelAppointmentByPatientUC.execute(validated);
 
     res.status(StatusCode.OK).json({
       success: true,
       message: refundAmount > 0
-        ? `Appointment cancelled. ₹${refundAmount} has been refunded to your wallet.`
+        ? `Appointment cancelled. ₹${refundAmount} has been refunded to your wallet.` 
         : "Appointment cancelled. No refund applicable as per cancellation policy.",
       refundAmount
     });
@@ -109,8 +113,16 @@ export class AppointmentController {
    * CREATE STRIPE CHECKOUT SESSION
    */
   createCheckoutSession = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const dto = AppointmentPresentationMapper.toCreateCheckoutSessionDTO(req);
-    const session = await this.createCheckoutSessionUC.execute(dto);
+    if (!req.user?.id) {
+      res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
+      return;
+    }
+    
+    const validated = CreateCheckoutSessionSchema.parse({
+      appointmentId: req.params.id,
+      patientId: req.user.id,
+    });
+    const session = await this.createCheckoutSessionUC.execute(validated);
 
     res.status(StatusCode.OK).json({
       checkoutUrl: session.url,
@@ -121,8 +133,15 @@ export class AppointmentController {
    * GET APPOINTMENTS
    */
   getMyAppointments = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const patientId = AppointmentPresentationMapper.toGetPatientAppointmentsDTO(req);
-    const data = await this.getPatientAppointmentsWithDoctor.execute(patientId);
+    if (!req.user?.id) {
+      res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
+      return;
+    }
+    
+    const validated = GetPatientAppointmentsSchema.parse({
+      patientId: req.user.id,
+    });
+    const data = await this.getPatientAppointmentsWithDoctor.execute(validated.patientId);
     res.status(StatusCode.OK).json({ success: true, data });
   });
 }

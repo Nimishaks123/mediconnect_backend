@@ -1,44 +1,34 @@
-import { Request, Response, NextFunction } from "express";
-import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
-import { config } from "../../common/config";
+import { Response, NextFunction } from "express";
+import { AppError } from "@common/AppError";
+import { ITokenService } from "../../application/interfaces/auth/ITokenService";
+import { AuthenticatedRequest as BaseAuthenticatedRequest } from "../../types/AuthenticatedRequest";
 
-const tokenService = new JwtTokenService(
-  config.accessTokenSecret,
-  config.accessTokenExpiry,
-  config.refreshTokenSecret,
-  config.refreshTokenExpiry
-);
+// Re-export for backward compatibility
+export type AuthenticatedRequest = BaseAuthenticatedRequest;
 
+export const createAuthMiddleware = (tokenService: ITokenService) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: "PATIENT" | "DOCTOR" | "ADMIN";
-  };
-}
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new AppError("Unauthorized: No token provided", 401);
+      }
 
-export const authMiddleware = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const authHeader = req.headers.authorization;
+      const token = authHeader.split(" ")[1];
+      const payload = tokenService.verifyAccessToken(token);
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized: No token provided" });
+      req.user = {
+        id: payload.id,
+        role: payload.role,
+      };
+
+      next();
+    } catch (err) {
+      if (err instanceof AppError) {
+        return next(err);
+      }
+      return next(new AppError("Unauthorized: Invalid token", 401));
     }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = tokenService.verifyAccessToken(token);
-
-    req.user = {
-      id: decoded.id,
-      role: decoded.role,
-    };
-
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Unauthorized: Invalid token" });
-  }
+  };
 };

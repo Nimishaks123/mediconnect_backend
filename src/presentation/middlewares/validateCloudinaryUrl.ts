@@ -13,7 +13,6 @@ export const validateCloudinaryUrl = (url: string): boolean => {
     throw new Error("CLOUDINARY_CLOUD_NAME not configured");
   }
 
-  // Example URL: https://res.cloudinary.com/your-cloud-name/image/upload/v12345/sample.jpg
   const pattern = new RegExp(
     `^https?:\\/\\/res\\.cloudinary\\.com\\/${cloudName}\\/image\\/upload\\/.*`,
     "i"
@@ -23,7 +22,7 @@ export const validateCloudinaryUrl = (url: string): boolean => {
 };
 
 /**
- * Higher-order function to create a middleware for validating specific fields in the request body.
+ * Hof to create a middleware for validating specific fields in the request .
  */
 export const requireValidCloudinaryUrls = (fields: string[]) => {
   return (req: any, res: any, next: any) => {

@@ -3,6 +3,7 @@ import { AppError } from "@common/AppError";
 import logger from "@common/logger";
 import { DomainError } from "@domain/errors/DomainError";
 import { ErrorMapper } from "../utils/ErrorMapper";
+import { ZodError } from "zod";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export const errorMiddleware = (
@@ -12,6 +13,28 @@ export const errorMiddleware = (
   _next: NextFunction
 ) => {
   let err = error;
+
+  // Normalize unknown errors
+  if (!(err instanceof Error)) {
+    err = new Error("Unknown error");
+  }
+
+  // Handle Zod validation errors
+  if (err instanceof ZodError) {
+    const validationErrors = err.issues.map((issue: any) => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+      code: issue.code
+    }));
+
+    logger.warn(`Validation Error: ${err.message}`, { validationErrors });
+
+    return res.status(400).json({
+      success: false,
+      message: "Validation Error",
+      errors: validationErrors,
+    });
+  }
 
   // Domain Error → AppError mapping
   if (err instanceof DomainError) {

@@ -47,13 +47,13 @@ export class AdminMapper {
     };
   }
 
-  static toGetAdminAppointmentsDTO(req: Request): GetAdminAppointmentsDTO {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-    const type = (req.query.type as any) || "UPCOMING";
-    const status = req.query.status as string | undefined;
-    const search = req.query.search as string | undefined;
-    const sortRaw = req.query.sort as string | undefined;
+  static toGetAdminAppointmentsDTO(input: { query: any }): GetAdminAppointmentsDTO {
+    const page = Math.max(1, Number(input.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(input.query.limit) || 10));
+    const type = input.query.type || "UPCOMING";
+    const status = input.query.status as string | undefined;
+    const search = input.query.search as string | undefined;
+    const sortRaw = input.query.sort as string | undefined;
     
     const sort: "LATEST" | "OLDEST" = sortRaw === "OLDEST" ? "OLDEST" : "LATEST";
 

@@ -10,7 +10,9 @@ export interface UpdatePatientProfileResponseDTO {
   patient: Patient; 
 }
 
-export class UpdatePatientProfileUseCase {
+import { IUpdatePatientProfileUseCase } from "../../interfaces/patient/IUpdatePatientProfileUseCase";
+
+export class UpdatePatientProfileUseCase implements IUpdatePatientProfileUseCase {
   constructor(
     private readonly patientRepo: IPatientRepository,
   ) {}

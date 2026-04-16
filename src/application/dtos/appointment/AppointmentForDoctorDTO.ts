@@ -1,5 +1,6 @@
 export type AppointmentForDoctorDTO = {
   appointmentId: string;
+  patientId: string;
   patientName: string;
   patientEmail?: string;
   date: string;

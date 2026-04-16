@@ -5,8 +5,9 @@ import { AppError } from "@common/AppError";
 export class MarkNotificationAsReadUseCase implements IMarkNotificationAsReadUseCase {
   constructor(private readonly notificationRepo: INotificationRepository) {}
 
-  async execute(notificationId: string): Promise<void> {
-    const notification = await this.notificationRepo.findById(notificationId);
+  async execute(dto: { id: string }): Promise<void> {
+    const { id } = dto;
+    const notification = await this.notificationRepo.findById(id);
     if (!notification) {
       throw new AppError("Notification not found", 404);
     }

@@ -3,8 +3,9 @@ import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepositor
 import { AppError } from "@common/AppError";
 import { StatusCode } from "@common/enums";
 import { PaymentStatus } from "@domain/enums/PaymentStatus";
+import { ICreateCheckoutSessionUseCase } from "@application/interfaces/appointment/ICreateCheckoutSessionUseCase";
 
-export class CreateCheckoutSessionUseCase {
+export class CreateCheckoutSessionUseCase implements ICreateCheckoutSessionUseCase {
     constructor(
         private readonly appointmentRepo: IAppointmentRepository,
         private readonly paymentService: IPaymentService

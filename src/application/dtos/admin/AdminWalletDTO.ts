@@ -1,6 +1,16 @@
+
 export interface GetAdminWalletsInputDTO {
   page: number;
   limit: number;
+  search?: string;
+  sort?: "NEWEST" | "OLDEST";
+}
+
+export interface GetAdminWalletTransactionsInputDTO {
+  userId: string;
+  page: number;
+  limit: number;
+  type?: "CREDIT" | "DEBIT";
   search?: string;
   sort?: "NEWEST" | "OLDEST";
 }

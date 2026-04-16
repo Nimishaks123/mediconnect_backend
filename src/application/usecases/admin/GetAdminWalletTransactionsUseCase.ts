@@ -1,16 +1,8 @@
 import { IWalletQueryRepository } from "../../interfaces/queries/IWalletQueryRepository";
-import { AdminWalletTransactionsResponseDTO } from "../../dtos/admin/AdminWalletDTO";
+import { AdminWalletTransactionsResponseDTO, GetAdminWalletTransactionsInputDTO } from "../../dtos/admin/AdminWalletDTO";
+import { IGetAdminWalletTransactionsUseCase } from "../../interfaces/admin/IGetAdminWalletTransactionsUseCase";
 
-export interface GetAdminWalletTransactionsInputDTO {
-  userId: string;
-  page: number;
-  limit: number;
-  type?: "CREDIT" | "DEBIT";
-  search?: string;
-  sort?: "NEWEST" | "OLDEST";
-}
-
-export class GetAdminWalletTransactionsUseCase {
+export class GetAdminWalletTransactionsUseCase implements IGetAdminWalletTransactionsUseCase {
   constructor(private readonly walletQueryRepo: IWalletQueryRepository) {}
 
   async execute(input: GetAdminWalletTransactionsInputDTO): Promise<AdminWalletTransactionsResponseDTO> {
