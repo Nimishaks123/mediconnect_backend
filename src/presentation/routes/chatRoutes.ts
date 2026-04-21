@@ -1,6 +1,6 @@
 import { Router, RequestHandler } from "express";
 import { ChatController } from "../controllers/ChatController";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import {
   SendMessageSchema,
   GetMessagesSchema,

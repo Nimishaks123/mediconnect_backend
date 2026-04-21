@@ -1,17 +1,16 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { AdminAppointmentController } from "../controllers/AdminAppointmentController";
-import { createAuthMiddleware } from "../middlewares/authMiddleware";
-import { allowRoles } from "../middlewares/roleMiddleware";
-import { UserRole } from "@application/constants/UserRole";
-import { ITokenService } from "@application/interfaces/auth/ITokenService";
+import { requireAdmin } from "../middlewares/roleMiddleware";
 
-export function adminAppointmentRoutes(controller: AdminAppointmentController, tokenService: ITokenService) {
+export function adminAppointmentRoutes(controller: AdminAppointmentController, authMiddleware: RequestHandler) {
   const router = Router();
-  router.use(createAuthMiddleware(tokenService));
-  router.use(allowRoles(UserRole.ADMIN));
+  
+  // Enforce Admin only for all routes
+  router.use(...requireAdmin(authMiddleware));
 
   router.get("/", controller.getAppointments);
   router.get("/:id", controller.getAppointmentDetails);
 
   return router;
 }
+

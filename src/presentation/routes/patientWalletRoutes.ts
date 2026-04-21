@@ -1,17 +1,16 @@
 import { Router, RequestHandler } from "express";
 import { PatientWalletController } from "../controllers/PatientWalletController";
-import { allowRoles } from "../middlewares/roleMiddleware";
-import { UserRole } from "@application/constants/UserRole";
+import { requirePatient } from "../middlewares/roleMiddleware";
 
 export function patientWalletRoutes(controller: PatientWalletController, authMiddleware: RequestHandler) {
   const router = Router();
 
   router.get(
     "/wallet",
-    authMiddleware,
-    allowRoles(UserRole.PATIENT),
+    ...requirePatient(authMiddleware),
     controller.getWallet
   );
 
   return router;
 }
+

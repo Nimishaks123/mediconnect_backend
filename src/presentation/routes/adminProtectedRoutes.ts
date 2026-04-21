@@ -9,16 +9,15 @@ import {
 import { AdminController } from "../controllers/AdminController";
 
 import { Router, RequestHandler } from "express";
-import { validateRequest } from "../middlewares/validateRequest";
-import { allowRoles } from "../middlewares/roleMiddleware";
-import { UserRole } from "@application/constants/UserRole";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
+import { requireAdmin } from "../middlewares/roleMiddleware";
 
 export function adminProtectedRoutes(adminController: AdminController, authMiddleware: RequestHandler) {
   const router = Router();
 
-  // Apply authentication and role-based authorization to all routes
-  router.use(authMiddleware);
-  router.use(allowRoles(UserRole.ADMIN));
+  // Apply admin protection to all routes in this router
+  router.use(...requireAdmin(authMiddleware));
+
 
   router.get("/doctors", adminController.getDoctors);
 

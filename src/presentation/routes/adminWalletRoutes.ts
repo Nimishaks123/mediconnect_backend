@@ -1,14 +1,13 @@
 import { Router, RequestHandler } from "express";
 import { AdminWalletController } from "../controllers/AdminWalletController";
-import { allowRoles } from "../middlewares/roleMiddleware";
-import { UserRole } from "@application/constants/UserRole";
-import { validateRequest } from "../middlewares/validateRequest";
+import { requireAdmin } from "../middlewares/roleMiddleware";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import { userIdParamSchema } from "../validators/adminWallet.validator";
 
 export function adminWalletRoutes(controller: AdminWalletController, authMiddleware: RequestHandler) {
   const router = Router();
-  router.use(authMiddleware);
-  router.use(allowRoles(UserRole.ADMIN));
+  
+  router.use(...requireAdmin(authMiddleware));
 
   router.get("/", controller.getWallets);
   router.get("/:userId/transactions", 
@@ -18,3 +17,4 @@ export function adminWalletRoutes(controller: AdminWalletController, authMiddlew
 
   return router;
 }
+

@@ -1,6 +1,7 @@
 import { Router, RequestHandler } from "express";
 import { DoctorScheduleController } from "../controllers/DoctorScheduleController";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
+import { requireDoctor } from "../middlewares/roleMiddleware";
 import {
   createDoctorScheduleSchema,
   getSlotsWithBookingSchema
@@ -12,7 +13,8 @@ export function doctorScheduleRoutes(
 ) {
   const router = Router();
 
-  router.use(authMiddleware);
+  // Enforce Doctor only for all schedule routes
+  router.use(...requireDoctor(authMiddleware));
 
   router.post(
     "/",
@@ -28,3 +30,4 @@ export function doctorScheduleRoutes(
 
   return router;
 }
+

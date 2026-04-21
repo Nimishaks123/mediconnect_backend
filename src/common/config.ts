@@ -10,6 +10,8 @@ export const config = {
 
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || "change-me-refresh",
   refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
+  accessTokenMaxAge: Number(process.env.ACCESS_TOKEN_MAX_AGE || 3600000), // 1 hour
+  refreshTokenMaxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE || 604800000), // 7 days
   
   otpExpiryMin: Number(process.env.OTP_EXPIRY_MIN || 5),
   resendCooldownSec: Number(process.env.RESEND_COOLDOWN_SEC || 30),

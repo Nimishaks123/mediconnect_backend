@@ -33,7 +33,7 @@ const app = express();
 app.post(
   "/api/webhook/stripe",
   express.raw({ type: "*/*" }),
-  (req, res) => appointmentController.stripeWebhook(req, res)
+  (req, res,next) => appointmentController.stripeWebhook(req, res,next)
 );
 
 app.use(express.json());

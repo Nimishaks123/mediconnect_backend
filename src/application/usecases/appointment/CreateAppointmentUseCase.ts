@@ -4,7 +4,7 @@ import { Appointment } from "@domain/entities/Appointment";
 import { CreateAppointmentDTO } from "../../dtos/appointment/CreateAppointmentDTO";
 import { CreateAppointmentResponseDTO } from "../../dtos/appointment/CreateAppointmentResponseDTO";
 import { AppointmentMapper } from "../../mappers/AppointmentMapper";
-import { v4 as uuid } from "uuid";
+import { Types } from "mongoose";
 import { AppError } from "@common/AppError";
 import { StatusCode } from "@common/enums";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
@@ -20,10 +20,11 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
   ) {}
 
   async execute(dto: CreateAppointmentDTO): Promise<CreateAppointmentResponseDTO> {
-    const { doctorId, patientId, availabilityId } = dto;
+    const { doctorId, patientId, slotId } = dto;
 
     const { doctorId: slotDoctorId, date, startTime, endTime } = 
-      AppointmentMapper.parseAvailabilityId(availabilityId);
+      AppointmentMapper.parseSlotId(slotId);
+
 
     if (slotDoctorId !== doctorId) {
       throw new AppError("Invalid slot data: doctor mismatch", StatusCode.BAD_REQUEST);
@@ -50,7 +51,7 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
     }
 
     const appointment = Appointment.createPending(
-      uuid(),
+      new Types.ObjectId().toHexString(),
       doctor.getId(),
       patientId,
       date,

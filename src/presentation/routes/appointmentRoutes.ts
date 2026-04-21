@@ -2,9 +2,9 @@ import { Router, RequestHandler } from "express";
 import { AppointmentController } from "@presentation/controllers/AppointmentController";
 import { allowRoles } from "@presentation/middlewares/roleMiddleware";
 import { UserRole } from "@application/constants/UserRole";
-import { validateRequest } from "@presentation/middlewares/validateRequest";
-import { createAppointmentSchema } from "@presentation/validation/appointmentValidation";
-import { paramIdSchema } from "@presentation/validation/commonValidation";
+import { validateRequest } from "../middlewares/validateRequest";
+import { createAppointmentSchema, paramIdSchema } from "@presentation/validation/appointmentValidation";
+
 
 export function appointmentRoutes(
   appointmentController: AppointmentController,

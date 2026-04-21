@@ -1,8 +1,9 @@
 import { Router, RequestHandler } from "express";
 import { DoctorController } from "../controllers/DoctorController";
 import { upload } from "../middlewares/multer";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import { requireValidCloudinaryUrls } from "../middlewares/validateCloudinaryUrl";
+import { requireDoctor } from "../middlewares/roleMiddleware";
 import {
   startOnboardingSchema,
   updateDoctorProfileSchema,
@@ -19,7 +20,8 @@ export function doctorRoutes(doctorController: DoctorController, authMiddleware:
     doctorController.getVerifiedDoctors
   );
 
-  router.use(authMiddleware);
+  // Private Routes (Doctor only)
+  router.use(...requireDoctor(authMiddleware));
 
   // =========================
   // START ONBOARDING
@@ -70,6 +72,7 @@ export function doctorRoutes(doctorController: DoctorController, authMiddleware:
     validateRequest(getDoctorProfileSchema),
     doctorController.getProfile
   );
+
   
   return router;
 }

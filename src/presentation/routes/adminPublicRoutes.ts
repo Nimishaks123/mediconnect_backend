@@ -1,7 +1,7 @@
 import { AdminController } from "../controllers/AdminController";
 import { adminLoginSchema } from "@presentation/validation/adminValidation";
 import { Router } from "express";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 export function adminPublicRoutes(adminController: AdminController) {
   const router = Router();
 

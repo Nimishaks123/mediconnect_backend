@@ -1,6 +1,6 @@
 import { Router, RequestHandler } from "express";
 import { NotificationController } from "../controllers/NotificationController";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import {
   GetUserNotificationsSchema,
   MarkNotificationAsReadSchema
@@ -9,19 +9,20 @@ import {
 export function notificationRoutes(controller: NotificationController, authMiddleware: RequestHandler) {
   const router = Router();
 
-  router.use(authMiddleware);
-
   router.get(
     "/",
+    authMiddleware,
     validateRequest(GetUserNotificationsSchema),
     controller.getUserNotifications
   );
   
   router.patch(
     "/:id/read",
+    authMiddleware,
     validateRequest(MarkNotificationAsReadSchema),
     controller.markAsRead
   );
 
   return router;
 } 
+

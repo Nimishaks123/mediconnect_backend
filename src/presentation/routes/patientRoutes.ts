@@ -1,8 +1,8 @@
 import { Router, RequestHandler } from "express";
 import { PatientController } from "../controllers/PatientController";
-import { requireAuth } from "../middlewares/requireAuth";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import { requireValidCloudinaryUrls } from "../middlewares/validateCloudinaryUrl";
+import { requirePatient } from "../middlewares/roleMiddleware";
 import {
   createPatientProfileSchema,
   updatePatientProfileSchema,
@@ -12,6 +12,8 @@ import {
 export function patientRoutes(patientController: PatientController, authMiddleware: RequestHandler) {
   const router = Router();
 
+  const patientAuth = requirePatient(authMiddleware);
+
   /**
    * @route   GET /api/patient/profile
    * @desc    Get current patient profile
@@ -19,8 +21,7 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
    */
   router.get(
     "/profile",
-    authMiddleware,
-    requireAuth,
+    ...patientAuth,
     validateRequest(getPatientProfileSchema),
     patientController.getProfile
   );
@@ -32,8 +33,7 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
    */
   router.post(
     "/profile",
-    authMiddleware,
-    requireAuth,
+    ...patientAuth,
     requireValidCloudinaryUrls(["profileImage"]),
     validateRequest(createPatientProfileSchema),
     patientController.createProfile
@@ -46,8 +46,7 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
    */
   router.put(
     "/profile",
-    authMiddleware,
-    requireAuth,
+    ...patientAuth,
     requireValidCloudinaryUrls(["profileImage"]),
     validateRequest(updatePatientProfileSchema),
     patientController.updateProfile
@@ -55,3 +54,4 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
 
   return router;
 }
+

@@ -1,18 +1,10 @@
 import { Response } from "express";
 import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
-import { AppError } from "@common/AppError";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
+//import { AppError } from "@common/AppError";
+import { AuthenticatedRequest } from "@presentation/middlewares/authMiddleware";
 import { catchAsync } from "../utils/catchAsync";
 import { DoctorMapper } from "../mappers/doctor/DoctorMapper";
-import {
-  StartOnboardingSchema,
-  CreateDoctorProfileSchema,
-  UpdateDoctorProfileSchema,
-  UploadDoctorDocumentsSchema,
-  SubmitForVerificationSchema,
-  GetDoctorProfileSchema
-} from "../validators/doctor.validator";
 
 import {
   IStartDoctorOnboardingUseCase,
@@ -33,23 +25,17 @@ export class DoctorController {
     private readonly submitForVerificationUC: ISubmitForVerificationUseCase,
     private readonly getDoctorProfileUC: IGetDoctorProfileUseCase,
     private readonly getVerifiedDoctorsUC: IGetVerifiedDoctorsUseCase
-  ) {}
+  ) { }
 
   // START ONBOARDING
   startOnboarding = catchAsync(async (
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
-    }
+    const userId = req.user!.id;
+    const result = await this.startOnboardingUC.execute({ userId });
 
-    const validated = StartOnboardingSchema.parse({
-      userId: req.user.id,
-    });
-    const result = await this.startOnboardingUC.execute(validated);
-
-    logger.info("Doctor onboarding started", { userId: validated.userId });
+    logger.info("Doctor onboarding started", { userId });
     res.status(StatusCode.OK).json(result);
   });
 
@@ -58,35 +44,28 @@ export class DoctorController {
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
-    }
-
-    const validated = CreateDoctorProfileSchema.parse({
+    const userId = req.user!.id;
+    const result = await this.createProfileUC.execute({
       ...req.body,
-      userId: req.user.id,
+      userId,
     });
-    const result = await this.createProfileUC.execute(validated);
 
-    logger.info("Doctor profile created", { userId: validated.userId });
+    logger.info("Doctor profile created", { userId });
     res.status(StatusCode.CREATED).json(result);
   });
+
   // UPDATE PROFILE
   updateProfile = catchAsync(async (
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
-    }
-
-    const validated = UpdateDoctorProfileSchema.parse({
-      userId: req.user.id,
+    const userId = req.user!.id;
+    const result = await this.updateProfileUC.execute({
+      userId,
       updates: req.body,
     });
-    const result = await this.updateProfileUC.execute(validated);
 
-    logger.info("Doctor profile updated", { userId: validated.userId });
+    logger.info("Doctor profile updated", { userId });
     res.status(StatusCode.OK).json(result);
   });
 
@@ -95,20 +74,15 @@ export class DoctorController {
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
-    }
-
-    const validated = UploadDoctorDocumentsSchema.parse({
-      userId: req.user.id,
-      files: req.files || {},
+    const userId = req.user!.id;
+    const result = await this.uploadDocumentsUC.execute({
+      userId,
+      files: (req as any).files || {},
       profilePhotoUrl: req.body.profilePhotoUrl,
     });
-    const result = await this.uploadDocumentsUC.execute(validated);
 
-    logger.info("Doctor documents uploaded", { userId: validated.userId });
-    
-    //  presentation-layer mapping
+    logger.info("Doctor documents uploaded", { userId });
+
     const response = {
       doctor: DoctorMapper.toResponse(result.doctor),
       message: result.message
@@ -117,22 +91,15 @@ export class DoctorController {
     res.status(StatusCode.OK).json(response);
   });
 
- 
   // SUBMIT FOR VERIFICATION
   submitForVerification = catchAsync(async (
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
-    }
+    const userId = req.user!.id;
+    const result = await this.submitForVerificationUC.execute({ userId });
 
-    const validated = SubmitForVerificationSchema.parse({
-      userId: req.user.id,
-    });
-    const result = await this.submitForVerificationUC.execute(validated);
-
-    logger.info("Doctor submitted for verification", { userId: validated.userId });
+    logger.info("Doctor submitted for verification", { userId });
     res.status(StatusCode.OK).json(result);
   });
 
@@ -141,26 +108,41 @@ export class DoctorController {
     req: AuthenticatedRequest,
     res: Response,
   ) => {
-    if (!req.user?.id) {
-      throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
+    const userId = req.user!.id;
+
+    // Disable caching for sensitive profile data
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+
+    // Auth middleware ensures req.user exists, Routes validate schema if needed
+    const result = await this.getDoctorProfileUC.execute({ userId });
+
+    if (!result.doctor) {
+      res.status(StatusCode.NOT_FOUND).json({
+        success: false,
+        message: "Doctor profile not found"
+      });
+      return;
     }
 
-    const validated = GetDoctorProfileSchema.parse({
-      userId: req.user.id,
+    logger.info("Doctor profile fetched", { userId });
+    res.status(StatusCode.OK).json({
+      success: true,
+      data: result.doctor,
+      message: result.message
     });
-    const result = await this.getDoctorProfileUC.execute(validated);
-
-    logger.info("Doctor profile fetched", { userId: validated.userId });
-    res.status(StatusCode.OK).json(result);
   });
+
 
   getVerifiedDoctors = catchAsync(async (
     _req: AuthenticatedRequest,
     res: Response,
   ) => {
     const result = await this.getVerifiedDoctorsUC.execute();
-    
-    res.setHeader("Cache-Control", "no-store"); 
+
+    res.setHeader("Cache-Control", "no-store");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
@@ -170,4 +152,6 @@ export class DoctorController {
 
     res.status(StatusCode.OK).json(result);
   });
+
 }
+

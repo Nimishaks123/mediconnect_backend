@@ -1,8 +1,12 @@
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, RequestHandler } from "express";
 import { AuthenticatedRequest } from "./authMiddleware";
 import { UserRole } from "@application/constants/UserRole";
 import { AppError } from "@common/AppError";
 
+/**
+ * Middleware factory to restrict access to specific roles.
+ * Must be used AFTER authMiddleware.
+ */
 export const allowRoles = (...roles: UserRole[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -16,3 +20,12 @@ export const allowRoles = (...roles: UserRole[]) => {
     next();
   };
 };
+
+/**
+ * Reusable role-specific middleware sets.
+ * Note: These are factories that take the 'auth' middleware instance.
+ */
+export const requireAdmin = (auth: RequestHandler) => [auth, allowRoles(UserRole.ADMIN)];
+export const requirePatient = (auth: RequestHandler) => [auth, allowRoles(UserRole.PATIENT)];
+export const requireDoctor = (auth: RequestHandler) => [auth, allowRoles(UserRole.DOCTOR)];
+

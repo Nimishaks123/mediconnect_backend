@@ -9,8 +9,9 @@ import {
   ApproveDoctorSchema, 
   RejectDoctorSchema, 
   BlockUnblockUserSchema, 
-  GetAllUsersSchema 
+
 } from "../validators/admin.validator";
+import { GetAllUsersDTO } from "@application/dtos/admin";
 
 import { IAdminLoginUseCase } from "@application/interfaces/admin/IAdminLoginUseCase";
 import { IGetAdminDoctorsUseCase } from "@application/interfaces/admin/IGetAdminDoctorsUseCase";
@@ -101,7 +102,17 @@ export class AdminController {
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    const validated = GetAllUsersSchema.parse(req.query);
+    //const validated = req.query;
+    const query=req.query;
+
+
+const validated: GetAllUsersDTO = {
+  page: query.page ? Number(query.page) : 1,
+  limit: query.limit ? Number(query.limit) : 6,
+  search: query.search as string | undefined,
+  role: query.role as string | undefined,
+  status: query.status as "ACTIVE" | "BLOCKED" | undefined,
+};
     const result = await this.getAllUsersUseCase.execute(validated);
 
     logger.info("Fetched users with pagination", {

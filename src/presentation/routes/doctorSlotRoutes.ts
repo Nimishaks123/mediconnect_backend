@@ -1,13 +1,14 @@
 import { Router, RequestHandler } from "express";
 import { DoctorSlotController } from "../controllers/DoctorSlotController";
-import { allowRoles } from "../middlewares/roleMiddleware";
-import { UserRole } from "@application/constants/UserRole";
-import { validateRequest } from "../middlewares/validateRequest";
+import { requireDoctor } from "../middlewares/roleMiddleware";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 import { getDoctorSlotsSchema, deleteSlotSchema } from "../validation/doctorValidation";
 
 export function doctorSlotRoutes(controller: DoctorSlotController, authMiddleware: RequestHandler) {
   const router = Router();
-  router.use(authMiddleware, allowRoles(UserRole.DOCTOR));
+  
+  // Enforce Doctor only for all slot routes
+  router.use(...requireDoctor(authMiddleware));
 
   router.get(
     "/slots",
@@ -23,4 +24,5 @@ export function doctorSlotRoutes(controller: DoctorSlotController, authMiddlewar
 
   return router;
 }
+
 

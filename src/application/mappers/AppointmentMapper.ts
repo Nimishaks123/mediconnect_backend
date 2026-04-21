@@ -7,6 +7,8 @@ export class AppointmentMapper {
   static toResponseDTO(appointment: Appointment): CreateAppointmentResponseDTO {
     return {
       id: appointment.getId(),
+      _id: appointment.getId(),
+
       doctorId: appointment.getDoctorId(),
       patientId: appointment.getPatientId(),
       date: appointment.getDate(),
@@ -17,12 +19,13 @@ export class AppointmentMapper {
     };
   }
 
-  static parseAvailabilityId(availabilityId: string): { doctorId: string; date: string; startTime: string; endTime: string } {
-    const parts = availabilityId.split("_");
+  static parseSlotId(slotId: string): { doctorId: string; date: string; startTime: string; endTime: string } {
+    const parts = slotId.split("_");
 
-    if (parts.length !== 4) {
-      throw new AppError("Invalid availabilityId format", StatusCode.BAD_REQUEST);
+    if (parts.length < 4) {
+      throw new AppError("Invalid slotId format", StatusCode.BAD_REQUEST);
     }
+
 
     const [doctorId, date, startTime, endTime] = parts;
 

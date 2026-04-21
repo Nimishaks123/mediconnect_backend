@@ -1,80 +1,44 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { AuthController } from "../controllers/AuthController";
-import {
-  signupSchema,
-  loginSchema,
-  verifyOtpSchema,
+import { 
+  signupSchema, 
+  loginSchema, 
+  verifyOtpSchema, 
   resendOtpSchema,
   forgotPasswordSendOtpSchema,
   forgotPasswordVerifyOtpSchema,
   forgotPasswordResetSchema,
   refreshTokenSchema,
-  googleCallbackSchema,
+  googleCallbackSchema
 } from "../validation/authValidation";
-import { validateRequest } from "../middlewares/validateRequest";
+import { validateRequest } from "@presentation/middlewares/validateRequest";
 
-export function authRoutes(authController: AuthController) {
+/**
+ * Route definitions for authentication.
+ */
+export function authRoutes(authController: AuthController, authMiddleware: RequestHandler) {
   const router = Router();
 
-  router.post(
-    "/signup",
-    validateRequest(signupSchema),
-    authController.signup
-  );
+  // Standard Email/Password Auth
+  router.post("/signup", validateRequest(signupSchema), authController.signup);
+  router.post("/login", validateRequest(loginSchema), authController.login);
+  router.post("/verify-otp", validateRequest(verifyOtpSchema), authController.verifyOtp);
+  router.post("/resend-otp", validateRequest(resendOtpSchema), authController.resendOtp);
+  router.post("/refresh", validateRequest(refreshTokenSchema), authController.refresh);
 
-  router.post(
-    "/verify-otp",
-    validateRequest(verifyOtpSchema),
-    authController.verifyOtp
-  );
+  // Session Management
+  router.get("/me", authMiddleware, authController.getMe);
+  router.post("/logout", authController.logout);
 
-  router.post(
-    "/resend-otp",
-    validateRequest(resendOtpSchema),
-    authController.resendOtp
-  );
+  // Forgot Password Flow
+  router.post("/forgot-password/send-otp", validateRequest(forgotPasswordSendOtpSchema), authController.sendForgotPasswordOtp);
+  router.post("/forgot-password/verify-otp", validateRequest(forgotPasswordVerifyOtpSchema), authController.verifyForgotPasswordOtp);
+  router.post("/forgot-password/reset", validateRequest(forgotPasswordResetSchema), authController.resetPassword);
 
-  router.post(
-    "/login",
-    validateRequest(loginSchema),
-    authController.login
-  );
-
-  router.post(
-    "/refresh",
-    validateRequest(refreshTokenSchema),
-    authController.refresh
-  );
-
-  router.post(
-    "/forgot-password/send-otp",
-    validateRequest(forgotPasswordSendOtpSchema),
-    authController.sendForgotPasswordOtp
-  );
-
-  router.post(
-    "/forgot-password/verify-otp",
-    validateRequest(forgotPasswordVerifyOtpSchema),
-    authController.verifyForgotPasswordOtp
-  );
-
-  router.post(
-    "/forgot-password/reset",
-    validateRequest(forgotPasswordResetSchema),
-    authController.resetPassword
-  );
-
-  //  GOOGLE OAUTH 
-  router.get(
-    "/google",
-    authController.googleAuthUrl
-  );
-
-  router.get(
-    "/google/callback",
-    validateRequest(googleCallbackSchema),
-    authController.googleCallback
-  );
+  // Google OAuth 2.0
+  router.get("/google", authController.googleAuthUrl);
+  router.get("/google/callback", validateRequest(googleCallbackSchema), authController.googleCallback);
 
   return router;
 }
+

@@ -6,4 +6,5 @@ export interface AuthenticatedRequest extends Request {
     role: "PATIENT" | "DOCTOR" | "ADMIN";
     email?: string;
   };
+  token?: string;
 }
