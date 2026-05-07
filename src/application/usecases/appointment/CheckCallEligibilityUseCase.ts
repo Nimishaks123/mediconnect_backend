@@ -14,7 +14,7 @@ export class CheckCallEligibilityUseCase implements ICheckCallEligibilityUseCase
     
     if (!appointment) return false;
 
-    // Check status - usually only CONFIRMED or RESCHEDULED
+    // Check status
     const allowedStatuses = ["CONFIRMED", "RESCHEDULED"];
     if (!allowedStatuses.includes(appointment.getStatus())) {
       return false;
@@ -24,7 +24,6 @@ export class CheckCallEligibilityUseCase implements ICheckCallEligibilityUseCase
     if (appointment.getPatientId() === userId) return true;
 
     // Check if user is the doctor
-    // Appointment stores doctorId (profile ID), we need to get user ID for that profile
     const doctorProfile = await this.doctorRepo.findById(appointment.getDoctorId());
     if (doctorProfile && doctorProfile.getUserId() === userId) return true;
 

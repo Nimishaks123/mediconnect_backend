@@ -18,13 +18,13 @@ export class OtpPersistenceMapper {
 
   static toPersistence(otp: Otp): Partial<OtpPersistenceDTO> {
     return {
-      email: otp.email,
-      code: otp.code,
-      expiresAt: otp.expiresAt,
-      createdAt: otp.createdAt,
-      attempts: otp.attempts,
-      context: otp.context,
-      verified: otp.verified,
+       email: otp.getEmail(),
+    code: otp.getCode(),
+    expiresAt: otp.getExpiresAt(),
+    createdAt: otp.getCreatedAt(),
+    attempts: otp.getAttempts(),
+    context: otp.getContext(),
+    verified: otp.isVerified(),
     };
   }
 }

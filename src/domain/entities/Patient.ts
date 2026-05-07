@@ -1,26 +1,85 @@
 export class Patient {
   private constructor(
-    public readonly userId: string,
-    public name: string,
-    public age: number, // Keep for backward compatibility fallback
-    public gender: "MALE" | "FEMALE" | "OTHER" | null,
-    public phone: string,
-    public address: string | null = null,
-    public profileImage: string | null = null,
-    public dateOfBirth: Date | null = null,
-    public medicalHistory: Record<string, any> = {},
-    public allergies: string[] = [],
-    public bloodGroup: string | null = null,
-    public emergencyContactName: string | null = null,
-    public emergencyContactPhone: string | null = null,
-    public readonly createdAt: Date = new Date(),
-    public updatedAt: Date = new Date(),
-    public readonly id?: string
+    private readonly userId: string,
+    private name: string,
+    private age: number, 
+    private gender: "MALE" | "FEMALE" | "OTHER" | null,
+    private phone: string,
+    private address: string | null = null,
+    private profileImage: string | null = null,
+    private dateOfBirth: Date | null = null,
+    private medicalHistory: Record<string, any> = {},
+    private allergies: string[] = [],
+    private bloodGroup: string | null = null,
+    private emergencyContactName: string | null = null,
+    private emergencyContactPhone: string | null = null,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date(),
+    private readonly id?: string
   ) {}
+  getId(): string | undefined {
+  return this.id;
+}
 
-  /**
-   * ✅ DDD Factory Method for reconstruction
-   */
+getUserId(): string {
+  return this.userId;
+}
+
+getName(): string {
+  return this.name;
+}
+
+getAge(): number {
+  return this.age;
+}
+
+getGender(): "MALE" | "FEMALE" | "OTHER" | null {
+  return this.gender;
+}
+
+getPhone(): string {
+  return this.phone;
+}
+
+getAddress(): string | null {
+  return this.address;
+}
+
+getProfileImage(): string | null {
+  return this.profileImage;
+}
+
+getDateOfBirth(): Date | null {
+  return this.dateOfBirth;
+}
+
+getMedicalHistory(): Record<string, any> {
+  return this.medicalHistory;
+}
+
+getAllergies(): string[] {
+  return this.allergies;
+}
+
+getBloodGroup(): string | null {
+  return this.bloodGroup;
+}
+
+getEmergencyContactName(): string | null {
+  return this.emergencyContactName;
+}
+
+getEmergencyContactPhone(): string | null {
+  return this.emergencyContactPhone;
+}
+
+getCreatedAt(): Date {
+  return this.createdAt;
+}
+
+getUpdatedAt(): Date {
+  return this.updatedAt;
+}
   static rehydrate(data: {
     userId: string;
     name: string;
@@ -58,10 +117,6 @@ export class Patient {
       data.id
     );
   }
-
-  /**
-   * ✅ Domain Factory for new Patient creation
-   */
   static create(data: {
     userId: string;
     name: string;

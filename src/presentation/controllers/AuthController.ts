@@ -3,23 +3,8 @@ import logger from "@common/logger";
 import { StatusCode } from "@common/enums";
 import { config } from "@common/config";
 import { catchAsync } from "@presentation/utils/catchAsync";
-import {
-  SignupSchema,
-  LoginSchema,
-  VerifyOtpSchema,
-  ResendOtpSchema,
-  RefreshTokenSchema,
-  SendForgotPasswordOtpSchema,
-  VerifyForgotPasswordOtpSchema,
-  ResetPasswordSchema
-} from "../validators/auth.validator";
-import { ValidatedRequest } from "@presentation/types/ValidatedRequest";
-import { googleCallbackSchema } from "../validation/authValidation";
 import { AuthenticatedRequest } from "@presentation/middlewares/authMiddleware";
 import { AppError } from "@common/AppError";
-
-
-
 import {
   ISignupUserUseCase,
   IVerifyOtpUseCase,
@@ -51,10 +36,10 @@ export class AuthController {
     res.redirect(redirectUrl);
   });
 
-  googleCallback = catchAsync(async (req: ValidatedRequest<typeof googleCallbackSchema>, res: Response) => {
+  googleCallback = catchAsync(async (req: Request, res: Response) => {
     const result = await this.loginWithGoogleUseCase.execute({
-      code: req.query.code!,
-      role: req.query.state,
+      code: req.query.code as string,
+      role: req.query.state as string,
     });
 
     // Set Access Token in HTTP-only cookie
@@ -76,12 +61,12 @@ export class AuthController {
     });
 
     logger.info("Google login successful", { userId: result.user.id });
-    // Redirect to frontend. Frontend will now have the cookies.
+    // Redirect to frontend.
     res.redirect(`${config.frontendUrl}/oauth-success`);
   });
 
   signup = catchAsync(async (req: Request, res: Response) => {
-    const validated = SignupSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.signupUserUseCase.execute(validated);
 
     logger.info("User signup successful", { email: validated.email });
@@ -89,7 +74,7 @@ export class AuthController {
   });
 
   resendOtp = catchAsync(async (req: Request, res: Response) => {
-    const validated = ResendOtpSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.resendOtpUseCase.execute(validated);
 
     logger.info("OTP resent", { email: validated.email });
@@ -97,7 +82,7 @@ export class AuthController {
   });
 
   verifyOtp = catchAsync(async (req: Request, res: Response) => {
-    const validated = VerifyOtpSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.verifyOtpUseCase.execute(validated);
 
     logger.info("OTP verified", { email: validated.email });
@@ -105,7 +90,7 @@ export class AuthController {
   });
 
   login = catchAsync(async (req: Request, res: Response) => {
-    const validated = LoginSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.loginUseCase.execute(validated);
 
     res.cookie("accessToken", result.accessToken, {
@@ -146,8 +131,8 @@ export class AuthController {
   });
 
   refresh = catchAsync(async (req: Request, res: Response) => {
-    const validated = RefreshTokenSchema.parse(req.cookies);
-    const result = await this.refreshTokenUseCase.execute(validated);
+    const { refreshToken } = req.cookies as { refreshToken: string };
+    const result = await this.refreshTokenUseCase.execute({ refreshToken });
 
     if (result.refreshToken) {
       res.cookie("refreshToken", result.refreshToken, {
@@ -164,7 +149,7 @@ export class AuthController {
   });
 
   sendForgotPasswordOtp = catchAsync(async (req: Request, res: Response) => {
-    const validated = SendForgotPasswordOtpSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.sendForgotPasswordOtpUseCase.execute(validated);
 
     logger.info("Forgot password OTP sent", { email: validated.email });
@@ -172,7 +157,7 @@ export class AuthController {
   });
 
   verifyForgotPasswordOtp = catchAsync(async (req: Request, res: Response) => {
-    const validated = VerifyForgotPasswordOtpSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.verifyForgotPasswordOtpUseCase.execute(validated);
 
     logger.info("Forgot password OTP verified", { email: validated.email });
@@ -180,7 +165,7 @@ export class AuthController {
   });
 
   resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const validated = ResetPasswordSchema.parse(req.body);
+    const validated = req.body;
     const result = await this.resetPasswordUseCase.execute(validated);
 
     logger.info("Password reset successful", { email: validated.email });

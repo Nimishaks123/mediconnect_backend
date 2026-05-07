@@ -1,4 +1,4 @@
-import { IAdminRepository } from "../../../domain/interfaces/IAdminRepository";
+import { IAdminRepository } from "@domain/interfaces/IAdminRepository";
 import { ITokenService } from "../../interfaces/services/ITokenService";
 import { IPasswordHasher } from "@domain/interfaces/IPasswordHasher";
 import { AppError } from "../../../common/AppError";
@@ -20,12 +20,12 @@ export class AdminLoginUseCase implements IAdminLoginUseCase {
     const admin = await this.adminRepo.findByEmail(email);
 
     if (!admin) {
-      throw new AppError("Invalid credentials", StatusCode.BAD_REQUEST);
+      throw new AppError("Invalid credentials", StatusCode.UNAUTHORIZED);
     }
 
     const isValid = await this.passwordHasher.compare(password, admin.passwordHash);
     if (!isValid) {
-      throw new AppError("Invalid credentials", StatusCode.BAD_REQUEST);
+      throw new AppError("Invalid credentials", StatusCode.UNAUTHORIZED);
     }
 
     const payload = AdminMapper.toTokenPayload(admin);

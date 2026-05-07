@@ -19,7 +19,7 @@ export const validateRequest = (schema: ZodTypeAny) => {
       if (validated?.cookies) req.cookies = validated.cookies;
       return next();
     } catch (error: any) {
-      console.error("VALIDATION ERROR:", error);
+      //console.error("VALIDATION ERROR:", error);
       return next(
         new AppError(
           error?.message || "Validation failed",

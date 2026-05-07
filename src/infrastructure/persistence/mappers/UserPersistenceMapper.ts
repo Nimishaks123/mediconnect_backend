@@ -17,15 +17,15 @@ export class UserPersistenceMapper {
   }
 
   static toPersistence(user: User): Partial<UserDB> {
-    return {
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      passwordHash: user.passwordHash,
-      role: user.role as any, 
-      isVerified: user.isVerified,
-      blocked: user.blocked,
-    };
+  return {
+    name: user.getName(),
+    email: user.getEmail(),
+    phoneNumber: user.getPhoneNumber(),
+    passwordHash: user.getPasswordHash(),
+    role: user.getRole() as any,
+    isVerified: user.isUserVerified(),
+    blocked: user.isBlocked(),
+  };
   }
 
 

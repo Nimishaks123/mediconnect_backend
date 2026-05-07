@@ -13,42 +13,31 @@ export class PatientRepository
     super(PatientModel);
   }
 
-  /**
-   *  Map from Persistence to Domain
-   */
+   //Map from Persistence to Domain
+   
   protected toDomain(doc: PatientDB): Patient {
     return PatientPersistenceMapper.toDomain(doc);
   }
 
-  /**
-   * 🏗️ Map from Domain to Persistence
-   */
+  //Map from Domain to Persistence
+
   protected toPersistence(entity: Patient): Partial<PatientDB> {
     return PatientPersistenceMapper.toPersistence(entity) as Partial<PatientDB>;
   }
-
-  /**
-   * 🔍 Find a patient by user ID
-   */
   async findByUserId(userId: string): Promise<Patient | null> {
     return this.findOne({ userId });
   }
 
-  /**
-   * 🔍 Find a patient by ID
-   */
+
   async findById(id: string): Promise<Patient | null> {
     const doc = await this.model.findById(id);
     return doc ? this.toDomain(doc) : null;
   }
 
-  /**
-   * 💾 Save/Update patient profile
-   */
   async save(patient: Patient): Promise<Patient> {
     const data = this.toPersistence(patient);
     
-    // Use findOneAndUpdate with upsert for resilient creation/update
+    // Use findOneAndUpdate with upsert 
     const updated = await this.model.findOneAndUpdate(
       { userId: data.userId },
       { $set: data },

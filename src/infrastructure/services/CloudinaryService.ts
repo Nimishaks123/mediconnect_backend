@@ -6,9 +6,9 @@ import logger from "@common/logger";
 import { config } from "@common/config";
 
 export class CloudinaryService implements IFileStorageService {
-  /**
-   * Generates a signed upload signature for direct frontend uploads.
-   */
+  
+   //Generates a signed upload signature for frontend uploads.
+   
   getSignature(folder: string) {
     const timestamp = Math.round(new Date().getTime() / 1000);
     const signature = cloudinary.utils.api_sign_request(
@@ -24,10 +24,9 @@ export class CloudinaryService implements IFileStorageService {
     };
   }
 
-  /**
-   * Uploads a single file to Cloudinary and returns the secure URL.
-   * Deletes the local file after success or failure.
-   */
+  
+   //Uploads a single file to Cloudinary and returns the secure URL.
+  
   async uploadSingle(file: Express.Multer.File): Promise<string> {
     try {
       const result = await cloudinary.uploader.upload(file.path, {
@@ -45,9 +44,8 @@ export class CloudinaryService implements IFileStorageService {
     }
   }
 
-  /**
-   * Uploads multiple files to Cloudinary and returns an array of secure URLs.
-   */
+   //Uploads multiple files to Cloudinary and returns an array of  URLs.
+   
   async uploadMultiple(files: Express.Multer.File[]): Promise<string[]> {
     if (!files || files.length === 0) return [];
 
@@ -55,9 +53,8 @@ export class CloudinaryService implements IFileStorageService {
     return Promise.all(uploadPromises);
   }
 
-  /**
-   * Utility to delete local file using fs.unlinkSync
-   */
+   // Utility to delete local file using fs.unlinkSync
+   
   private deleteLocalFile(filePath: string) {
     try {
       if (fs.existsSync(filePath)) {

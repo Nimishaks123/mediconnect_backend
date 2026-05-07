@@ -2,20 +2,42 @@ import { UserRole } from "@domain/enums/UserRole";
 
 export class User {
   private constructor(
-    public name: string,
-    public email: string,
-    public phoneNumber: string | undefined,
-    public passwordHash: string,
-    public role: UserRole,
-    public isVerified: boolean = false,
-    public blocked: boolean = false,
-    public readonly id?: string
+    private name: string,
+    private email: string,
+    private phoneNumber: string | undefined,
+    private passwordHash: string,
+    private role: UserRole,
+    private isVerified: boolean = false,
+    private blocked: boolean = false,
+    private readonly id?: string
   ) {}
+  getName(): string {
+  return this.name;
+}
 
-  /**
-   * ✅ DDD Factory Method for reconstruction
-   * Ensures domain invariants are maintained when rehydrating from persistence.
-   */
+getEmail(): string {
+  return this.email;
+}
+
+getPhoneNumber(): string | undefined {
+  return this.phoneNumber;
+}
+
+getPasswordHash(): string {
+  return this.passwordHash;
+}
+
+getRole(): UserRole {
+  return this.role;
+}
+
+isUserVerified(): boolean {
+  return this.isVerified;
+}
+
+isBlocked(): boolean {
+  return this.blocked;
+}
   static rehydrate(data: {
     name: string;
     email: string;
@@ -38,9 +60,7 @@ export class User {
     );
   }
 
-  /**
-   * ✅ Domain Factory for new User creation
-   */
+//new user creation
   static create(data: {
     name: string;
     email: string;
@@ -94,7 +114,7 @@ export class User {
       undefined,
       passwordHash,
       role,
-      role === UserRole.PATIENT, // patients are verified immediately, doctors must wait for approval
+      role === UserRole.PATIENT, 
       false // blocked
     );
   }

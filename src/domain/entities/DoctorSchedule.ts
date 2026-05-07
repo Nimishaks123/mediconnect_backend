@@ -6,24 +6,60 @@ import { IRRulePolicy } from "../policies/IRRulePolicy";
 import { Slot } from "./Slot";
 
 export type TimeWindow = {
-  start: string; // "09:00"
-  end: string;   // "12:00"
+  start: string; 
+  end: string;  
 };
 
 export class DoctorSchedule {
   constructor(
-    public readonly id: string | null | undefined,
-    public readonly doctorId: string,
-    public readonly rrule: string,
-    public readonly timeWindows: TimeWindow[],
-    public readonly slotDuration: number,
-    public readonly validFrom: Date,
-    public readonly validTo: Date,
-    public readonly timezone: string,
-    public readonly cancelledSlots: string[] = []
+    private readonly id: string | null | undefined,
+    private readonly doctorId: string,
+    private readonly rrule: string,
+    private readonly timeWindows: TimeWindow[],
+    private readonly slotDuration: number,
+    private readonly validFrom: Date,
+    private readonly validTo: Date,
+    private readonly timezone: string,
+    private readonly cancelledSlots: string[] = []
   ) {
     this.validate();
   }
+
+  // getters 
+  getId(): string | null | undefined {
+    return this.id;
+  }
+
+  getDoctorId(): string {
+    return this.doctorId;
+  }
+  getRRule(): string {
+  return this.rrule;
+}
+
+getTimeWindows(): TimeWindow[] {
+  return this.timeWindows;
+}
+
+getSlotDuration(): number {
+  return this.slotDuration;
+}
+
+getValidFrom(): Date {
+  return this.validFrom;
+}
+
+getValidTo(): Date {
+  return this.validTo;
+}
+
+getTimezone(): string {
+  return this.timezone;
+}
+
+getCancelledSlots(): string[] {
+  return this.cancelledSlots;
+}
 
   static create(data: {
     doctorId: string;
@@ -38,7 +74,7 @@ export class DoctorSchedule {
     const duration = SlotDuration.create(data.slotDuration);
 
     return new DoctorSchedule(
-      undefined, 
+      undefined,
       data.doctorId,
       data.rrule,
       data.timeWindows,
@@ -50,18 +86,15 @@ export class DoctorSchedule {
     );
   }
 
-  /**
-   *  Slot Generation
-   * schedule rules into discrete time windows.
-   */
   generateSlots(queryRange: DateRange, rrulePolicy: IRRulePolicy): Slot[] {
-    // 1. Determine effective date range for this schedule
-    const effectiveFrom = queryRange.from > this.validFrom ? queryRange.from : this.validFrom;
-    const effectiveTo = queryRange.to < this.validTo ? queryRange.to : this.validTo;
+    const effectiveFrom =
+      queryRange.from > this.validFrom ? queryRange.from : this.validFrom;
+
+    const effectiveTo =
+      queryRange.to < this.validTo ? queryRange.to : this.validTo;
 
     if (effectiveFrom > effectiveTo) return [];
 
-    // 2. Resolve working dates 
     const workingDates = rrulePolicy.generateDates(
       this.rrule,
       effectiveFrom,
@@ -70,6 +103,7 @@ export class DoctorSchedule {
     );
 
     const slots: Slot[] = [];
+
     for (const dateObj of workingDates) {
       slots.push(...this.generateSlotsForDate(dateObj));
     }
@@ -82,12 +116,12 @@ export class DoctorSchedule {
     const dateStr = this.formatDate(dateObj);
 
     for (const window of this.timeWindows) {
-      const start = new Date(`${dateStr}T${window.start}:00Z`);
-      const end = new Date(`${dateStr}T${window.end}:00Z`);
+      const start = new Date(`${dateStr}T${window.start}:00`);
+      const end = new Date(`${dateStr}T${window.end}:00`);
 
       let current = new Date(start);
 
-      while (current<end) {
+      while (current.getTime() < end.getTime()) {
         const slotEnd = new Date(current);
         slotEnd.setMinutes(slotEnd.getMinutes() + this.slotDuration);
 
@@ -98,40 +132,44 @@ export class DoctorSchedule {
           dateStr,
           this.formatTime(current),
           this.formatTime(slotEnd),
-          this.id || undefined
+          this.id ?? undefined
         );
 
-        if (!this.cancelledSlots.includes(newSlot.id)) {
-          slots.push(newSlot);
-        }
+        const slotId = newSlot.getId(); 
+
+        if (!this.cancelledSlots.includes(slotId)) {
+  slots.push(newSlot);
+}
 
         current = new Date(slotEnd);
       }
     }
+
     return slots;
   }
 
   private formatDate(date: Date): string {
-    const yyyy = date.getUTCFullYear();
-    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const dd = String(date.getUTCDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
+  return date.toLocaleDateString("en-CA"); // local time(y-m-d)
+}
 
   private formatTime(date: Date): string {
-    const hh = String(date.getUTCHours()).padStart(2, '0');
-    const mm = String(date.getUTCMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  }
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
 
   private validate() {
     if (!Array.isArray(this.timeWindows) || this.timeWindows.length === 0) {
-      throw new InvalidDoctorScheduleError("At least one valid time window is required");
+      throw new InvalidDoctorScheduleError(
+        "At least one valid time window is required"
+      );
     }
 
     for (const window of this.timeWindows) {
       if (!window.start || !window.end || window.start >= window.end) {
-        throw new InvalidDoctorScheduleError(`Invalid time window: ${window.start} - ${window.end}`);
+        throw new InvalidDoctorScheduleError(
+          `Invalid time window: ${window.start} - ${window.end}`
+        );
       }
     }
   }

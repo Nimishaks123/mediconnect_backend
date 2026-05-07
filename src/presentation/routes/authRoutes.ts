@@ -13,13 +13,10 @@ import {
 } from "../validation/authValidation";
 import { validateRequest } from "@presentation/middlewares/validateRequest";
 
-/**
- * Route definitions for authentication.
- */
 export function authRoutes(authController: AuthController, authMiddleware: RequestHandler) {
   const router = Router();
 
-  // Standard Email/Password Auth
+  // Email/Password authentication
   router.post("/signup", validateRequest(signupSchema), authController.signup);
   router.post("/login", validateRequest(loginSchema), authController.login);
   router.post("/verify-otp", validateRequest(verifyOtpSchema), authController.verifyOtp);
@@ -30,12 +27,12 @@ export function authRoutes(authController: AuthController, authMiddleware: Reque
   router.get("/me", authMiddleware, authController.getMe);
   router.post("/logout", authController.logout);
 
-  // Forgot Password Flow
+  // Forgot Password
   router.post("/forgot-password/send-otp", validateRequest(forgotPasswordSendOtpSchema), authController.sendForgotPasswordOtp);
   router.post("/forgot-password/verify-otp", validateRequest(forgotPasswordVerifyOtpSchema), authController.verifyForgotPasswordOtp);
   router.post("/forgot-password/reset", validateRequest(forgotPasswordResetSchema), authController.resetPassword);
 
-  // Google OAuth 2.0
+  // Google OAuth
   router.get("/google", authController.googleAuthUrl);
   router.get("/google/callback", validateRequest(googleCallbackSchema), authController.googleCallback);
 

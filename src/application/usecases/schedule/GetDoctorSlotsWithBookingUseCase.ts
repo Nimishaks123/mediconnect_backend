@@ -44,10 +44,13 @@ export class GetDoctorSlotsWithBookingUseCase {
       )
     ]);
 
-    if (schedules.length === 0) return [];
-    const allSlots = schedules.flatMap(schedule => 
-      schedule.generateSlots(range, this.rrulePolicy)
-    );
+    // if (schedules.length === 0) return [];
+    // const allSlots = schedules.flatMap(schedule => 
+    //   schedule.generateSlots(range, this.rrulePolicy)
+    // );
+    if (!schedules) return [];
+
+const allSlots = schedules.generateSlots(range, this.rrulePolicy);
 
     const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
     return this.availabilityService.mapSlotsWithBookings(uniqueSlots, appointments);

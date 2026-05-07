@@ -25,21 +25,21 @@ static toDomain(doc: DoctorDB): Doctor {
 
   static toPersistence(doctor: Doctor): Partial<DoctorPersistenceDTO> {
     return {
-      userId: doctor.getUserId(),
-      specialty: doctor.specialty,
-      qualification: doctor.qualification,
-      experience: doctor.experience,
-      consultationFee: doctor.consultationFee,
-      registrationNumber: doctor.registrationNumber,
-      licenseDocument: doctor.licenseDocument,
-      certifications: doctor.certifications,
-      aboutMe: doctor.aboutMe,
-      profilePhoto: doctor.profilePhoto,
-      onboardingStatus: doctor.onboardingStatus,
-      verificationStatus: doctor.verificationStatus,
-      verifiedBy: doctor.verifiedBy,
-      verifiedAt: doctor.verifiedAt,
-      rejectionReason: doctor.rejectionReason,
+userId: doctor.getUserId(),
+specialty: doctor.getSpecialty(),
+qualification: doctor.getQualification(),
+experience: doctor.getExperience(),
+consultationFee: doctor.getConsultationFee(),
+registrationNumber: doctor.getRegistrationNumber(),
+licenseDocument: doctor.getLicenseDocument(),
+certifications: doctor.getCertifications(),
+aboutMe: doctor.getAboutMe(),
+profilePhoto: doctor.getProfilePhoto(),
+onboardingStatus: doctor.getOnboardingStatus(),
+verificationStatus: doctor.getVerificationStatus(),
+verifiedBy: doctor.getVerifiedBy(),
+verifiedAt: doctor.getVerifiedAt(),
+rejectionReason: doctor.getRejectionReason(),
     };
   }
 }

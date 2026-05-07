@@ -25,4 +25,6 @@ export interface IAppointmentRepository {
     from: string,
     to: string
   ): Promise<Appointment[]>;
+  //
+  countCancelledAppointments(userId:string):Promise<number>;
 }

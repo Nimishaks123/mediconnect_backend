@@ -70,7 +70,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       { $unwind: { path: "$doctorUser", preserveNullAndEmptyArrays: true } }
     ];
 
-    // Add search match if search string exists
+    // Add search match 
     if (search) {
       pipeline.push({
         $match: {
@@ -83,9 +83,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       });
     }
 
-    // Since we need the total count AFTER the search match, we'll use a facet or separate count
-    // But since matching linked docs requires lookup first, we need a count of the filtered results
-    const countPipeline = [...pipeline, { $count: "total" }];
+  const countPipeline = [...pipeline, { $count: "total" }];
 
     pipeline.push({ $sort: sortObj });
     pipeline.push({ $skip: skip });
@@ -182,17 +180,32 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       .populate("patientId", "name email")
       .sort({ date: 1, startTime: 1 });
 
-    return docs.map((doc: any) => ({
-      appointmentId: doc.appointmentId,
-      patientId: doc.patientId?._id?.toString() ?? "Unknown",
-      patientName: doc.patientId?.name ?? "Unknown",
-      patientEmail: doc.patientId?.email,
-      date: doc.date,
-      startTime: doc.startTime,
-      endTime: doc.endTime,
-      status: doc.status,
-      paymentStatus: doc.paymentStatus,
-    }));
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    return docs.map((doc: any) => {
+      const isToday = doc.date === today;
+      const [startHours, startMinutes] = (doc.startTime as string).split(":").map(Number);
+      const startMins = startHours * 60 + startMinutes;
+      const [endHours, endMinutes] = (doc.endTime as string).split(":").map(Number);
+      const endMins = endHours * 60 + endMinutes;
+
+      const videoCallAvailable = isToday && currentMins >= (startMins - 15) && currentMins <= endMins;
+
+      return {
+        appointmentId: doc.appointmentId,
+        patientId: doc.patientId?._id?.toString() ?? "Unknown",
+        patientName: doc.patientId?.name ?? "Unknown",
+        patientEmail: doc.patientId?.email,
+        date: doc.date,
+        startTime: doc.startTime,
+        endTime: doc.endTime,
+        status: doc.status,
+        paymentStatus: doc.paymentStatus,
+        videoCallAvailable,
+      };
+    });
   }
 
   async findByPatientId(patientId: string): Promise<PatientAppointmentDTO[]> {

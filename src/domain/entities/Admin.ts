@@ -1,33 +1,37 @@
-import { UserRole } from "../enums/UserRole";
-
-export class Admin {
+import {UserRole} from "../enums/UserRole";
+export class Admin{
   private constructor(
-    public readonly name: string,
-    public readonly email: string,
-    public readonly passwordHash: string,
-    public readonly role: UserRole = UserRole.ADMIN,
-    public readonly id?: string
-  ) {}
+    private readonly _name:string,
+    private readonly _email:string,
+    private readonly _passwordHash:string,
+    private readonly _role:UserRole=UserRole.ADMIN,
+    private readonly _id?:string
+  ){}
+  //getters
+  get name():string{
+    return this._name;
+  }
+  get email():string{
+    return this._email;
+  }
+  get passwordHash():string{
+    return this._passwordHash
+  }
+  get role():UserRole{
+    return this._role;
+  }
+  get id():string|undefined{
+    return this._id
+  }
+  //rehydrate from db, used when loading existing data
+  static rehydrate(name:string,email:string,passwordHash:string,role:UserRole,id:string):Admin{
+    return new Admin(name,email,passwordHash,role,id);
 
-  /**
-   * ✅ DDD Factory Method for reconstruction
-   * Ensures domain invariants are maintained when rehydrating from persistence.
-   */
-  static rehydrate(
-    name: string,
-    email: string,
-    passwordHash: string,
-    role: UserRole,
-    id: string
-  ): Admin {
-    // Here we can perform domain validation if necessary
-    return new Admin(name, email, passwordHash, role, id);
+
+  }
+  //create new admin with default role
+  static create(name:string,email:string,passwordHash:string):Admin{
+    return new Admin(name,email,passwordHash,UserRole.ADMIN);
   }
 
-  /**
-   * Factory method for creating new Admin (if needed in use cases)
-   */
-  static create(name: string, email: string, passwordHash: string): Admin {
-    return new Admin(name, email, passwordHash, UserRole.ADMIN);
-  }
 }

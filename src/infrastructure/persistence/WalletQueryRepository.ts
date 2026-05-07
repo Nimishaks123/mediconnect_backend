@@ -1,5 +1,5 @@
 import { IWalletQueryRepository } from "@application/interfaces/queries/IWalletQueryRepository";
-import { WalletModel } from "../models/WalletModel";
+import { WalletModel } from "../persistence/models/WalletModel";
 import { 
   AdminWalletListItemDTO, 
   AdminTransactionListItemDTO 
@@ -78,7 +78,7 @@ export class WalletQueryRepository implements IWalletQueryRepository {
       }
     });
 
-    // Sort logic: default to NEWEST (createdAt DESC)
+    // Sort logic,default to NEWEST 
     const sortOrder = sort === "OLDEST" ? 1 : -1;
     pipeline.push({ $sort: { createdAt: sortOrder } });
 

@@ -1,8 +1,7 @@
 import { IWalletRepository } from "@domain/interfaces/IWalletRepository";
 import { Wallet } from "@domain/entities/Wallet";
-import { WalletModel, IWalletDocument } from "../models/WalletModel";
+import { WalletModel, IWalletDocument } from "./models/WalletModel";
 import mongoose from "mongoose";
-
 export class WalletRepositoryImpl implements IWalletRepository {
   async findByUserId(userId: string): Promise<Wallet | null> {
     const doc = await WalletModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });

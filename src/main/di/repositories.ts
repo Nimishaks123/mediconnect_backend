@@ -7,7 +7,7 @@ import { OtpRepository } from "@infrastructure/persistence/OtpRepository";
 import { DoctorScheduleRepository } from "@infrastructure/persistence/DoctorScheduleRepository";
 import { AppointmentRepository } from "@infrastructure/persistence/AppointmentRepository";
 import { AppointmentQueryRepository } from "@infrastructure/persistence/AppointmentQueryRepository";
-import { WalletRepositoryImpl } from "@infrastructure/repositories/WalletRepositoryImpl";
+import { WalletRepositoryImpl } from "@infrastructure/persistence/WalletRepositoryImpl";
 import { PatientRepository } from "@infrastructure/persistence/PatientRepository";
 import { AdminDoctorQueryRepository } from "@infrastructure/persistence/AdminDoctorQueryRepository";
 import { UserQueryRepository } from "@infrastructure/persistence/UserQueryRepository";

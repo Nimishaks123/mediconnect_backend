@@ -19,7 +19,7 @@ export class SendForgotPasswordOtpUseCase implements ISendForgotPasswordOtpUseCa
     private readonly otpGenerator: IOtpGenerator,
     private readonly eventBus: IEventBus,
     private readonly expiryMin: number = 5
-  ) {}
+  ) { }
 
   async execute(input: SendForgotPasswordOtpDTO): Promise<SendForgotPasswordOtpResponseDTO> {
     const { email } = input;
@@ -32,6 +32,7 @@ export class SendForgotPasswordOtpUseCase implements ISendForgotPasswordOtpUseCa
     await this.otpRepo.deleteByEmail(email);
 
     const plainOtp = this.otpGenerator.generate();
+    console.log("plainotp", plainOtp);
     const hashOtp = await this.passwordHasher.hash(plainOtp);
 
     const otp = Otp.create(

@@ -23,6 +23,8 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
   async execute(dto: { appointmentId: string; patientId: string }): Promise<{ refundAmount: number }> {
     const appointment = await this.appointmentRepo.findById(dto.appointmentId);
 
+
+
     if (!appointment) {
       throw new AppError("Appointment not found", StatusCode.NOT_FOUND);
     }
@@ -43,6 +45,7 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
     const patientName = user ? user.name : "the patient";
 
     // CALCULATE REFUND
+  
     const { refundAmount, cancellationCharge } = this.calculateRefund(appointment.getDate(), appointment.getStartTime(), appointment.getPrice());
 
     // Update appointment domain model

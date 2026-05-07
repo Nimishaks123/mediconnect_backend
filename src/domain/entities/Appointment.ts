@@ -13,8 +13,6 @@ export class Appointment {
   private paymentStatus: PaymentStatus;
   private expiresAt?: Date;
   private readonly createdAt?: Date;
-  
-  // New fields for wallet/refund logic
   private price: number;
   private cancellationCharge: number;
   private refundAmount: number;

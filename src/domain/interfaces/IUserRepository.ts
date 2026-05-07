@@ -14,7 +14,7 @@ export interface IUserRepository {
     update: Partial<User>
   ): Promise<User>;
 
-  // ✅ UPDATED: supports filters
+  //  filters
   findPaginated(params: {
     skip: number;
     limit: number;

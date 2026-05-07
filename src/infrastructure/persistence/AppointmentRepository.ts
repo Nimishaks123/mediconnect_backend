@@ -212,4 +212,10 @@ export class AppointmentRepository implements IAppointmentRepository {
         )
     );
   }
+  //
+  async countCancelledAppointments(userId: string): Promise<number> {
+   const docs= await AppointmentModel.countDocuments({patientIdId:new Types.ObjectId(userId),status:"CANCELLED"});
+   return docs;
+    
+  }
 }

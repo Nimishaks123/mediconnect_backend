@@ -24,7 +24,7 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
 
     const { doctorId: slotDoctorId, date, startTime, endTime } = 
       AppointmentMapper.parseSlotId(slotId);
-
+   
 
     if (slotDoctorId !== doctorId) {
       throw new AppError("Invalid slot data: doctor mismatch", StatusCode.BAD_REQUEST);
@@ -61,6 +61,7 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
     );
 
     await this.appointmentRepo.save(appointment);
+    
 
     await this.createNotificationUseCase.execute({
       userId: doctor.getUserId(),

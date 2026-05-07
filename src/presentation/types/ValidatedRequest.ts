@@ -1,10 +1,10 @@
 import { Request } from "express";
 import { z } from "zod";
 
-/**
- * Generic type for validated Express requests.
- * TSchema should be a Zod object containing body, query, and/or params.
- */
+
+ //Generic type for validated Express req.
+ // TSchema should be a Zod object contains body, query, and/or params.
+ 
 export interface ValidatedRequest<TSchema extends z.ZodObject<any, any>> extends Request<any, any, any, any> {
 
 

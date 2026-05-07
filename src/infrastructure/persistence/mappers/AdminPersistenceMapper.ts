@@ -1,6 +1,6 @@
-import { Admin } from "../../../domain/entities/Admin";
+import { Admin } from "@domain/entities/Admin";
 import { AdminDB } from "../models/AdminModel";
-import { UserRole } from "../../../domain/enums/UserRole";
+import { UserRole } from "@domain/enums/UserRole";
 
 export class AdminPersistenceMapper {
 
@@ -14,7 +14,7 @@ export class AdminPersistenceMapper {
     );
   }
 
-  static toPersistence(admin: Admin): Partial<AdminPersistenceDTO> {
+  static toPersistence(admin: Admin):AdminPersistenceDTO {
     return {
       name: admin.name,
       email: admin.email,

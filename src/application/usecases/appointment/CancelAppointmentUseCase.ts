@@ -8,6 +8,7 @@ import { ICreateNotificationUseCase } from "@application/interfaces/notification
 import { NotificationType } from "@domain/enums/NotificationType";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IWalletRepository } from "@domain/interfaces/IWalletRepository";
 
 export class CancelAppointmentUseCase {
   constructor(
@@ -15,11 +16,12 @@ export class CancelAppointmentUseCase {
     private readonly eventBus: IEventBus,
     private readonly createNotificationUseCase: ICreateNotificationUseCase,
     private readonly doctorRepo: IDoctorRepository,
-    private readonly userRepo: IUserRepository
+    private readonly userRepo: IUserRepository,
+    private readonly walletRepo:IWalletRepository
   ) {}
 
   async execute(dto: { appointmentId: string; reason: "EXPIRED" | "FAILED" | "CANCELLED", doctorId?: string }): Promise<void> {
-    const appointment = await this.appointmentRepo.findById(dto.appointmentId);
+    const appointment = await this.appointmentRepo.findById(dto.appointmentId)
 
     if (!appointment) {
       throw new AppError("Appointment not found", StatusCode.NOT_FOUND);
@@ -46,7 +48,6 @@ export class CancelAppointmentUseCase {
     }
 
     await this.appointmentRepo.save(appointment);
-
     await this.eventBus.publish(
       new CancelAppointmentEvent(
         appointment.getId(),

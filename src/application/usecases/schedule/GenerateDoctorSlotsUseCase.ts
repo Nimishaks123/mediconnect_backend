@@ -27,7 +27,6 @@ export class GenerateDoctorSlotsUseCase implements IGenerateDoctorSlotsUseCase {
   }): Promise<Slot[]> {
     const { doctorId, from, to } = dto;
     const queryRange = DateRange.create(from, to);
-    // 🔗 Fetch Doctor Context: Try finding by Profile ID first, then fallback to User ID
     let doctor = await this.doctorRepository.findById(doctorId);
     if (!doctor) {
       doctor = await this.doctorRepository.findByUserId(doctorId);
@@ -40,24 +39,41 @@ export class GenerateDoctorSlotsUseCase implements IGenerateDoctorSlotsUseCase {
 
     const doctorProfileId = doctor.getId();
 
-    const [schedules, appointments] = await Promise.all([
-      this.scheduleRepository.findByDoctorId(doctorProfileId),
-      this.appointmentRepository.findByDoctorAndDateRange(
-        doctorProfileId,
-        queryRange.from.toISOString().split("T")[0],
-        queryRange.to.toISOString().split("T")[0]
-      )
-    ]);
+    // const [schedules, appointments] = await Promise.all([
+    //   this.scheduleRepository.findByDoctorId(doctorProfileId),
+    //   this.appointmentRepository.findByDoctorAndDateRange(
+    //     doctorProfileId,
+    //     queryRange.from.toISOString().split("T")[0],
+    //     queryRange.to.toISOString().split("T")[0]
+    //   )
+    // ]);
     
-    console.log(`[GenerateDoctorSlots] ID: ${doctorProfileId}, Schedules found: ${schedules.length}`);
+    // console.log(`[GenerateDoctorSlots] ID: ${doctorProfileId}, Schedules found: ${schedules.length}`);
 
-    if (schedules.length === 0) return [];
+    // if (schedules.length === 0) return [];
 
-    // 🧬 Domain Generation: Delegate to aggregate roots
-    const allSlots = schedules.flatMap(schedule => 
-      schedule.generateSlots(queryRange, this.rrulePolicy)
-    );
-    const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
-    return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
+    // //  Domain Generation: Delegate to aggregate roots
+    // const allSlots = schedules.flatMap(schedule => 
+    //   schedule.generateSlots(queryRange, this.rrulePolicy)
+    // );
+    // const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
+    // return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
+    const [schedule, appointments] = await Promise.all([
+  this.scheduleRepository.findByDoctorId(doctorProfileId),
+  this.appointmentRepository.findByDoctorAndDateRange(
+    doctorProfileId,
+    queryRange.from.toISOString().split("T")[0],
+    queryRange.to.toISOString().split("T")[0]
+  )
+]);
+
+if (!schedule) return [];
+
+//  Domain Generation
+const allSlots = schedule.generateSlots(queryRange, this.rrulePolicy);
+
+const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
+
+return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
   }
 }

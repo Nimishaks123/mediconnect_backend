@@ -25,19 +25,19 @@ export class PatientPersistenceMapper {
 
   static toPersistence(patient: Patient): Partial<PatientPersistenceDTO> {
     return {
-      userId: patient.userId,
-      name: patient.name,
-      age: patient.age,
-      gender: patient.gender,
-      phone: patient.phone,
-      address: patient.address,
-      profileImage: patient.profileImage,
-      dateOfBirth: patient.dateOfBirth,
-      medicalHistory: patient.medicalHistory,
-      allergies: patient.allergies,
-      bloodGroup: patient.bloodGroup,
-      emergencyContactName: patient.emergencyContactName,
-      emergencyContactPhone: patient.emergencyContactPhone,
+     userId: patient.getUserId(),
+    name: patient.getName(),
+    age: patient.getAge(),
+    gender: patient.getGender(),
+    phone: patient.getPhone(),
+    address: patient.getAddress(),
+    profileImage: patient.getProfileImage(),
+    dateOfBirth: patient.getDateOfBirth(),
+    medicalHistory: patient.getMedicalHistory(),
+    allergies: patient.getAllergies(),
+    bloodGroup: patient.getBloodGroup(),
+    emergencyContactName: patient.getEmergencyContactName(),
+    emergencyContactPhone: patient.getEmergencyContactPhone(),
     };
   }
 }

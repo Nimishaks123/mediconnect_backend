@@ -29,7 +29,7 @@ import {
 
 import { createRoutes } from "../presentation/routes";
 const app = express();
-// Stripe Webhook MUST be before express.json()
+//  before express.json()
 app.post(
   "/api/webhook/stripe",
   express.raw({ type: "*/*" }),

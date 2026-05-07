@@ -15,9 +15,6 @@ export class Wallet {
     private transactions: WalletTransaction[] = []
   ) {}
 
-  /**
-   * Static Factory Method 
-   */
   static create(userId: string): Wallet {
     return new Wallet(uuid(), userId, 0, []);
   }

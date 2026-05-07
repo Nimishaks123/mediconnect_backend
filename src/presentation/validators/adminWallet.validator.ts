@@ -1,24 +1,32 @@
 import { z } from "zod";
 
-// Validation schema for userId parameter
+// PARAMS schema
 export const userIdParamSchema = z.object({
   params: z.object({
-    userId: z.string().uuid("Invalid user ID format")
-  })
+    userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ObjectId"),
+  }),
 });
 
+// QUERY schema for wallets
 export const AdminWalletQuerySchema = z.object({
-  page: z.preprocess((val) => Number(val), z.number().min(1).default(1)),
-  limit: z.preprocess((val) => Number(val), z.number().min(1).max(100).default(10)),
-  search: z.string().optional(),
-  sort: z.enum(["NEWEST", "OLDEST"]).default("NEWEST"),
+  query: z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(10),
+    search: z.string().optional(),
+    sort: z.enum(["NEWEST", "OLDEST"]).default("NEWEST"),
+  }),
 });
 
-export const AdminWalletTransactionQuerySchema = z.object({
-  userId: z.string(),
-  page: z.preprocess((val) => Number(val), z.number().min(1).default(1)),
-  limit: z.preprocess((val) => Number(val), z.number().min(1).max(100).default(10)),
-  type: z.enum(["CREDIT", "DEBIT"]).optional(),
-  search: z.string().optional(),
-  sort: z.enum(["NEWEST", "OLDEST"]).default("NEWEST"),
+// QUERY + PARAMS schema for transactions
+export const AdminWalletTransactionSchema = z.object({
+  params: z.object({
+    userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ObjectId"),
+  }),
+  query: z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(10),
+    type: z.enum(["CREDIT", "DEBIT"]).optional(),
+    search: z.string().optional(),
+    sort: z.enum(["NEWEST", "OLDEST"]).default("NEWEST"),
+  }),
 });

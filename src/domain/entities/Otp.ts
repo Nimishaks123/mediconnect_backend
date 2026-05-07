@@ -11,20 +11,15 @@ export enum OtpContext {
 
 export class Otp {
   private constructor(
-    public readonly email: string,
-    public readonly code: string,
-    public readonly expiresAt: Date,
-    public readonly createdAt: Date,
-    public attempts: number,
-    public readonly id?: string,
-    public readonly context: OtpContext = OtpContext.SIGNUP,
-    public verified: boolean = false
+    private readonly email: string,
+    private readonly code: string,
+    private readonly expiresAt: Date,
+    private readonly createdAt: Date,
+    private attempts: number,
+    private readonly id?: string,
+    private readonly context: OtpContext = OtpContext.SIGNUP,
+    private verified: boolean = false
   ) {}
-
-  /**
-   * ✅ DDD Factory Method for reconstruction
-   * Ensures domain invariants are maintained when rehydrating from persistence.
-   */
   static rehydrate(data: {
     email: string;
     code: string;
@@ -46,10 +41,7 @@ export class Otp {
       data.verified
     );
   }
-
-  /**
-   * ✅ Domain Factory for new OTP creation
-   */
+//new otp creation
   static create(
     email: string,
     code: string,
@@ -58,6 +50,37 @@ export class Otp {
   ): Otp {
     return new Otp(email, code, expiresAt, new Date(), 0, undefined, context, false);
   }
+  getId(): string | undefined {
+  return this.id;
+}
+
+getEmail(): string {
+  return this.email;
+}
+
+getCode(): string {
+  return this.code;
+}
+
+getExpiresAt(): Date {
+  return this.expiresAt;
+}
+
+getCreatedAt(): Date {
+  return this.createdAt;
+}
+
+getAttempts(): number {
+  return this.attempts;
+}
+
+getContext(): OtpContext {
+  return this.context;
+}
+
+isVerified(): boolean {
+  return this.verified;
+}
 
   public isExpired(): boolean {
     return this.expiresAt < new Date();

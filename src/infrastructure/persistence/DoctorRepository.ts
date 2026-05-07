@@ -15,16 +15,15 @@ export class DoctorRepository
     super(DoctorModel);
   }
 
-  /**
-   * 🏛️ Delegate mapping to the specialized persistence mapper
-   */
-  protected toDomain(doc: DoctorDB): Doctor {
-    return DoctorPersistenceMapper.toDomain(doc);
-  }
+  // Delegate mapping 
+  
+  // protected toDomain(doc: DoctorDB): Doctor {
+  //   return DoctorPersistenceMapper.toDomain(doc);
+  // }
+  protected toDomain(doc: Partial<DoctorDB>): Doctor {
+  return DoctorPersistenceMapper.toDomain(doc as DoctorDB);
+}
 
-  /**
-   * 🏗️ Delegate mapping to the specialized persistence mapper
-   */
   protected toPersistence(entity: Doctor): Partial<DoctorDB> {
     return DoctorPersistenceMapper.toPersistence(entity) as Partial<DoctorDB>;
   }
@@ -46,7 +45,7 @@ export class DoctorRepository
 
       return this.toDomain(created);
     } catch (error) {
-      console.error("CREATE DOCTOR ERROR:", error);
+      //console.error("CREATE DOCTOR ERROR:", error);
       throw new AppError("Failed to create doctor", 500);
     }
   }
@@ -56,15 +55,17 @@ export class DoctorRepository
   }
 
   async findById(id: string): Promise<Doctor | null> {
-    const doctor = await this.model.findById(id);
-    if (!doctor) return null;
-    return this.toDomain(doctor);
+    // const doctor = await this.model.findById(id);
+    // if (!doctor) return null;
+    // return this.toDomain(doctor);
+    return this.findOne({ _id: new Types.ObjectId(id) });
   }
 
   async findOneByRegistrationNumber(regNumber: string): Promise<Doctor | null> {
-    const doctor = await DoctorModel.findOne({ registrationNumber: regNumber });
-    if (!doctor) return null;
-    return this.toDomain(doctor);
+    // const doctor = await DoctorModel.findOne({ registrationNumber: regNumber });
+    // if (!doctor) return null;
+    // return this.toDomain(doctor);
+    return this.findOne({ registrationNumber: regNumber });
   }
 
   async findByOnboardingStatus(status: DoctorOnboardingStatus): Promise<Doctor[]> {
@@ -76,20 +77,37 @@ export class DoctorRepository
   }
 
   async findVerifiedDoctors(): Promise<Doctor[]> {
-    const docs = await DoctorModel.find({
-      verificationStatus: "APPROVED",
-    });
-    return docs.map((doc) => this.toDomain(doc));
+    // const docs = await DoctorModel.find({
+    //   verificationStatus: "APPROVED",
+    // });
+    // return docs.map((doc) => this.toDomain(doc));
+    return this.findMany({ verificationStatus: "APPROVED" });
   }
 
   async save(doctor: Doctor): Promise<Doctor> {
-    const updated = await this.update(
-      { _id: new Types.ObjectId(doctor.getId()) },
-      this.toPersistence(doctor)
-    );
-    if (!updated) {
-      throw new AppError("Failed to save doctor", 500);
-    }
-    return updated;
+  //   const updated = await this.update(
+  //     { _id: new Types.ObjectId(doctor.getId()) },
+  //     this.toPersistence(doctor)
+  //   );
+  //   if (!updated) {
+  //     throw new AppError("Failed to save doctor", 500);
+  //   }
+  //   return updated;
+  // }
+   const id = doctor.getId();
+  if (!id) {
+    throw new AppError("Doctor ID is missing", 400);
   }
+
+  const updated = await this.update(
+    { _id: new Types.ObjectId(id) },
+    this.toPersistence(doctor)
+  );
+
+  if (!updated) {
+    throw new AppError("Failed to save doctor", 500);
+  }
+
+  return updated;
 }
+  }

@@ -9,7 +9,7 @@ export class DateRange {
     const from = new Date(fromInput);
     const to = new Date(toInput);
     
-    // Ensure "to" covers the end of the day if it's the same or a basic date string
+    // Ensure "to" covers the end of the day if it's the same or  basic date string
     to.setUTCHours(23, 59, 59, 999);
 
     if (isNaN(from.getTime()) || isNaN(to.getTime())) {

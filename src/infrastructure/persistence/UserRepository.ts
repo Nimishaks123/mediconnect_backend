@@ -95,7 +95,7 @@ export class UserRepository
   }
 
   async save(user: User): Promise<User> {
-    const updated = await this.update({ _id: user.id }, this.toPersistence(user));
+    const updated = await this.update({ _id: user.getId()}, this.toPersistence(user));
     if (!updated) {
       throw new AppError("Failed to save user", 500);
     }

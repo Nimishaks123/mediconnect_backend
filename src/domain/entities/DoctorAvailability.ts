@@ -1,4 +1,3 @@
-// domain/entities/DoctorAvailability.ts
 import { AppError } from "../../common/AppError";
 
 export class DoctorAvailability {

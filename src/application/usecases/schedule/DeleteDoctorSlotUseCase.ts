@@ -33,7 +33,7 @@ export class DeleteDoctorSlotUseCase {
       throw new AppError("Associated schedule not found", 404);
     }
 
-    if (schedule.doctorId !== doctor.getId()) {
+    if (schedule.getDoctorId() !== doctor.getId()) {
       throw new AppError("Permission denied: You do not own this schedule", 403);
     }
 
