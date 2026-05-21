@@ -15,7 +15,7 @@ export class UploadDoctorDocumentsUseCase implements IUploadDoctorDocumentsUseCa
   ) {}
 
   private validateFile(file: Express.Multer.File, fieldName: string) {
-    // 1️⃣ Validate type: jpg, png, pdf
+    // Validate typees jpg, png, pdf
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowedTypes.includes(file.mimetype)) {
       throw new AppError(
@@ -24,7 +24,7 @@ export class UploadDoctorDocumentsUseCase implements IUploadDoctorDocumentsUseCa
       );
     }
 
-    // 2️⃣ Validate size: max 5MB
+    // Validate size: max 5MB
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       throw new AppError(
@@ -58,9 +58,8 @@ export class UploadDoctorDocumentsUseCase implements IUploadDoctorDocumentsUseCa
       throw new AppError(MESSAGES.DOCTOR_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
     }
 
-    // Enforce REQUIRED licenseDocument
     if (!files.licenseDocument || files.licenseDocument.length === 0) {
-      if (!doctor.licenseDocument) {
+      if (!doctor.getLicenseDocument()) {
         throw new AppError("License document is required", StatusCode.BAD_REQUEST);
       }
     }
@@ -97,7 +96,6 @@ export class UploadDoctorDocumentsUseCase implements IUploadDoctorDocumentsUseCa
       }
 
       // Store ONLY URLs in entity.
-      // profilePhotoUrl is already an external URL and was validated above.
       doctor.updateDocuments({
         profilePhoto: profilePhotoUrl,
         licenseDocument: licenseUrl,

@@ -19,31 +19,29 @@ export function doctorRoutes(doctorController: DoctorController, authMiddleware:
     "/verified",
     doctorController.getVerifiedDoctors
   );
+router.get(
+  "/public/:id",
+  doctorController.getDoctorById
+);
 
   // Private Routes (Doctor only)
   router.use(...requireDoctor(authMiddleware));
 
-  // =========================
   // START ONBOARDING
-  // =========================
   router.post(
     "/onboarding/start",
     validateRequest(startOnboardingSchema),
     doctorController.startOnboarding
   );
 
-  // =========================
   // UPDATE BASIC PROFILE
-  // =========================
   router.patch(
     "/profile",
     validateRequest(updateDoctorProfileSchema),
     doctorController.updateProfile
   );
 
-  // =========================
   // UPLOAD DOCUMENTS
-  // =========================
   router.post(
     "/upload-documents",
     upload.fields([
@@ -55,24 +53,18 @@ export function doctorRoutes(doctorController: DoctorController, authMiddleware:
     doctorController.uploadDocuments
   );
 
-  // =========================
   // SUBMIT FOR VERIFICATION
-  // =========================
   router.post(
     "/submit",
     validateRequest(submitForVerificationSchema),
     doctorController.submitForVerification
   );
 
-  // =========================
   // GET PROFILE
-  // =========================
   router.get(
     "/profile",
     validateRequest(getDoctorProfileSchema),
     doctorController.getProfile
   );
-
-  
-  return router;
+return router;
 }

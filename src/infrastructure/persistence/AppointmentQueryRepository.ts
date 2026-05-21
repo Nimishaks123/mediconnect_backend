@@ -246,7 +246,8 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
             userId: { $toString: "$doctor.userId" },
             name: { $ifNull: ["$doctorUser.name", "Unknown"] },
             specialty: { $ifNull: ["$doctor.specialty", "Medical Specialist"] },
-            profilePhoto: { $ifNull: ["$doctor.photo", null] }
+            profilePhoto: { $ifNull: ["$doctor.profilePhoto", null] },
+            experience:{$ifNull:["$doctor.experience",0]}
           },
           _id: 0
         }

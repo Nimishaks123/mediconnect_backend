@@ -1,5 +1,3 @@
-// src/di/controllers.ts
-
 import { AuthController } from "@presentation/controllers/AuthController";
 import { DoctorController } from "@presentation/controllers/DoctorController";
 import { AdminController } from "@presentation/controllers/AdminController";
@@ -104,7 +102,8 @@ export const doctorController = new DoctorController(
   doctorUC.uploadDoctorDocumentsUseCase,
   doctorUC.submitForVerificationUseCase,
   doctorUC.getDoctorProfileUseCase,
-  doctorUC.getVerifiedDoctorsUseCase
+  doctorUC.getVerifiedDoctorsUseCase,
+  doctorUC.getDoctorByIdUseCase
 );
 
 export const adminController = new AdminController(
@@ -139,8 +138,8 @@ export const doctorSlotController = new DoctorSlotController(
 export const doctorAppointmentController = new DoctorAppointmentController(
   appointmentUC.getDoctorAppointmentsUseCase,
   appointmentUC.rescheduleAppointmentUseCase,
-  appointmentUC.cancelAppointmentUseCase,
-  doctorRepository
+appointmentUC.cancelAppointmentUseCase
+
 );
 
 export const appointmentController = new AppointmentController(
@@ -151,7 +150,8 @@ export const appointmentController = new AppointmentController(
   appointmentUC.cancelAppointmentByPatientUseCase,
   appointmentUC.createCheckoutSessionUseCase,
   appointmentUC.verifyWebhookUseCase,
-  appointmentUC.handleStripeWebhookUseCase
+  appointmentUC.handleStripeWebhookUseCase,
+  appointmentUC.payAppointmentWithWalletUseCase
 );
 
 export const patientController = new PatientController(

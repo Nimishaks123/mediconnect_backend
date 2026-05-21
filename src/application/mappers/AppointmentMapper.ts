@@ -31,4 +31,14 @@ export class AppointmentMapper {
 
     return { doctorId, date, startTime, endTime };
   }
+  static parseAvailabilityId(slotId: string) {
+  const [date, startTime, endTime] =
+    slotId.split("_");
+
+  return {
+    date,
+    startTime,
+    endTime,
+  };
+}
 }

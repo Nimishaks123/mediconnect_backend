@@ -14,7 +14,8 @@ export class AppointmentPresentationMapper {
   static toCreateAppointmentDTO(req: AuthenticatedRequest): CreateAppointmentDTO {
     return {
       doctorId: req.body.doctorId,
-      availabilityId: req.body.availabilityId,
+      //availabilityId: req.body.availabilityId,
+      slotId: req.body.slotId,
       patientId: req.user!.id,
     };
   }

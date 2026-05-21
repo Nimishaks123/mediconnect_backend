@@ -34,5 +34,9 @@ export const getMyAppointmentsSchema = z.object({
     status: z.string().optional(),
   }).optional(),
 });
-
+export const payWithWalletSchema=z.object({
+  body:z.object({
+    appointmentId:z.string().min(1,"Appointment Id is required"),
+  }),
+});
 

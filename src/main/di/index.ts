@@ -1,4 +1,3 @@
-// src/di/index.ts
 export * from "./controllers";
 export * from "./appointmentUsecases";
 export * from "./authUsecases";

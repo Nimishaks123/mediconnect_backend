@@ -4,12 +4,12 @@ import { UserDTO } from "../dtos/admin/UserDTO";
 export class UserMapper {
   static toDTO(user: User): UserDTO {
     return {
-      id: user.id!,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      blocked: user.blocked,
-      isVerified: user.isVerified,
+      id: user.getId()!,
+      name: user.getName(),
+      email: user.getEmail(),
+      role: user.getRole(),
+      blocked: user.isBlocked(),
+      isVerified: user.isUserVerified(),
     };
   }
 
@@ -17,10 +17,10 @@ export class UserMapper {
     return {
       message,
       user: {
-        id: user.id ?? "",
-        name: user.name,
-        email: user.email,
-        blocked: user.blocked,
+        id: user.getId() ?? "",
+        name: user.getName(),
+        email: user.getEmail(),
+        blocked: user.isBlocked(),
       },
     };
   }

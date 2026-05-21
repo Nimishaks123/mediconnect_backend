@@ -13,7 +13,8 @@ import {
   IUploadDoctorDocumentsUseCase,
   ISubmitForVerificationUseCase,
   IGetDoctorProfileUseCase,
-  IGetVerifiedDoctorsUseCase
+  IGetVerifiedDoctorsUseCase,
+  IGetDoctorByIdUseCase
 } from "@application/interfaces/doctor";
 
 export class DoctorController {
@@ -24,7 +25,9 @@ export class DoctorController {
     private readonly uploadDocumentsUC: IUploadDoctorDocumentsUseCase,
     private readonly submitForVerificationUC: ISubmitForVerificationUseCase,
     private readonly getDoctorProfileUC: IGetDoctorProfileUseCase,
-    private readonly getVerifiedDoctorsUC: IGetVerifiedDoctorsUseCase
+    private readonly getVerifiedDoctorsUC: IGetVerifiedDoctorsUseCase,
+  private readonly getDoctorByIdUseCase:
+  IGetDoctorByIdUseCase
   ) { }
 
   // START ONBOARDING
@@ -152,6 +155,22 @@ export class DoctorController {
 
     res.status(StatusCode.OK).json(result);
   });
+
+getDoctorById = catchAsync(async (
+  req: AuthenticatedRequest,
+  res: Response,
+) => {
+
+  const doctor =
+    await this.getDoctorByIdUseCase.execute(
+      req.params.id
+    );
+
+  res.status(StatusCode.OK).json(
+    doctor
+  );
+
+});
 
 }
 

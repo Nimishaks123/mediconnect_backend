@@ -13,7 +13,7 @@ import { ICancelAppointmentByPatientUseCase } from "@application/interfaces/appo
 import { ICreateCheckoutSessionUseCase } from "@application/interfaces/appointment/ICreateCheckoutSessionUseCase";
 import { IVerifyWebhookUseCase } from "@application/interfaces/appointment/IVerifyWebhookUseCase";
 import { IHandleStripeWebhookUseCase } from "@application/interfaces/appointment/IHandleStripeWebhookUseCase";
-
+import { IPayAppointmentWithWalletUseCase } from "@application/interfaces/appointment/IPayAppointmentWithWalletUseCase";
 export class AppointmentController {
   constructor(
     private readonly createAppointmentUC: ICreateAppointmentUseCase,
@@ -23,7 +23,8 @@ export class AppointmentController {
     private readonly cancelAppointmentByPatientUC: ICancelAppointmentByPatientUseCase,
     private readonly createCheckoutSessionUC: ICreateCheckoutSessionUseCase,
     private readonly verifyWebhookUC: IVerifyWebhookUseCase,
-    private readonly handleStripeWebhookUC: IHandleStripeWebhookUseCase
+    private readonly handleStripeWebhookUC: IHandleStripeWebhookUseCase,
+    private readonly payAppointmentWithWalletUC:IPayAppointmentWithWalletUseCase
   ) { }
 //create appointment
   create = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
@@ -133,4 +134,13 @@ export class AppointmentController {
       data,
     });
   });
+
+payWithWallet=catchAsync(async(req:AuthenticatedRequest,res:Response)=>{
+  if(!req.user?.id){
+    throw new AppError("User not authenticated",StatusCode.UNAUTHORIZED);
+  }
+  const {appointmentId}=req.body;
+  const result=await this.payAppointmentWithWalletUC.execute({appointmentId,userId:req.user.id});
+  res.status(StatusCode.OK).json(result);
+});
 }

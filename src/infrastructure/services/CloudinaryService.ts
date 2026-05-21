@@ -21,11 +21,12 @@ export class CloudinaryService implements IFileStorageService {
       signature,
       apiKey: config.cloudinaryApiKey!,
       cloudName: config.cloudinaryCloudName!,
+        folder,
     };
   }
 
   
-   //Uploads a single file to Cloudinary and returns the secure URL.
+   //Uploads single file to Cloudinary and returns  secure URL.
   
   async uploadSingle(file: Express.Multer.File): Promise<string> {
     try {
@@ -39,7 +40,7 @@ export class CloudinaryService implements IFileStorageService {
       logger.error("Cloudinary upload failed", { error, filePath: file.path });
       throw error;
     } finally {
-      // Step 7: Cleanup local files
+      //  Cleanup local files
       this.deleteLocalFile(file.path);
     }
   }
@@ -53,7 +54,7 @@ export class CloudinaryService implements IFileStorageService {
     return Promise.all(uploadPromises);
   }
 
-   // Utility to delete local file using fs.unlinkSync
+   // delete local file 
    
   private deleteLocalFile(filePath: string) {
     try {

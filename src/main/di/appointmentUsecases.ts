@@ -8,7 +8,8 @@ import {
   CancelAppointmentByPatientUseCase,
   CreateCheckoutSessionUseCase,
   VerifyWebhookUseCase,
-  HandleStripeWebhookUseCase
+  HandleStripeWebhookUseCase,
+  PayAppointmentWithWalletUseCase
 } from "@application/usecases/appointment";
 import { 
   appointmentRepository, 
@@ -16,6 +17,7 @@ import {
   userRepository,
   appointmentQueryRepo,
   doctorScheduleRepository,
+  walletRepository
 } from "./repositories";
 import { eventBus, rrulePolicy, paymentService } from "./services";
 import { createNotificationUseCase } from "./notificationUsecases";
@@ -33,7 +35,8 @@ export const cancelAppointmentUseCase =
     eventBus,
     createNotificationUseCase,
     doctorRepository,
-    userRepository
+    userRepository,
+    walletRepository
   );
 
 export const confirmAppointmentUseCase =
@@ -91,3 +94,8 @@ export const handleStripeWebhookUseCase =
   new HandleStripeWebhookUseCase(
     confirmAppointmentUseCase
   );
+  export const payAppointmentWithWalletUseCase=new PayAppointmentWithWalletUseCase(
+    appointmentRepository,
+    walletRepository,
+    createNotificationUseCase
+  )

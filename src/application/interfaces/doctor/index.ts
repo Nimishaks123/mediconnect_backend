@@ -5,3 +5,4 @@ export * from "./IUploadDoctorDocumentsUseCase";
 export * from "./ISubmitForVerificationUseCase";
 export * from "./IGetDoctorProfileUseCase";
 export * from "./IGetVerifiedDoctorsUseCase";
+export * from "./IGetDoctorByIdUseCase";

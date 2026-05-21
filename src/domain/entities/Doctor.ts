@@ -141,6 +141,7 @@ getRejectionReason(): string | null {
   getUserId(): string {
     return this.userId;
   }
+  
   //behaviours
   startBasicInfo() {
     if (this.onboardingStatus === DoctorOnboardingStatus.NOT_STARTED) {

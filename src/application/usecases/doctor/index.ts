@@ -5,3 +5,4 @@ export {StartDoctorOnboardingUseCase} from "./StartDoctorOnboardingUseCase";
 export {SubmitForVerificationUseCase} from "./SubmitForVerificationUseCase";
 export {UpdateDoctorProfileUseCase} from "./UpdateDoctorProfileUseCase";
 export {UploadDoctorDocumentsUseCase} from "./UploadDoctorDocumentsUseCase";
+export {GetDoctorByIdUseCase} from "./GetDoctorByIdUseCase";

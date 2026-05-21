@@ -15,6 +15,7 @@ import {
   ICancelAppointmentByDoctorUseCase
 } from '@application/interfaces/appointment/ICancelAppointmentByDoctorUseCase';
 
+
 export class DoctorAppointmentController {
   constructor(
     private readonly getDoctorAppointmentsUC: IGetDoctorAppointmentsUseCase,
@@ -51,22 +52,52 @@ export class DoctorAppointmentController {
     res.status(StatusCode.OK).json({ success: true, message: 'Appointment cancelled' });
   });
 
-  reschedule = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user?.id) {
-      throw new AppError('User not authenticated', StatusCode.UNAUTHORIZED);
-    }
+reschedule = catchAsync(async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
 
-    const { id } = req.params;
-    const { newSlotId, reason } = req.body;
+  if (!req.user?.id) {
+    throw new AppError(
+      'User not authenticated',
+      StatusCode.UNAUTHORIZED
+    );
+  }
 
-    const rescheduleDTO: RescheduleAppointmentDTO = {
-      appointmentId: id,
-      doctorId: req.user.id,
-      newDateTime: newSlotId, 
-      reason: reason,
-    };
+  const { id } = req.params;
 
-    await this.rescheduleAppointmentUC.execute(rescheduleDTO);
-    res.status(StatusCode.OK).json({ success: true, message: 'Appointment rescheduled' });
+  const {
+    newSlotId,
+    reason
+  } = req.body;
+
+  // slot format:
+  // doctorId_date_start_end
+
+  const [
+    _doctorId,
+    date,
+    startTime,
+    endTime
+  ] = newSlotId.split("_");
+
+  const rescheduleDTO: RescheduleAppointmentDTO = {
+    appointmentId: id,
+    doctorId: req.user.id,
+    date,
+    startTime,
+    endTime,
+    reason,
+  };
+
+  await this.rescheduleAppointmentUC.execute(
+    rescheduleDTO
+  );
+
+  res.status(StatusCode.OK).json({
+    success: true,
+    message: 'Appointment rescheduled'
   });
+
+});
 }

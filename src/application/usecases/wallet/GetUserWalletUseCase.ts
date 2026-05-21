@@ -28,7 +28,7 @@ export class GetUserWalletUseCase implements IGetUserWalletUseCase {
       return newWallet;
     } catch (error) {
       console.error("[GetUserWallet] Error:", error);
-      throw new AppError("Failed to fetch wallet data", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new AppError("Failed to fetch wallet data", StatusCode.INTERNAL_ERROR);
     }
   }
 }

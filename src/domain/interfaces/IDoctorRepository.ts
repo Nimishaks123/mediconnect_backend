@@ -18,4 +18,5 @@ export interface IDoctorRepository {
 
   findVerifiedDoctors(): Promise<Doctor[]>;
   save(doctor: Doctor): Promise<Doctor>;
+
 }

@@ -35,7 +35,7 @@ export class ConfirmAppointmentUseCase implements IConfirmAppointmentUseCase {
     if (doctor) {
       const user = await this.userRepo.findById(doctor.getUserId());
       if (user) {
-        doctorName = user.name;
+        doctorName = user.getName();
       }
     }
 

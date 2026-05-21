@@ -2,9 +2,7 @@ import { Router, RequestHandler } from "express";
 import { AppointmentController } from "../controllers/AppointmentController";
 import { requirePatient } from "../middlewares/roleMiddleware";
 import { validateRequest } from "@presentation/middlewares/validateRequest";
-import { cancelByPatientSchema, getMyAppointmentsSchema } from "@presentation/validation/appointmentValidation";
-
-
+import { cancelByPatientSchema, getMyAppointmentsSchema,payWithWalletSchema } from "@presentation/validation/appointmentValidation";
 
 export function patientAppointmentRoutes(controller: AppointmentController, authMiddleware: RequestHandler) {
   const router = Router();
@@ -22,7 +20,6 @@ export function patientAppointmentRoutes(controller: AppointmentController, auth
     validateRequest(cancelByPatientSchema),
     controller.cancelByPatient
   );
-
-
-  return router;
+  router.post("/appointments/pay-with-wallet",...requirePatient(authMiddleware),validateRequest(payWithWalletSchema),controller.payWithWallet);
+return router;
 }

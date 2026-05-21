@@ -25,14 +25,36 @@ export class ChatController {
       throw new AppError("User not authenticated", StatusCode.UNAUTHORIZED);
     }
 
-    const { receiverId, conversationId, content } = req.body;
+    const {
+
+  receiverId,
+
+  conversationId,
+
+  content,
+
+  attachmentUrl,
+
+  attachmentType
+
+} = req.body;
     
-    const sendMessageDTO: SendMessageDTO = {
-      senderId: req.user.id,
-      receiverId,
-      conversationId,
-      content,
-    };
+    const sendMessageDTO:
+  SendMessageDTO = {
+
+    senderId:
+      req.user.id,
+
+    receiverId,
+
+    conversationId,
+
+    content,
+
+    attachmentUrl,
+
+    attachmentType
+};
 
     const message = await this.sendMessageUseCase.execute(sendMessageDTO);
 

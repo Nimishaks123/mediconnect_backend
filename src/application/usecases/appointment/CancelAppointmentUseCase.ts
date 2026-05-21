@@ -20,7 +20,11 @@ export class CancelAppointmentUseCase {
     private readonly walletRepo:IWalletRepository
   ) {}
 
-  async execute(dto: { appointmentId: string; reason: "EXPIRED" | "FAILED" | "CANCELLED", doctorId?: string }): Promise<void> {
+  async execute(dto: {
+  appointmentId: string;
+  reason?: string;
+  doctorId?: string;
+}): Promise<void> {
     const appointment = await this.appointmentRepo.findById(dto.appointmentId)
 
     if (!appointment) {
@@ -57,7 +61,8 @@ export class CancelAppointmentUseCase {
         appointment.getStartTime(),
         appointment.getEndTime(),
         appointment.getStatus(),
-        dto.reason
+     (dto.reason || "CANCELLED") as
+      "EXPIRED" | "FAILED" | "CANCELLED"
       )
     );
 
@@ -67,8 +72,8 @@ export class CancelAppointmentUseCase {
       const patient = await this.userRepo.findById(appointment.getPatientId());
       
       const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
-      const doctorName = doctorUser ? doctorUser.name : "your doctor";
-      const patientName = patient ? patient.name : "the patient";
+      const doctorName = doctorUser ? doctorUser.getName() : "your doctor";
+      const patientName = patient ? patient.getName() : "the patient";
 
       // NOTIFY PATIENT
       await this.createNotificationUseCase.execute({
@@ -80,7 +85,7 @@ export class CancelAppointmentUseCase {
 
       // NOTIFY DOCTOR
       await this.createNotificationUseCase.execute({
-        userId: doctorUser?.id || appointment.getDoctorId(),
+        userId: doctorUser?.getId() || appointment.getDoctorId(),
         title: "Appointment Cancelled",
         message: `You have cancelled the appointment with ${patientName}`,
         type: NotificationType.APPOINTMENT_CANCELLED

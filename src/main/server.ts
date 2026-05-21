@@ -50,6 +50,14 @@ app.use(
 app.options("*", cors());
 
 app.use(cookieParser());
+app.use((req, res, next) => {
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, private"
+  );
+
+  next();
+});
 app.use(loggerMiddleware);
 
 app.use(
@@ -79,7 +87,7 @@ import { SocketService } from "../infrastructure/services/SocketService";
 
 const httpServer = createServer(app);
 
-// Initialize Socket.io
+// Initialize Socket io
 const socketService = SocketService.getInstance();
 socketService.init(httpServer);
 

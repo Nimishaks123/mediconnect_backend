@@ -5,9 +5,9 @@ import { MESSAGES } from "@common/constants";
 export class AuthMapper {
   static toTokenPayload(user: User) {
     return {
-      id: user.id!,
-      role: user.role,
-      email: user.email,
+      id:user.getId(),
+      role: user.getRole(),
+      email: user.getEmail(),
     };
   }
 
@@ -16,10 +16,10 @@ export class AuthMapper {
       accessToken,
       refreshToken,
       user: {
-        id: user.id!,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+      id:user.getId(),
+        name: user.getName(),
+       email: user.getEmail(),
+          role: user.getRole(),
         onboardingStatus,
       },
     };
@@ -30,10 +30,10 @@ export class AuthMapper {
       success: true,
       message: MESSAGES.OTP_VERIFIED_LOGIN,
       user: {
-        id: user.id!,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: user.getId()!,
+        name: user.getName(),
+        email: user.getEmail(),
+        role: user.getRole(),
         onboardingStatus,
       },
     };

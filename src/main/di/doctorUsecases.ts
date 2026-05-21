@@ -1,5 +1,3 @@
-// src/di/doctor.usecases.ts
-
 import {
   StartDoctorOnboardingUseCase,
   CreateDoctorProfileUseCase,
@@ -8,6 +6,7 @@ import {
   SubmitForVerificationUseCase,
   GetDoctorProfileUseCase,
   GetVerifiedDoctorsUseCase,
+  GetDoctorByIdUseCase,
 } from "@application/usecases/doctor";
 
 import {
@@ -50,4 +49,9 @@ export const getVerifiedDoctorsUseCase =
   new GetVerifiedDoctorsUseCase(
     doctorRepository,
     userRepository
+  );
+export const getDoctorByIdUseCase =
+  new GetDoctorByIdUseCase(
+    doctorRepository,
+      userRepository
   );

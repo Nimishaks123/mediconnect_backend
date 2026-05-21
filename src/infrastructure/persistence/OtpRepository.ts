@@ -4,9 +4,8 @@ import { OtpModel, OtpDB } from "./models/OtpModel";
 import { OtpPersistenceMapper } from "./mappers/OtpPersistenceMapper";
 
 export class OtpRepository implements IOtpRepository {
-  /**
-   * 🏗️ Create new OTP record
-   */
+   //Create new OTP 
+   
   async create(record: Otp): Promise<Otp> {
     const persistenceData = OtpPersistenceMapper.toPersistence(record);
     const doc = await OtpModel.create(persistenceData);
@@ -14,25 +13,23 @@ export class OtpRepository implements IOtpRepository {
     return OtpPersistenceMapper.toDomain(doc);
   }
 
-  /**
-   * 💾 Save/Update OTP state
-   */
+   //Save/Update OTP s
   async save(record: Otp): Promise<void> {
-    if (!record.id) {
+    if (!record.getId()) {
       await this.create(record);
       return;
     }
 
     const persistenceData = OtpPersistenceMapper.toPersistence(record);
     await OtpModel.updateOne(
-      { _id: record.id },
+      { _id: record.getId },
       { $set: persistenceData }
     ).exec();
   }
 
-  /**
-   * 🔍 Find latest OTP for email and context
-   */
+  
+   // Find latest OTP for email 
+   
   async findLatestByEmail(
     email: string,
     context: string
@@ -45,16 +42,12 @@ export class OtpRepository implements IOtpRepository {
     return doc ? OtpPersistenceMapper.toDomain(doc as any) : null;
   }
 
-  /**
-   * 🗑️ Delete by email
-   */
+    //Delete by email
   async deleteByEmail(email: string): Promise<void> {
     await OtpModel.deleteMany({ email }).exec();
   }
 
-  /**
-   * ➕ Increment attempts on failure
-   */
+   //Increment attempts on failure
   async incrementAttempts(id: string): Promise<void> {
     await OtpModel.updateOne(
       { _id: id },
@@ -62,9 +55,7 @@ export class OtpRepository implements IOtpRepository {
     ).exec();
   }
 
-  /**
-   * ✅ Mark as verified
-   */
+   //Mark as verified
   async markVerified(id: string): Promise<void> {
     await OtpModel.updateOne(
       { _id: id },
