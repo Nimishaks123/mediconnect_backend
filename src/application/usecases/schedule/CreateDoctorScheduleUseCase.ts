@@ -26,11 +26,6 @@ async execute(dto: CreateDoctorScheduleInputDTO): Promise<DoctorSchedule> {
       StatusCode.NOT_FOUND
     );
   }
-  // const now=new Date();
-  // const validFromDate=new Date(dto.validFrom);
-  // if(validFromDate<now){
-  //   throw new AppError("Schedule cannot start in the past",StatusCode.BAD_REQUEST);
-  // }
   const today = new Date();
 
 today.setHours(0, 0, 0, 0);

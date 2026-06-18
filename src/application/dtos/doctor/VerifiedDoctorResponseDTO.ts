@@ -5,4 +5,6 @@ export interface VerifiedDoctorResponseDTO {
   specialty: string;
   about: string;
   photo: string;
+  experience:number;
+  consultationFee:number;
 }

@@ -2,17 +2,13 @@ import { Response, NextFunction } from "express";
 import { AppError } from "@common/AppError";
 import { ITokenService } from "../../application/interfaces/auth/ITokenService";
 import { AuthenticatedRequest as BaseAuthenticatedRequest } from "../../types/AuthenticatedRequest";
-
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { StatusCode } from "@common/enums";
 export type AuthenticatedRequest = BaseAuthenticatedRequest;
 
-/**
- * Middleware to authenticate requests using JWT.
- * It checks for the token in:
- * 1. Authorization Header (Bearer <token>)
- * 2. Cookies (accessToken)
- */
-export const createAuthMiddleware = (tokenService: ITokenService) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+//Middleware to authenticate requests using JWT.
+export const createAuthMiddleware = (tokenService: ITokenService,userRepo:IUserRepository) => {
+  return async(req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       let token: string | undefined;
 
@@ -28,14 +24,24 @@ export const createAuthMiddleware = (tokenService: ITokenService) => {
       }
 
       if (!token) {
-        // Only throw error if the route explicitly requires authentication
-        // If we want this middleware to be "optional" for public routes, 
-        // we could just call next(). But here we assume it's applied to protected routes.
         throw new AppError("Authentication token missing", 401);
       }
 
       const payload = tokenService.verifyAccessToken(token);
+      console.log("JWT PAYLOAD:", payload);
+      if(payload.role!=="ADMIN"){
+        const user=await userRepo.findById(payload.id);
+      console.log("DB USER:", user);
+      if(!user){
+        throw new AppError("user not found",StatusCode.NOT_FOUND);
+      }
+      if(user.isBlocked()){
+        throw new AppError("your account has been blocked by administrator",StatusCode.FORBIDDEN);
+      }
 
+
+      }
+      
       req.user = {
         id: payload.id,
         role: payload.role as any,

@@ -15,7 +15,7 @@ import { requireAdmin } from "../middlewares/roleMiddleware";
 export function adminProtectedRoutes(adminController: AdminController, authMiddleware: RequestHandler) {
   const router = Router();
 
-  // Apply admin protection to all routes in this router
+  // protection to all routes 
   router.use(...requireAdmin(authMiddleware));
 
 

@@ -57,13 +57,11 @@ const MessageSchema =
       default: ""
     },
 
-    // NEW
     attachmentUrl: {
       type: String,
       required: false
     },
 
-    // NEW
     attachmentType: {
       type: String,
       required: false

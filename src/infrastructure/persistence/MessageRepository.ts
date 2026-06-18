@@ -47,6 +47,10 @@ implements IMessageRepository {
     page: number = 1,
     limit: number = 50
   ): Promise<Message[]> {
+      console.log(
+    "FETCHING CONVERSATION:",
+    conversationId
+  );
 
     const skip =
       (page - 1) * limit;
@@ -60,6 +64,10 @@ implements IMessageRepository {
         })
         .skip(skip)
         .limit(limit);
+          console.log(
+    "FOUND MESSAGES:",
+    docs.length
+  );
 
     return docs.map((doc) =>
       MessageMapper.toDomain(doc)
@@ -365,5 +373,17 @@ implements IMessageRepository {
         }
       }
     ]);
+  }
+  async findByConversationIds(conversationIds: string[]): Promise<Message[]> {
+    const docs=await MessageModel.find({
+      conversationId:{
+        $in:conversationIds
+      }
+
+    }).sort({
+      createdAt:1
+    });
+    return docs.map((doc)=>MessageMapper.toDomain(doc))
+    
   }
 }

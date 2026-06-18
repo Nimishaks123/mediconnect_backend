@@ -16,6 +16,7 @@ import {
   IGetVerifiedDoctorsUseCase,
   IGetDoctorByIdUseCase
 } from "@application/interfaces/doctor";
+import { IGetDoctorSpecialtiesUseCase } from "@application/interfaces/doctor/IGetDoctorSpecialtiesUseCase";
 
 export class DoctorController {
   constructor(
@@ -27,7 +28,8 @@ export class DoctorController {
     private readonly getDoctorProfileUC: IGetDoctorProfileUseCase,
     private readonly getVerifiedDoctorsUC: IGetVerifiedDoctorsUseCase,
   private readonly getDoctorByIdUseCase:
-  IGetDoctorByIdUseCase
+  IGetDoctorByIdUseCase,
+  private readonly getDoctorBySpecialtyUC:IGetDoctorSpecialtiesUseCase
   ) { }
 
   // START ONBOARDING
@@ -137,24 +139,26 @@ export class DoctorController {
       message: result.message
     });
   });
-
-
-  getVerifiedDoctors = catchAsync(async (
-    _req: AuthenticatedRequest,
-    res: Response,
-  ) => {
-    const result = await this.getVerifiedDoctorsUC.execute();
-
-    res.setHeader("Cache-Control", "no-store");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-
-    logger.info("Verified doctors fetched", {
-      count: result.length,
-    });
-
-    res.status(StatusCode.OK).json(result);
+  getSpecialties=catchAsync(async(req:AuthenticatedRequest,res:Response)=>{
+    const specialties=await this.getDoctorBySpecialtyUC.execute();
+    res.status(StatusCode.OK).json(specialties);
   });
+
+
+  getVerifiedDoctors=catchAsync(async(
+    req:AuthenticatedRequest,
+    res:Response,
+  )=>{
+    const result=await this.getVerifiedDoctorsUC.execute({
+      page:Number(req.query.page)||1,
+      limit:Number(req.query.limit)||6,
+      specialty:req.query.specialty?String(req.query.specialty):undefined,
+      experience:req.query.experience?String(req.query.experience):undefined,
+      sortBy:req.query.sortBy?String(req.query.sortBy):undefined,
+    });
+    res.status(StatusCode.OK).json(result);
+  }
+)
 
 getDoctorById = catchAsync(async (
   req: AuthenticatedRequest,

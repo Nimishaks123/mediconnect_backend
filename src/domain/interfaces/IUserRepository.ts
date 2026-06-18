@@ -27,4 +27,5 @@ export interface IUserRepository {
   }>;
 
   save(user: User): Promise<User>;
+  updatePassword(userId:string,password:string):Promise<void>;
 }

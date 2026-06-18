@@ -15,6 +15,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         {
           $set: {
             appointmentId: appointment.getId(),
+            bookingId:appointment.getBookingId(),
             doctorId: new Types.ObjectId(appointment.getDoctorId()),
             patientId: new Types.ObjectId(appointment.getPatientId()),
             date: appointment.getDate(),
@@ -47,6 +48,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
     return new Appointment(
       doc.appointmentId,
+      doc.bookingId,
       doc.doctorId.toString(),
       doc.patientId.toString(),
       doc.date,
@@ -81,6 +83,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
     return new Appointment(
       doc.appointmentId,
+      doc.bookingId,
       doc.doctorId.toString(),
       doc.patientId.toString(),
       doc.date,
@@ -140,6 +143,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       (doc) =>
         new Appointment(
           doc.appointmentId,
+          doc.bookingId,
           doc.doctorId.toString(),
           doc.patientId.toString(),
           doc.date,
@@ -171,6 +175,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       (doc) =>
         new Appointment(
           doc.appointmentId,
+          doc.bookingId,
           doc.doctorId.toString(),
           doc.patientId.toString(),
           doc.date,
@@ -190,12 +195,16 @@ export class AppointmentRepository implements IAppointmentRepository {
   async findAllByDoctorId(doctorId: string): Promise<Appointment[]> {
     const docs = await AppointmentModel.find({
       doctorId: new Types.ObjectId(doctorId),
-    }).populate("patientId");
+    }).populate("patientId").sort({
+    date: -1,
+    startTime: -1,
+  });
 
     return docs.map(
       (doc: any) =>
         new Appointment(
           doc.appointmentId,
+          doc.bookingId,
           doc.doctorId.toString(),
           doc.patientId._id.toString(),
           doc.date,
@@ -212,10 +221,92 @@ export class AppointmentRepository implements IAppointmentRepository {
         )
     );
   }
+  async findByDoctorAndPatient(doctorId: string, patientId: string): Promise<Appointment[]> {
+    const docs=await AppointmentModel.find({
+      doctorId:new Types.ObjectId(doctorId),
+      patientId:new Types.ObjectId(patientId)
+    }).sort({
+      createdAt:1
+    });
+    return docs.map((doc)=>
+      new Appointment(
+        doc.appointmentId,
+        doc.bookingId,
+        doc.doctorId.toString(),
+        doc.patientId.toString(),
+        doc.date,
+        doc.startTime,
+        doc.endTime,
+        doc.status,
+        doc.paymentStatus,
+        doc.price,
+        doc.cancellationCharge,
+        doc.refundAmount,
+        doc.expiresAt,
+        doc.createdAt
+
+      )
+    )
+  }
   //
   async countCancelledAppointments(userId: string): Promise<number> {
-   const docs= await AppointmentModel.countDocuments({patientIdId:new Types.ObjectId(userId),status:"CANCELLED"});
+   const docs= await AppointmentModel.countDocuments({patientId:new Types.ObjectId(userId),status:"CANCELLED"});
    return docs;
     
   }
+  async updateStatus(
+  appointmentId: string,
+  status: AppointmentStatus
+): Promise<void> {
+  await AppointmentModel.updateOne(
+    { appointmentId },
+    {
+      $set: { status },
+    }
+  );
+}
+async findAppointmentsForCompletion(): Promise<Appointment[]> {
+
+  const docs =
+    await AppointmentModel.find({
+      status: {
+        $in: [
+          AppointmentStatus.CONFIRMED,
+          AppointmentStatus.RESCHEDULED,
+        ],
+      },
+    });
+
+  const now = new Date();
+
+  return docs
+    .filter((doc) => {
+
+      const appointmentEnd =
+        new Date(
+          `${doc.date}T${doc.endTime}:00`
+        );
+
+      return appointmentEnd < now;
+    })
+    .map(
+      (doc) =>
+        new Appointment(
+          doc.appointmentId,
+          doc.bookingId,
+          doc.doctorId.toString(),
+          doc.patientId.toString(),
+          doc.date,
+          doc.startTime,
+          doc.endTime,
+          doc.status,
+          doc.paymentStatus,
+          doc.price,
+          doc.cancellationCharge,
+          doc.refundAmount,
+          doc.expiresAt,
+          doc.createdAt
+        )
+    );
+}
 }

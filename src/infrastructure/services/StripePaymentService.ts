@@ -1,58 +1,77 @@
 import Stripe from "stripe";
 
-import { IPaymentService } from "@application/interfaces/services/IPaymentService";
+import {
+  IPaymentService,
+  CheckoutSessionDTO,
+} from "@application/interfaces/services/IPaymentService";
+
 import { config } from "@common/config";
 
-export class StripePaymentService implements IPaymentService {
-  private stripe = new Stripe(config.stripeSecretKey, {
-    apiVersion: "2026-01-28.clover", // match your Stripe account version
-  });
+export class StripePaymentService
+  implements IPaymentService {
 
-  async createCheckoutSession({
-    appointmentId,
-    patientId,
-    amount,
-  }: {
-    appointmentId: string;
-    patientId: string;
-    amount: number;
-  }) {
-    // ✅ HARD GUARD (prevents silent Stripe failures)
-    if (!config.frontendUrl.startsWith("http")) {
-      throw new Error(`Invalid FRONTEND_URL: ${config.frontendUrl}`);
+  private stripe = new Stripe(
+    config.stripeSecretKey,
+    {
+      apiVersion: "2026-01-28.clover",
     }
+  );
 
-    const successUrl = `${config.frontendUrl}/payment-success/${appointmentId}`;
-    const cancelUrl = `${config.frontendUrl}/payment-cancelled`;
+  async createCheckoutSession(
+    dto: CheckoutSessionDTO
+  ): Promise<Stripe.Checkout.Session> {
 
-    console.log("STRIPE SUCCESS URL =", successUrl);
-    console.log("STRIPE CANCEL URL =", cancelUrl);
+    if (
+      !config.frontendUrl.startsWith(
+        "http"
+      )
+    ) {
+      throw new Error(
+        `Invalid FRONTEND_URL: ${config.frontendUrl}`
+      );
+    }
 
     return this.stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+
+      payment_method_types: [
+        "card",
+      ],
+
       line_items: [
         {
           price_data: {
             currency: "inr",
+
             product_data: {
-              name: "Doctor Appointment",
+              name:
+                dto.productName,
             },
-            unit_amount: amount * 100, // Converts flat rupees into paise/cents
+
+            unit_amount:
+              dto.amount * 100,
           },
+
           quantity: 1,
         },
       ],
-      metadata: {
-        appointmentId,
-        patientId,
-      },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+
+      metadata:
+        dto.metadata,
+
+      success_url:
+        dto.successUrl,
+
+      cancel_url:
+        dto.cancelUrl,
     });
   }
 
-  verifyWebhook(payload: any, signature: string) {
+  verifyWebhook(
+    payload: any,
+    signature: string
+  ): Stripe.Event {
+
     return this.stripe.webhooks.constructEvent(
       payload,
       signature,

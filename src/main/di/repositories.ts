@@ -1,5 +1,3 @@
-// src/di/repositories.ts
-
 import { UserRepository } from "@infrastructure/persistence/UserRepository";
 import { DoctorRepository } from "@infrastructure/persistence/DoctorRepository";
 import { AdminRepository } from "@infrastructure/persistence/AdminRepository";
@@ -15,6 +13,8 @@ import { WalletQueryRepository } from "@infrastructure/persistence/WalletQueryRe
 
 import { NotificationRepository } from "@infrastructure/persistence/NotificationRepository";
 import { MessageRepository } from "@infrastructure/persistence/MessageRepository";
+import { PrescriptionRepository } from "@infrastructure/persistence/PrescriptionRepository";
+import { ReviewRepository } from "@infrastructure/persistence/ReviewRepository";
 
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
@@ -31,3 +31,7 @@ export const appointmentQueryRepo = new AppointmentQueryRepository();
 export const adminDoctorQueryRepo = new AdminDoctorQueryRepository();
 export const userQueryRepo = new UserQueryRepository();
 export const walletQueryRepo = new WalletQueryRepository();
+export const prescriptionRepository =
+  new PrescriptionRepository();
+export const reviewRepository =
+  new ReviewRepository();

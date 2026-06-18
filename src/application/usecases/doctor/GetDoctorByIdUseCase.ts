@@ -18,22 +18,6 @@ export class GetDoctorByIdUseCase implements IGetDoctorByIdUseCase{
   IUserRepository
   ) {}
 
-//   async execute(id: string) {
-
-//     const doctor =
-//       await this.doctorRepo.findById(id);
-
-//     if (!doctor) {
-
-//       throw new AppError(
-//         "Doctor not found",
-//         StatusCode.NOT_FOUND
-//       );
-
-//     }
-
-//     return doctor;
-//   }
 async execute(id: string) {
 
   const doctor =

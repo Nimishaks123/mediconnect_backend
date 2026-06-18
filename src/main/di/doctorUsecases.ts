@@ -17,6 +17,7 @@ import {
 import {
   fileStorageService,
 } from "./services";
+import { GetDoctorSpecialtiesUseCase } from "@application/usecases/doctor/GetDoctorSpecialtiesUseCase";
 
 export const startDoctorOnboardingUseCase =
   new StartDoctorOnboardingUseCase(
@@ -55,3 +56,4 @@ export const getDoctorByIdUseCase =
     doctorRepository,
       userRepository
   );
+  export const getDoctorBySpecialtyUC=new GetDoctorSpecialtiesUseCase(doctorRepository);

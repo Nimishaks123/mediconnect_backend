@@ -49,15 +49,20 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
     if (conflict) {
       throw new AppError("Slot already booked", StatusCode.CONFLICT);
     }
+const appointmentId =
+  new Types.ObjectId().toHexString();
 
+const bookingId =
+  `MC-${Date.now().toString().slice(-6)}`;
     const appointment = Appointment.createPending(
-      new Types.ObjectId().toHexString(),
+      appointmentId,
+      bookingId,
       doctor.getId(),
       patientId,
       date,
       startTime,
       endTime,
-      doctor.consultationFee
+      doctor.getConsultationFee()
     );
 
     await this.appointmentRepo.save(appointment);

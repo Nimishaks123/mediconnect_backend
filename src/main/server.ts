@@ -24,7 +24,8 @@ import {
   notificationController,
   chatController,
   callController,
-  tokenService
+  tokenService,
+  prescriptionController
 } from "../main/di";
 
 import { createRoutes } from "../presentation/routes";
@@ -78,6 +79,7 @@ app.use(
     notificationController,
     chatController,
     callController,
+    prescriptionController,
     tokenService
   )
 );

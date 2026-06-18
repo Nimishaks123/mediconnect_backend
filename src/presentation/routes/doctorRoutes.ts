@@ -23,6 +23,7 @@ router.get(
   "/public/:id",
   doctorController.getDoctorById
 );
+ router.get("/specialties",doctorController.getSpecialties)
 
   // Private Routes (Doctor only)
   router.use(...requireDoctor(authMiddleware));
@@ -59,6 +60,7 @@ router.get(
     validateRequest(submitForVerificationSchema),
     doctorController.submitForVerification
   );
+ 
 
   // GET PROFILE
   router.get(

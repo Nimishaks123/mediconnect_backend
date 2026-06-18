@@ -2,7 +2,7 @@ import { SendMessageUseCase } from "@application/usecases/chat/SendMessageUseCas
 import { GetMessagesUseCase } from "@application/usecases/chat/GetMessagesUseCase";
 import { MarkConversationAsReadUseCase } from "@application/usecases/chat/MarkConversationAsReadUseCase";
 import { GetConversationListUseCase } from "@application/usecases/chat/GetConversationListUseCase";
-import { messageRepository } from "./repositories";
+import { appointmentRepository, messageRepository } from "./repositories";
 import { notificationService } from "./services";
 
 export const sendMessageUseCase = new SendMessageUseCase(
@@ -10,7 +10,7 @@ export const sendMessageUseCase = new SendMessageUseCase(
   notificationService
 );
 
-export const getMessagesUseCase = new GetMessagesUseCase(messageRepository);
+export const getMessagesUseCase = new GetMessagesUseCase(messageRepository,appointmentRepository);
 
 export const markConversationAsReadUseCase = new MarkConversationAsReadUseCase(messageRepository);
 

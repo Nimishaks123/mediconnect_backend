@@ -26,6 +26,7 @@ import {
   otpGenerator,
   eventBus,
 } from "./services";
+import { ChangePasswordUseCase } from "@application/usecases/auth/ChangePasswordUseCase";
 
 export const signupUserUseCase =
   new SignupUserUseCase(
@@ -72,3 +73,4 @@ export const loginWithGoogleUseCase =
     oauthService,
     randomGenerator
   );
+export const changePasswordUseCase=new ChangePasswordUseCase(userRepository,passwordHasher);

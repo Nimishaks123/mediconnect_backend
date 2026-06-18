@@ -65,11 +65,21 @@ export class ChatController {
     const { conversationId } = req.params;
     const { page, limit } = req.query as any;
 
+    console.log(
+      "GET MESSAGES REQUEST:",
+      conversationId
+    );
+
+
     const messages = await this.getMessagesUseCase.execute({
       conversationId: conversationId as string,
       page: Number(page),
       limit: Number(limit),
     });
+    console.log(
+  "GET MESSAGES REQUEST:",
+  req.params.conversationId
+);
 
     res.status(StatusCode.OK).json(ChatMapper.toList(messages));
   });

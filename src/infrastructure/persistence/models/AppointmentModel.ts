@@ -4,6 +4,7 @@ import { PaymentStatus } from "@domain/enums/PaymentStatus";
 
 export interface AppointmentDB {
   appointmentId: string;
+  bookingId:string;
   doctorId: Types.ObjectId;
   patientId: Types.ObjectId;
   date: string;
@@ -26,6 +27,13 @@ const AppointmentSchema = new Schema<AppointmentDB>(
       required: true,
       unique: true,
       index: true, 
+    },
+    bookingId:{
+      type:String,
+      required:true,
+      unique:true,
+      index:true,
+
     },
 
     doctorId: {

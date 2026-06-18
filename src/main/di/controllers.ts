@@ -6,14 +6,23 @@ import { DoctorSlotController } from "@presentation/controllers/DoctorSlotContro
 import { AppointmentController } from "@presentation/controllers/AppointmentController";
 import { DoctorAppointmentController } from "@presentation/controllers/DoctorAppointmentController";
 import { PatientWalletController } from "@presentation/controllers/PatientWalletController";
-import { GetUserWalletUseCase } from "@application/usecases/wallet/GetUserWalletUseCase";
 import {  tokenService,  passwordHasher, eventBus } from "./services";
+import { PrescriptionController } from "@presentation/controllers/PrescriptionController";
+
+import {
+  createPrescriptionUseCase,
+  getPrescriptionUC
+} from "./prescriptionUsecases";
+
+
 import * as authUC from "./authUsecases";
 import * as doctorUC from "./doctorUsecases";
 import * as scheduleUC from "./scheduleUsecases";
 import * as appointmentUC from "./appointmentUsecases";
 import * as patientUC from "./patientUsecases";
 import * as notificationUC from "./notificationUsecases";
+import * as walletUC
+from "./walletUsecases";
 import { PatientController } from "@presentation/controllers/PatientController";
 import { ChatController } from "@presentation/controllers/ChatController";
 import { CallController } from "@presentation/controllers/CallController";
@@ -27,7 +36,8 @@ import {
   walletRepository,
   adminDoctorQueryRepo,
   userQueryRepo,
-  walletQueryRepo
+  walletQueryRepo,
+   appointmentRepository,
 } from "./repositories";
 
 import { GetPatientAppointmentsWithDoctor } from "@application/queries/GetPatientAppointmentsWithDoctor";
@@ -45,6 +55,7 @@ import {
   GetAdminWalletTransactionsUseCase
 } from "@application/usecases/admin";
 import { GetPatientAppointmentUseCase } from "@application/usecases/appointment/GetPatientAppointmentUseCase";
+import { AutoCompleteAppointmentsUseCase } from "@application/usecases/appointment";
 import { AdminAppointmentController } from "@presentation/controllers/AdminAppointmentController";
 import { AdminWalletController } from "@presentation/controllers/AdminWalletController";
 
@@ -66,14 +77,14 @@ const getAdminAppointmentDetailsUseCase = new GetAdminAppointmentDetailsUseCase(
 // Optimized Admin Wallet Query
 const getAdminWalletsUseCase = new GetAdminWalletsUseCase(walletQueryRepo);
 const getAdminWalletTransactionsUseCase = new GetAdminWalletTransactionsUseCase(walletQueryRepo);
-
-// Optimized Patient Appointment Query 
-const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo);
+const autoCompleteAppointmentsUseCase =
+  new AutoCompleteAppointmentsUseCase(
+    appointmentRepository
+  );
+const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo,autoCompleteAppointmentsUseCase);
 
 const getAllUsersUseCase = new GetAllUsersUseCase(userQueryRepo);
 
-// WALLET
-const getUserWalletUseCase = new GetUserWalletUseCase(walletRepository);
 
 import { NotificationController } from "@presentation/controllers/NotificationController";
 
@@ -92,7 +103,8 @@ export const authController = new AuthController(
   authUC.sendForgotPasswordOtpUseCase,
   authUC.verifyForgotPasswordOtpUseCase,
   authUC.resetPasswordUseCase,
-  authUC.loginWithGoogleUseCase
+  authUC.loginWithGoogleUseCase,
+  authUC.changePasswordUseCase
 );
 
 export const doctorController = new DoctorController(
@@ -103,7 +115,8 @@ export const doctorController = new DoctorController(
   doctorUC.submitForVerificationUseCase,
   doctorUC.getDoctorProfileUseCase,
   doctorUC.getVerifiedDoctorsUseCase,
-  doctorUC.getDoctorByIdUseCase
+  doctorUC.getDoctorByIdUseCase,
+  doctorUC.getDoctorBySpecialtyUC
 );
 
 export const adminController = new AdminController(
@@ -168,8 +181,12 @@ import { fileStorageService } from "./services";
 const getCloudinarySignatureUseCase = new GetCloudinarySignatureUseCase(fileStorageService);
 export const uploadController = new UploadController(getCloudinarySignatureUseCase);
 
-export const patientWalletController = new PatientWalletController(getUserWalletUseCase);
-
+export const patientWalletController =
+  new PatientWalletController(
+    walletUC.getUserWalletUseCase,
+    walletUC.createWalletTopupSessionUseCase,
+    walletUC.getWalletTransactionsUseCase
+  );
 export const chatController = new ChatController(
   sendMessageUseCase,
   getMessagesUseCase,
@@ -177,4 +194,9 @@ export const chatController = new ChatController(
   getConversationListUseCase
 );
 
+export const prescriptionController =
+  new PrescriptionController(
+    createPrescriptionUseCase,
+    getPrescriptionUC
+  );
 export const callController = new CallController(checkCallEligibilityUseCase);

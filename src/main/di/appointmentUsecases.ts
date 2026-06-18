@@ -9,7 +9,8 @@ import {
   CreateCheckoutSessionUseCase,
   VerifyWebhookUseCase,
   HandleStripeWebhookUseCase,
-  PayAppointmentWithWalletUseCase
+  PayAppointmentWithWalletUseCase,
+  AutoCompleteAppointmentsUseCase
 } from "@application/usecases/appointment";
 import { 
   appointmentRepository, 
@@ -21,6 +22,13 @@ import {
 } from "./repositories";
 import { eventBus, rrulePolicy, paymentService } from "./services";
 import { createNotificationUseCase } from "./notificationUsecases";
+import {
+  ProcessWalletTopupWebhookUseCase
+} from "@application/usecases/wallet/ProcessWalletTopupWebhookUseCase";
+
+import {
+  walletTransactionRepository
+} from "./walletUsecases";
 
 export const createAppointmentUseCase =
   new CreateAppointmentUseCase(
@@ -47,16 +55,22 @@ export const confirmAppointmentUseCase =
     eventBus,
     createNotificationUseCase
   );
+  export const autoCompleteAppointmentsUseCase =
+  new AutoCompleteAppointmentsUseCase(
+    appointmentRepository
+  );
 
 export const getPatientAppointmentUseCase =
   new GetPatientAppointmentUseCase(
-    appointmentQueryRepo
+    appointmentQueryRepo,
+    autoCompleteAppointmentsUseCase
   );
 
 export const getDoctorAppointmentsUseCase = 
   new GetDoctorAppointmentsUseCase(
     appointmentRepository,
-    doctorRepository
+    doctorRepository,
+    autoCompleteAppointmentsUseCase
   );
 
 export const rescheduleAppointmentUseCase = 
@@ -89,10 +103,16 @@ export const verifyWebhookUseCase =
   new VerifyWebhookUseCase(
     paymentService
   );
+  export const processWalletTopupWebhookUseCase =
+  new ProcessWalletTopupWebhookUseCase(
+    walletRepository,
+    walletTransactionRepository
+  );
 
 export const handleStripeWebhookUseCase =
   new HandleStripeWebhookUseCase(
-    confirmAppointmentUseCase
+    confirmAppointmentUseCase,
+    processWalletTopupWebhookUseCase
   );
   export const payAppointmentWithWalletUseCase=new PayAppointmentWithWalletUseCase(
     appointmentRepository,

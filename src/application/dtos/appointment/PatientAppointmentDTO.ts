@@ -1,5 +1,6 @@
 export interface PatientAppointmentDTO {
   id: string;
+  bookingId:string;
   date: string;
   startTime: string;
   endTime: string;

@@ -6,6 +6,9 @@ import { AppError } from "../../common/AppError";
 import { DoctorOnboardingStatus } from "../../domain/enums/DoctorOnboardingStatus";
 import { Types } from "mongoose";
 import { DoctorPersistenceMapper } from "./mappers/DoctorPersistenceMapper";
+import { GetVerifiedDoctorsDTO } from "@application/dtos/doctor/GetVerifiedDoctorsDTO";
+import { DoctorMapper } from "@application/mappers/DoctorMapper";
+import { UserModel } from "./models/UserModel";
 
 export class DoctorRepository
   extends BaseRepository<Doctor, DoctorDB>
@@ -65,11 +68,109 @@ export class DoctorRepository
   async findByVerificationStatus(status: Doctor["verificationStatus"]): Promise<Doctor[]> {
     return this.findMany({ verificationStatus: status });
   }
-
-  async findVerifiedDoctors(): Promise<Doctor[]> {
-   
-    return this.findMany({ verificationStatus: "APPROVED" });
+  async findDistinctSpecialties(): Promise<string[]> {
+    return await DoctorModel.distinct("specialty",{verificationStatus:"APPROVED"});
   }
+
+  async findVerifiedDoctors(
+ dto?:GetVerifiedDoctorsDTO
+):Promise<{
+ doctors:Doctor[];
+ total:number;
+}>{
+
+const page=
+dto?.page || 1;
+
+const limit=
+dto?.limit || 10;
+
+const skip=
+(page-1)*limit;
+
+const blockedUsers=await UserModel.find({blocked:true},{_id:1});
+const blockedIds=blockedUsers.map(user=>user._id);
+const filter:any={
+
+verificationStatus:
+"APPROVED",userId:{$nin:blockedIds}
+
+};
+
+if(dto?.specialty){
+
+   filter.specialty=
+   dto.specialty;
+
+}
+
+if(dto?.experience){
+
+   filter.experience={
+
+      $gte:
+      Number(dto.experience)
+
+   };
+
+}
+const sort: any = {};
+
+switch (dto?.sortBy) {
+  case "newest":
+    sort.createdAt = -1;
+    break;
+
+  case "oldest":
+    sort.createdAt = 1;
+    break;
+
+  case "experience_desc":
+    sort.experience = -1;
+    break;
+
+  case "experience_asc":
+    sort.experience = 1;
+    break;
+
+  case "fee_desc":
+    sort.consultationFee = -1;
+    break;
+
+  case "fee_asc":
+    sort.consultationFee = 1;
+    break;
+
+  case "name_asc":
+    sort.name = 1;
+    break;
+
+  default:
+    sort.createdAt = -1;
+}
+// const docs=await DoctorModel.find(filter).populate({path:"userId",match:{blocked:false,},}).skip(skip).limit(limit);
+// const activeDoctors=docs.filter((doc)=>doc.userId);
+const docs = await DoctorModel.find(filter)
+  .sort(sort)
+  .skip(skip)
+  .limit(limit);
+const total=
+await DoctorModel
+.countDocuments(filter);
+
+return{
+
+   doctors:docs.map(
+      doc=>
+      DoctorPersistenceMapper
+      .toDomain(doc)
+   ),
+
+   total
+
+};
+
+}
 
   async save(doctor: Doctor): Promise<Doctor> {
  

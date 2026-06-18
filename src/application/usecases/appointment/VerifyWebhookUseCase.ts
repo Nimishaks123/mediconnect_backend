@@ -5,10 +5,6 @@ import { IVerifyWebhookUseCase } from "@application/interfaces/appointment/IVeri
 export class VerifyWebhookUseCase implements IVerifyWebhookUseCase {
   constructor(private readonly paymentService: IPaymentService) {}
 
-//   execute(payload: any, signature: string): Stripe.Event {
-//     return this.paymentService.verifyWebhook(payload, signature);
-//   }
-// }
 async execute(
   payload: any,
   signature: string

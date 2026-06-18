@@ -4,39 +4,92 @@ import { AppError } from "@common/AppError";
 import { StatusCode } from "@common/enums";
 import { PaymentStatus } from "@domain/enums/PaymentStatus";
 import { ICreateCheckoutSessionUseCase } from "@application/interfaces/appointment/ICreateCheckoutSessionUseCase";
+import { config } from "@common/config";
 
-export class CreateCheckoutSessionUseCase implements ICreateCheckoutSessionUseCase {
-    constructor(
-        private readonly appointmentRepo: IAppointmentRepository,
-        private readonly paymentService: IPaymentService
-    ) {}
+export class CreateCheckoutSessionUseCase
+  implements ICreateCheckoutSessionUseCase {
 
-    async execute({ appointmentId, patientId }: { appointmentId: string, patientId: string }) {
-        // get appointment
-        const appointment = await this.appointmentRepo.findById(appointmentId);
-        if (!appointment) {
-            throw new AppError("Appointment not found", StatusCode.NOT_FOUND);
-        }
+  constructor(
+    private readonly appointmentRepo: IAppointmentRepository,
+    private readonly paymentService: IPaymentService
+  ) {}
 
-        // security check
-        if (appointment.getPatientId() !== patientId) {
-            throw new AppError("Unauthorized", StatusCode.FORBIDDEN);
-        }
-        if (appointment.getPaymentStatus() === PaymentStatus.SUCCESS) {
-            throw new AppError("Appointment already paid", StatusCode.BAD_REQUEST);
-        }
+  async execute({
+    appointmentId,
+    patientId,
+  }: {
+    appointmentId: string;
+    patientId: string;
+  }) {
 
-        const amount = appointment.getPrice();
-        if (!amount || amount <= 0) {
-            throw new AppError("Invalid Appointment price", StatusCode.BAD_REQUEST);
-        }
+    const appointment =
+      await this.appointmentRepo.findById(
+        appointmentId
+      );
 
-        const session = await this.paymentService.createCheckoutSession({
+    if (!appointment) {
+      throw new AppError(
+        "Appointment not found",
+        StatusCode.NOT_FOUND
+      );
+    }
+
+    if (
+      appointment.getPatientId() !==
+      patientId
+    ) {
+      throw new AppError(
+        "Unauthorized",
+        StatusCode.FORBIDDEN
+      );
+    }
+
+    if (
+      appointment.getPaymentStatus() ===
+      PaymentStatus.SUCCESS
+    ) {
+      throw new AppError(
+        "Appointment already paid",
+        StatusCode.BAD_REQUEST
+      );
+    }
+
+    const amount =
+      appointment.getPrice();
+
+    if (
+      !amount ||
+      amount <= 0
+    ) {
+      throw new AppError(
+        "Invalid appointment price",
+        StatusCode.BAD_REQUEST
+      );
+    }
+
+    const session =
+      await this.paymentService
+        .createCheckoutSession({
+
+          amount,
+
+          productName:
+            "Doctor Appointment",
+
+          metadata: {
             appointmentId,
             patientId,
-            amount,
+            type:
+              "APPOINTMENT_PAYMENT",
+          },
+
+          successUrl:
+`${config.frontendUrl}/payment-success/${appointmentId}`,
+
+          cancelUrl:
+`${config.frontendUrl}/payment-cancelled`,
         });
 
-        return session;
-    }
+    return session;
+  }
 }
