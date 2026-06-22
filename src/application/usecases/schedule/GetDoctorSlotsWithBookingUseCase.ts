@@ -8,7 +8,11 @@ import { DateRange } from "@domain/value-objects/DateRange";
 import { SlotAvailabilityService } from "@domain/services/SlotAvailabilityService";
 import { IRRulePolicy } from "@domain/policies/IRRulePolicy";
 import { DoctorSlotWithBookingDTO } from "../../dtos/appointment/DoctorSlotWithBookingDTO";
-
+import utc  from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import dayjs from "dayjs";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 export class GetDoctorSlotsWithBookingUseCase {
   constructor(
     private readonly scheduleRepository: IDoctorScheduleRepository,
@@ -19,6 +23,7 @@ export class GetDoctorSlotsWithBookingUseCase {
   ) {}
 
   async execute({
+    
     doctorUserId,
     from,
     to,
@@ -27,6 +32,9 @@ export class GetDoctorSlotsWithBookingUseCase {
     from: string;
     to: string;
   }): Promise<DoctorSlotWithBookingDTO[]> {
+    console.log(
+  "GET DOCTOR SLOTS USECASE RUNNING"
+);
   
     const range = DateRange.create(from, to);
     const doctor = await this.doctorRepository.findByUserId(doctorUserId);
@@ -50,9 +58,51 @@ export class GetDoctorSlotsWithBookingUseCase {
     // );
     if (!schedules) return [];
 
-const allSlots = schedules.generateSlots(range, this.rrulePolicy);
+// const allSlots = schedules.generateSlots(range, this.rrulePolicy);
 
-    const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
-    return this.availabilityService.mapSlotsWithBookings(uniqueSlots, appointments);
-  }
-}
+//     const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
+//     return this.availabilityService.mapSlotsWithBookings(uniqueSlots, appointments);
+const allSlots=schedules.generateSlots(range,this.rrulePolicy);
+const tz=schedules.getTimezone()||"UTC";
+const now=dayjs().tz(tz);
+console.log(
+  "TIMEZONE:",
+  tz
+);
+
+console.log(
+  "NOW:",
+  now.format()
+);
+const filteredSlots=allSlots.filter(slot=>{
+  const slotDateTime =
+      dayjs.tz(
+        `${slot.getDate()} ${slot.getStartTime()}`,
+        "YYYY-MM-DD HH:mm",
+        tz
+      );
+
+  const isValid = slotDateTime.isAfter(now);
+
+  console.log(
+    "SLOT:",
+    slot.getDate(),
+    slot.getStartTime(),
+    "VALID:",
+    isValid
+  );
+
+  return isValid;
+
+    // return slotDateTime.isAfter(now);
+  });
+  const uniqueSlots =
+  this.availabilityService.deduplicateSlots(
+    filteredSlots
+  );
+
+return this.availabilityService.mapSlotsWithBookings(
+  uniqueSlots,
+  appointments
+);
+}}

@@ -1,7 +1,7 @@
+import { GetVerifiedDoctorsDTO } from "@application/dtos/doctor/GetVerifiedDoctorsDTO";
 import { Doctor } from "@domain/entities/Doctor";
 
 export interface IDoctorRepository {
-   // Persists a new doctor 
    
   createDoctor(doctor: Doctor): Promise<Doctor>;
   findByUserId(userId: string): Promise<Doctor | null>;
@@ -16,7 +16,13 @@ export interface IDoctorRepository {
     status: Doctor["verificationStatus"]
   ): Promise<Doctor[]>;
 
-  findVerifiedDoctors(): Promise<Doctor[]>;
+  findVerifiedDoctors(
+  dto?: GetVerifiedDoctorsDTO
+): Promise<{
+   doctors: Doctor[];
+   total: number;
+}>;
+ findDistinctSpecialties():Promise<string[]>;
   save(doctor: Doctor): Promise<Doctor>;
 
 }

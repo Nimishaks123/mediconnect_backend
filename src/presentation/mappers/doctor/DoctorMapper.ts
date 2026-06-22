@@ -33,23 +33,23 @@ export class DoctorMapper {
     const compositeId = slot.getScheduleId ? `${slot.getScheduleId}|${slot.getId()}` : slot.getId();
     return {
       _id: compositeId,
-      id: slot.id,
-      date: slot.date,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
+      id: slot.getId(),
+      date: slot.getDate(),
+      startTime: slot.getStartTime(),
+      endTime: slot.getEndTime(),
     };
   }
 
   static toScheduleResponse(schedule: DoctorSchedule): DoctorScheduleOutputDTO {
     return {
-      id: schedule.id!,
-      doctorId: schedule.doctorId,
-      rrule: schedule.rrule,
-      timeWindows: schedule.timeWindows,
-      slotDuration: schedule.slotDuration,
-      validFrom: schedule.validFrom.toISOString(),
-      validTo: schedule.validTo.toISOString(),
-      timezone: schedule.timezone,
+      id: schedule.getId()!,
+      doctorId: schedule.getDoctorId(),
+      rrule: schedule.getRRule(),
+      timeWindows: schedule.getTimeWindows(),
+      slotDuration: schedule.getSlotDuration(),
+      validFrom: schedule.getValidFrom().toISOString(),
+      validTo: schedule.getValidTo().toISOString(),
+      timezone: schedule.getTimezone(),
     };
   }
 
@@ -57,30 +57,40 @@ export class DoctorMapper {
     return {
       id: doctor.getId(),
       userId: doctor.getUserId(),
-      specialty: doctor.specialty,
-      qualification: doctor.qualification,
-      experience: doctor.experience,
-      consultationFee: doctor.consultationFee,
-      registrationNumber: doctor.registrationNumber,
-      aboutMe: doctor.aboutMe,
-      profilePhoto: doctor.profilePhoto ?? null,
-      licenseDocument: doctor.licenseDocument ?? null,
-      certifications: doctor.certifications ?? [],
-      onboardingStatus: doctor.onboardingStatus,
-      verificationStatus: doctor.verificationStatus,
-      verifiedBy: doctor.verifiedBy ?? null,
-      verifiedAt: doctor.verifiedAt ?? null,
-      rejectionReason: doctor.rejectionReason ?? null,
+      specialty: doctor.getSpecialty(),
+      qualification: doctor.getQualification(),
+      experience: doctor.getExperience(),
+      consultationFee: doctor.getConsultationFee(),
+      registrationNumber: doctor.getRegistrationNumber(),
+      aboutMe: doctor.getAboutMe(),
+      profilePhoto: doctor.getProfilePhoto()?? null,
+      licenseDocument: doctor.getLicenseDocument() ?? null,
+      certifications: doctor.getCertifications() ?? [],
+      onboardingStatus: doctor.getOnboardingStatus(),
+      verificationStatus: doctor.getVerificationStatus(),
+      verifiedBy: doctor.getVerifiedBy() ?? null,
+      verifiedAt: doctor.getVerifiedAt() ?? null,
+      rejectionReason: doctor.getRejectionReason() ?? null,
     };
   }
 
   static toStartOnboardingDTO(req: AuthenticatedRequest): StartDoctorOnboardingDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     return {
       userId: req.user.id,
     };
   }
 
   static toCreateDoctorProfileDTO(req: AuthenticatedRequest): CreateDoctorProfileDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     const body = req.body as { 
       specialty: string; 
       qualification: string; 
@@ -101,6 +111,11 @@ export class DoctorMapper {
   }
 
   static toUpdateDoctorProfileDTO(req: AuthenticatedRequest): UpdateDoctorProfileDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     const body = req.body;
     return {
       userId: req.user.id,
@@ -117,6 +132,11 @@ export class DoctorMapper {
   }
 
   static toUploadDoctorDocumentsDTO(req: AuthenticatedRequest): UploadDoctorDocumentsDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     const multerFiles = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
@@ -134,55 +154,154 @@ export class DoctorMapper {
   }
 
   static toSubmitForVerificationDTO(req: AuthenticatedRequest): SubmitForVerificationDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     return {
       userId: req.user.id,
     };
   }
 
   static toGetDoctorProfileDTO(req: AuthenticatedRequest): GetDoctorProfileDTO {
+    if (!req.user) {
+  throw new Error(
+    "User not authenticated"
+  );
+}
     return {
       userId: req.user.id,
     };
   }
 
-  // Schedule related
-  static toCreateDoctorScheduleDTO(req: AuthenticatedRequest): { 
-    doctorId: string; 
-    rrule: string; 
-    timeWindows: { start: string; end: string }[]; 
-    slotDuration: number; 
-    validFrom: string; 
-    validTo: string; 
-    timezone: string 
-  } {
-    return {
-      doctorId: req.user.id,
-      rrule: req.body.rrule,
-      timeWindows: req.body.timeWindows, 
-      slotDuration: Number(req.body.slotDuration),
-      validFrom: req.body.validFrom,
-      validTo: req.body.validTo,
-      timezone: req.body.timezone || 'UTC',
-    };
+
+  static toCreateDoctorScheduleDTO(
+  req: AuthenticatedRequest
+): {
+
+  doctorId: string;
+
+  rrule: string;
+
+  timeWindows: {
+    start: string;
+    end: string;
+  }[];
+
+  slotDuration: number;
+
+  validFrom: string;
+
+  validTo: string;
+
+  timezone: string;
+
+} {
+
+  if (!req.user) {
+
+    throw new Error(
+      "User not authenticated"
+    );
   }
 
-  static toGetSlotsWithBookingDTO(req: AuthenticatedRequest): { doctorUserId: string; from: string; to: string } {
-    return {
-      doctorUserId: req.user.id,
-      from: String(req.query.from),
-      to: String(req.query.to),
-    };
+  return {
+
+    doctorId:
+      req.user!.id,
+
+    rrule:
+      req.body.rrule,
+
+    timeWindows:
+      req.body.timeWindows,
+
+    slotDuration:
+      Number(
+        req.body.slotDuration
+      ),
+
+    validFrom:
+      req.body.validFrom,
+
+    validTo:
+      req.body.validTo,
+
+    timezone:
+      req.body.timezone ||
+      "UTC",
+  };
+}
+
+
+static toGetSlotsWithBookingDTO(
+  req: AuthenticatedRequest
+): {
+
+  doctorUserId: string;
+
+  from: string;
+
+  to: string;
+
+} {
+
+  if (!req.user) {
+
+    throw new Error(
+      "User not authenticated"
+    );
   }
 
-  // Slot related
-  static toGenerateSlotsDTO(req: AuthenticatedRequest): { doctorId: string; from: Date; to: Date } {
-    return {
-      doctorId: req.user.id,
-      from: new Date(req.query.from as string),
-      to: new Date(req.query.to as string),
-    };
+  return {
+
+    doctorUserId:
+      req.user!.id,
+
+    from:
+      String(req.query.from),
+
+    to:
+      String(req.query.to),
+  };
+}
+  
+static toGenerateSlotsDTO(
+  req: AuthenticatedRequest
+): {
+
+  doctorId: string;
+
+  from: Date;
+
+  to: Date;
+
+} {
+
+  if (!req.user) {
+
+    throw new Error(
+      "User not authenticated"
+    );
   }
 
+  return {
+
+    doctorId:
+      req.user!.id,
+
+    from:
+      new Date(
+        req.query.from as string
+      ),
+
+    to:
+      new Date(
+        req.query.to as string
+      ),
+  };
+}
   static toGetSlotsForPatientDTO(req: Request): { doctorId: string; from: Date; to: Date } {
     return {
       doctorId: req.params.doctorId,

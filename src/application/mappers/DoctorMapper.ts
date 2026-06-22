@@ -8,35 +8,44 @@ export class DoctorMapper {
     return {
       id: doctor.getId(),
       userId: doctor.getUserId(),
-      specialty: doctor.specialty,
-      qualification: doctor.qualification,
-      experience: doctor.experience,
-      consultationFee: doctor.consultationFee,
-      registrationNumber: doctor.registrationNumber,
-      aboutMe: doctor.aboutMe,
-      profilePhoto: doctor.profilePhoto ?? null,
-      licenseDocument: doctor.licenseDocument ?? null,
-      certifications: doctor.certifications ?? [],
-      onboardingStatus: doctor.onboardingStatus,
-      verificationStatus: doctor.verificationStatus,
-      verifiedBy: doctor.verifiedBy ?? null,
-      verifiedAt: doctor.verifiedAt ?? null,
-      rejectionReason: doctor.rejectionReason ?? null,
+      specialty: doctor.getSpecialty(),
+      qualification: doctor.getQualification(),
+      experience: doctor.getExperience(),
+      consultationFee: doctor.getConsultationFee(),
+      registrationNumber: doctor.getRegistrationNumber(),
+      aboutMe: doctor.getAboutMe(),
+      profilePhoto: doctor.getProfilePhoto() ?? null,
+      licenseDocument: doctor.getLicenseDocument()?? null,
+      certifications: doctor.getCertifications() ?? [],
+      onboardingStatus: doctor.getOnboardingStatus(),
+      verificationStatus: doctor.getVerificationStatus(),
+      verifiedBy: doctor.getVerifiedBy() ?? null,
+      verifiedAt: doctor.getVerifiedAt() ?? null,
+      rejectionReason: doctor.getRejectionReason() ?? null,
     };
   }
 
   static toVerifiedDoctorResponse(doctor: Doctor, user?: User | null) {
+    const profilePhoto =
+  doctor.getProfilePhoto();
     return {
       doctorId: doctor.getId(),
       userId: doctor.getUserId(),
-      name: user?.name ?? "Doctor",
-      specialty: doctor.specialty,
-      about: doctor.aboutMe,
+      name: user?.getName() ?? "Doctor",
+      specialty: doctor.getSpecialty(),
+      about: doctor.getAboutMe(),
       photo:
-        doctor.profilePhoto && doctor.profilePhoto.trim() !== ""
-          ? doctor.profilePhoto
-          : MESSAGES.DEFAULT_DOCTOR_AVATAR,
+    profilePhoto &&
+    profilePhoto.trim() !== ""
+      ? profilePhoto
+      : MESSAGES.DEFAULT_DOCTOR_AVATAR,
+             experience:
+      doctor.getExperience(),
+
+    consultationFee:
+      doctor.getConsultationFee(),
     };
+
   }
 
   static toApproveDoctorResponse(doctor: Doctor) {
@@ -45,11 +54,11 @@ export class DoctorMapper {
       doctor: {
         id: doctor.getId(),
         userId: doctor.getUserId(),
-        verificationStatus: doctor.verificationStatus,
-        onboardingStatus: doctor.onboardingStatus,
-        verifiedBy: doctor.verifiedBy ?? null,
-        verifiedAt: doctor.verifiedAt?.toISOString() ?? null,
-        rejectionReason: doctor.rejectionReason ?? null,
+        verificationStatus: doctor.getVerificationStatus(),
+        onboardingStatus: doctor.getOnboardingStatus(),
+        verifiedBy: doctor.getVerifiedBy() ?? null,
+        verifiedAt: doctor.getVerifiedAt()?.toISOString() ?? null,
+        rejectionReason: doctor.getRejectionReason()?? null,
       },
     };
   }
@@ -60,11 +69,11 @@ export class DoctorMapper {
       doctor: {
         id: doctor.getId(),
         userId: doctor.getUserId(),
-        verificationStatus: doctor.verificationStatus,
-        onboardingStatus: doctor.onboardingStatus,
-        verifiedBy: doctor.verifiedBy ?? null,
-        verifiedAt: doctor.verifiedAt?.toISOString() ?? null,
-        rejectionReason: doctor.rejectionReason ?? null,
+        verificationStatus: doctor.getVerificationStatus(),
+        onboardingStatus: doctor.getOnboardingStatus(),
+        verifiedBy: doctor.getVerifiedBy()?? null,
+        verifiedAt: doctor.getVerifiedAt()?.toISOString() ?? null,
+        rejectionReason: doctor.getRejectionReason()?? null,
       },
     };
   }

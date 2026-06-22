@@ -16,7 +16,7 @@ import { DoctorAppointmentController } from "../controllers/DoctorAppointmentCon
 import { PatientWalletController } from "../controllers/PatientWalletController";
 import { PatientController } from "../controllers/PatientController";
 import { doctorRoutes } from "./doctorRoutes";
-
+import { prescriptionRoutes } from "./prescriptionRoutes";
 import { adminPublicRoutes } from "./adminPublicRoutes";
 import { adminProtectedRoutes } from "./adminProtectedRoutes";
 //import {loggerMiddleware } from "../middlewares/loggerMiddleware";
@@ -36,8 +36,10 @@ import { chatRoutes } from "./chatRoutes";
 import { ChatController } from "../controllers/ChatController";
 import { callRoutes } from "./callRoutes";
 import { CallController } from "../controllers/CallController";
+import { PrescriptionController } from "../controllers/PrescriptionController";
 import { ITokenService } from "@application/interfaces/auth/ITokenService";
 import { createAuthMiddleware } from "../middlewares/authMiddleware";
+import { userRepository } from "@di";
 
 
 export function createRoutes(
@@ -56,10 +58,11 @@ export function createRoutes(
   notificationController: NotificationController,
   chatController: ChatController,
   callController: CallController,
+    prescriptionController: PrescriptionController,
   tokenService: ITokenService
 ) {
   const router = Router();
-  const auth = createAuthMiddleware(tokenService);
+  const auth = createAuthMiddleware(tokenService,userRepository);
 
   // --- PUBLIC ROUTES ---
   router.use("/auth", authRoutes(authController, auth));
@@ -81,6 +84,13 @@ export function createRoutes(
 
   router.use("/doctor", doctorRoutes(doctorController, auth));
   router.use("/doctor/appointments", doctorAppointmentRoutes(doctorAppointmentController, auth));
+  router.use(
+  "/prescriptions",
+  prescriptionRoutes(
+    prescriptionController,
+    auth
+  )
+);
   router.use("/doctor/schedules", doctorScheduleRoutes(doctorScheduleController, auth));
   router.use("/doctor/schedules", doctorSlotRoutes(doctorSlotController, auth));
 

@@ -2,6 +2,7 @@ import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepositor
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { Appointment } from "@domain/entities/Appointment";
 import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
+import { IAutoCompleteAppointmentsUseCase } from "@application/interfaces/appointment/IAutoCompleteAppointmentsUseCase";
 import logger from "@common/logger";
 
 export interface GroupedAppointments {
@@ -13,13 +14,15 @@ export interface GroupedAppointments {
 export class GetDoctorAppointmentsUseCase {
   constructor(
     private readonly appointmentRepo: IAppointmentRepository,
-    private readonly doctorRepo: IDoctorRepository
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly autoCompleteAppointmentsUC:
+    IAutoCompleteAppointmentsUseCase
   ) {}
 
   async execute(userId: string): Promise<GroupedAppointments> {
+    await this.autoCompleteAppointmentsUC.execute();
     let doctor = await this.doctorRepo.findByUserId(userId);
     if (!doctor) {
-      //  check if the provided ID is already a doctorId
       doctor = await this.doctorRepo.findById(userId);
     }
 
@@ -65,6 +68,32 @@ validAppointments.forEach(appt => {
       .slice(0, 5);
 
     const recent = [...todayAppointments, ...recentFromPast];
+    console.log(
+  "Upcoming:",
+  upcoming.map(a => ({
+    bookingId: a.getBookingId(),
+    date: a.getDate(),
+    status: a.getStatus()
+  }))
+);
+
+console.log(
+  "Past:",
+  past.map(a => ({
+    bookingId: a.getBookingId(),
+    date: a.getDate(),
+    status: a.getStatus()
+  }))
+);
+
+console.log(
+  "Recent:",
+  recent.map(a => ({
+    bookingId: a.getBookingId(),
+    date: a.getDate(),
+    status: a.getStatus()
+  }))
+);
 
     return {
       upcoming,

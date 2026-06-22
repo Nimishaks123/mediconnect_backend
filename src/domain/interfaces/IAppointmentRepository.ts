@@ -1,5 +1,5 @@
 import { Appointment } from "@domain/entities/Appointment";
-
+import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
 export interface IAppointmentRepository {
   save(appointment: Appointment): Promise<void>;
   findById(id: string): Promise<Appointment | null>;
@@ -25,6 +25,14 @@ export interface IAppointmentRepository {
     from: string,
     to: string
   ): Promise<Appointment[]>;
+  findByDoctorAndPatient(doctorId:string,patientId:string):Promise<Appointment[]>;
+  updateStatus(
+  appointmentId: string,
+  status: AppointmentStatus
+): Promise<void>;
+findAppointmentsForCompletion():
+Promise<Appointment[]>;
   //
   countCancelledAppointments(userId:string):Promise<number>;
+
 }

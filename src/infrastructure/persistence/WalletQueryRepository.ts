@@ -1,5 +1,6 @@
 import { IWalletQueryRepository } from "@application/interfaces/queries/IWalletQueryRepository";
 import { WalletModel } from "../persistence/models/WalletModel";
+import { WalletTransactionModel } from "../persistence/models/WalletTransactionModel";
 import { 
   AdminWalletListItemDTO, 
   AdminTransactionListItemDTO 
@@ -98,63 +99,115 @@ export class WalletQueryRepository implements IWalletQueryRepository {
     };
   }
 
-  async findAdminWalletTransactions(
-    userId: string,
-    page: number,
-    limit: number,
-    type?: "CREDIT" | "DEBIT",
-    search?: string,
-    sort?: "NEWEST" | "OLDEST"
-  ): Promise<{ 
-    data: AdminTransactionListItemDTO[]; 
-    total: number;
-    balance: number;
-    userName: string;
-    userEmail: string;
-  }> {
-    const skip = (page - 1) * limit;
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+async findAdminWalletTransactions(
+  userId: string,
+  page: number,
+  limit: number,
+  type?: "CREDIT" | "DEBIT",
+  search?: string,
+  sort?: "NEWEST" | "OLDEST"
+): Promise<{
+  data: AdminTransactionListItemDTO[];
+  total: number;
+  balance: number;
+  userName: string;
+  userEmail: string;
+}> {
 
-    const wallet = await WalletModel.findOne({ userId: userObjectId }).populate("userId", "name email");
-    
-    if (!wallet) {
-      return { data: [], total: 0, balance: 0, userName: "", userEmail: "" };
-    }
+  const skip = (page - 1) * limit;
 
-    const userData = wallet.userId as any;
-    let transactions = [...wallet.transactions];
-
-    // Sorting
-    const sortOrder = sort === "OLDEST" ? 1 : -1;
-    transactions.sort((a, b) => {
-      const timeA = a.createdAt.getTime();
-      const timeB = b.createdAt.getTime();
-      return sortOrder === 1 ? timeA - timeB : timeB - timeA;
-    });
-
-    if (type) {
-      transactions = transactions.filter(t => t.type === type);
-    }
-    if (search) {
-      transactions = transactions.filter(t => 
-        t.description.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    const total = transactions.length;
-    const paginatedData = transactions.slice(skip, skip + limit).map(t => ({
-      type: t.type,
-      amount: t.amount,
-      description: t.description,
-      createdAt: t.createdAt.toISOString()
-    }));
-
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
     return {
-      data: paginatedData,
-      total,
-      balance: wallet.balance,
-      userName: userData.name,
-      userEmail: userData.email
+      data: [],
+      total: 0,
+      balance: 0,
+      userName: "",
+      userEmail: "",
     };
   }
+
+  const userObjectId =
+    new mongoose.Types.ObjectId(userId);
+
+  const wallet =
+    await WalletModel
+      .findOne({
+        userId: userObjectId,
+      })
+      .populate(
+        "userId",
+        "name email"
+      );
+
+  if (!wallet) {
+    return {
+      data: [],
+      total: 0,
+      balance: 0,
+      userName: "",
+      userEmail: "",
+    };
+  }
+
+  const userData = wallet.userId as any;
+
+  const filter: any = {
+    walletId: wallet._id,
+  };
+
+  if (type) {
+    filter.type = type;
+  }
+
+  if (search) {
+    filter.description = {
+      $regex: search,
+      $options: "i",
+    };
+  }
+
+  const total =
+    await WalletTransactionModel
+      .countDocuments(filter);
+
+  // const sortOption =
+  //   sort === "OLDEST"
+  //     ? { createdAt: 1 }
+  //     : { createdAt: -1 };
+
+  // const transactions =
+  //   await WalletTransactionModel
+  //     .find(filter)
+  //     .sort(sortOption)
+  //     .skip(skip)
+  //     .limit(limit);
+  const transactions =
+  await WalletTransactionModel
+    .find(filter)
+    .sort({
+      createdAt:
+        sort === "OLDEST"
+          ? 1
+          : -1,
+    })
+    .skip(skip)
+    .limit(limit);
+
+  const paginatedData =
+    transactions.map((transaction) => ({
+      type: transaction.type,
+      amount: transaction.amount,
+      description: transaction.description,
+      createdAt:
+        transaction.createdAt.toISOString(),
+    }));
+
+  return {
+    data: paginatedData,
+    total,
+    balance: wallet.balance,
+    userName: userData?.name ?? "",
+    userEmail: userData?.email ?? "",
+  };
+}
 }

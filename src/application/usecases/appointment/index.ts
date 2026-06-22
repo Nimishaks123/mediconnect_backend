@@ -9,3 +9,4 @@ export {CreateCheckoutSessionUseCase} from "./CreateCheckoutSessionUseCase";
 export {VerifyWebhookUseCase} from "./VerifyWebhookUseCase";
 export {HandleStripeWebhookUseCase} from "./HandleStripeWebhookUseCase";
 export {PayAppointmentWithWalletUseCase} from "./PayAppointmentWithWalletUseCase";
+export {AutoCompleteAppointmentsUseCase} from "./AutoCompleteAppointmentsUseCase";

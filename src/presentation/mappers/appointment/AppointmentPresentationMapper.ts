@@ -75,6 +75,7 @@ export class AppointmentPresentationMapper {
   static toAppointmentForDoctorDTO(appointment: Appointment): AppointmentForDoctorDTO {
     return {
       appointmentId: appointment.getId(),
+      bookingId:appointment.getBookingId(),
       patientId: appointment.getPatientId(),
       patientName: appointment.getPatientName() || "Unknown Patient",
       date: appointment.getDate(),

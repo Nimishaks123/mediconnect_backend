@@ -56,12 +56,40 @@ export class SocketService {
       });
 
       // 2. Read Receipts (Real-time)
-      socket.on("message_seen", (data: { senderId: string, conversationId: string }) => {
-        this.emitToUser(data.senderId, "messages_seen", {
-          receiverId: userId,
-          conversationId: data.conversationId
-        });
-      });
+      // socket.on("message_seen", (data: { senderId: string, conversationId: string }) => {
+      //   this.emitToUser(data.senderId, "messages_seen", {
+      //     receiverId: userId,
+      //     conversationId: data.conversationId
+      //   });
+      // });
+      socket.on("message_seen", (data) => {
+  this.emitToUser(
+    data.senderId,
+    "messages_seen",
+    {
+      receiverId: userId,
+      conversationId: data.conversationId
+    }
+  );
+});
+
+socket.on(
+  "check_user_status",
+  ({ userId }) => {
+
+    socket.emit(
+      "user_status",
+      {
+        userId,
+        status: this.isUserOnline(userId)
+          ? "online"
+          : "offline"
+      }
+    );
+  }
+);
+
+
 
       // 3. Video Call Signaling
       socket.on("join_call_room", ({ appointmentId }) => {
@@ -97,7 +125,19 @@ export class SocketService {
         this.activeCalls.delete(appointmentId);
         this.io?.to(appointmentId).emit("call_rejected");
       });
+socket.on("end_call", ({ appointmentId }) => {
+  console.log(
+    `[Socket] Call ended: ${appointmentId}`
+  );
 
+  this.activeCalls.delete(
+    appointmentId
+  );
+
+  socket.to(appointmentId).emit(
+    "call_ended"
+  );
+});
       socket.on("join_call", ({ appointmentId, userId }) => {
         socket.join(appointmentId);
         socket.to(appointmentId).emit("user_joined", { userId });

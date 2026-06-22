@@ -31,7 +31,7 @@ export class RescheduleAppointmentUseCase {
   ) {}
 
   async execute(dto: RescheduleAppointmentDTO): Promise<void> {
-   const {
+const {
   appointmentId,
   doctorId,
   date,
@@ -42,10 +42,36 @@ export class RescheduleAppointmentUseCase {
     if (!appointment) {
       throw new AppError("Appointment not found", StatusCode.NOT_FOUND);
     }
+    console.log(
+  "Appointment Doctor ID:",
+  appointment.getDoctorId()
+);
 
-    if (appointment.getDoctorId() !== doctorId) {
-      throw new AppError("Not authorized to reschedule this appointment", StatusCode.FORBIDDEN);
-    }
+console.log(
+  "JWT Doctor/User ID:",
+  doctorId
+);
+  const doctor =
+  await this.doctorRepo.findByUserId(
+    doctorId
+  );
+
+if (!doctor) {
+  throw new AppError(
+    "Doctor profile not found",
+    StatusCode.NOT_FOUND
+  );
+}
+
+if (
+  appointment.getDoctorId() !==
+  doctor.getId()
+) {
+  throw new AppError(
+    "Not authorized to reschedule this appointment",
+    StatusCode.FORBIDDEN
+  );
+}
 
     const permittedStatuses = [
       AppointmentStatus.CONFIRMED,
@@ -58,10 +84,9 @@ export class RescheduleAppointmentUseCase {
         StatusCode.BAD_REQUEST
       );
     }
-
-    const schedule =
+  const schedule =
   await this.scheduleRepo.findByDoctorId(
-    doctorId
+    doctor.getId()
   );
 
 if (!schedule) {
@@ -77,7 +102,6 @@ if (!schedule) {
     if (newSlotTime.isBefore(now)) {
       throw new AppError("Cannot reschedule to a past date or time", StatusCode.BAD_REQUEST);
     }
-
     const range = DateRange.create(date, date);
     const availableSlots = schedule.generateSlots(range, this.rrulePolicy);
     
@@ -90,7 +114,7 @@ if (!schedule) {
     }
 
     const conflict = await this.appointmentRepo.existsOverlappingSlot(
-      doctorId,
+      doctor.getId(),
       date,
       startTime,
       endTime,
@@ -120,7 +144,6 @@ if (!schedule) {
       )
     );
 
-    const doctor = await this.doctorRepo.findById(appointment.getDoctorId());
     const patient = await this.userRepo.findById(appointment.getPatientId());
     
     const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
@@ -137,7 +160,7 @@ if (!schedule) {
 
     // NOTIFY DOCTOR
     await this.createNotificationUseCase.execute({
-      userId: doctorUser?.getId()|| appointment.getDoctorId(),
+      userId: doctorUser?.getId() || appointment.getDoctorId(),
       title: "Appointment Rescheduled",
       message: `You have successfully rescheduled the appointment with ${patientName}`,
       type: NotificationType.APPOINTMENT_RESCHEDULED

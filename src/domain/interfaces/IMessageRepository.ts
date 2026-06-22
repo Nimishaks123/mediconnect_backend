@@ -10,4 +10,6 @@ export interface IMessageRepository {
   markAsRead(
   messageId: string
 ): Promise<void>;
+findByConversationIds(conversationIds:string[]):Promise<Message[]>
+
 }

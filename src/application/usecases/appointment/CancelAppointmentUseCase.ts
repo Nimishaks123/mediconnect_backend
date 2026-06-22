@@ -40,7 +40,7 @@ export class CancelAppointmentUseCase {
       throw new AppError(`Cannot cancel an appointment that is currently ${appointment.getStatus()}`, StatusCode.BAD_REQUEST);
     }
 
-    // automated failure/expiry can only happen for pending
+    // automated failure/expiry happen for pending
     if (!dto.doctorId && appointment.getStatus() !== AppointmentStatus.PAYMENT_PENDING) {
         throw new AppError(` cannot auto-cancel a ${appointment.getStatus()} appointment`, StatusCode.BAD_REQUEST);
     }
@@ -66,7 +66,7 @@ export class CancelAppointmentUseCase {
       )
     );
 
-    // Only notify if cancelled by doctor (not expired/failed)
+    // Only notify if cancelled by doctor 
     if (dto.doctorId && dto.reason === "CANCELLED") {
       const doctor = await this.doctorRepo.findById(appointment.getDoctorId());
       const patient = await this.userRepo.findById(appointment.getPatientId());

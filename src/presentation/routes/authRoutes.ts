@@ -11,6 +11,7 @@ import {
   refreshTokenSchema,
   googleCallbackSchema
 } from "../validation/authValidation";
+import { changePasswordSchema } from "@presentation/validators/changePassword.validator";
 import { validateRequest } from "@presentation/middlewares/validateRequest";
 
 export function authRoutes(authController: AuthController, authMiddleware: RequestHandler) {
@@ -35,6 +36,9 @@ export function authRoutes(authController: AuthController, authMiddleware: Reque
   // Google OAuth
   router.get("/google", authController.googleAuthUrl);
   router.get("/google/callback", validateRequest(googleCallbackSchema), authController.googleCallback);
+  //Change Password
+  router.patch("/change-password",authMiddleware,validateRequest(changePasswordSchema),authController.changePassword);
+
 
   return router;
 }

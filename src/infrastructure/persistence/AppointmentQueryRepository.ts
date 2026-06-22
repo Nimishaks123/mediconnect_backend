@@ -173,6 +173,8 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
   }
 
   async findByDoctorId(doctorId: string): Promise<AppointmentForDoctorDTO[]> {
+    console.log(" AppointmentQueryRepository.findByDoctorId CALLED");
+
     const docs = await AppointmentModel.find({
       doctorId: new Types.ObjectId(doctorId),
       status: { $in: ["CONFIRMED", "RESCHEDULED"] },
@@ -183,8 +185,10 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
     const currentMins = now.getHours() * 60 + now.getMinutes();
+    
 
     return docs.map((doc: any) => {
+      console.log("DOC BOOKING ID:", doc.bookingId);
       const isToday = doc.date === today;
       const [startHours, startMinutes] = (doc.startTime as string).split(":").map(Number);
       const startMins = startHours * 60 + startMinutes;
@@ -195,6 +199,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
 
       return {
         appointmentId: doc.appointmentId,
+        bookingId:doc.bookingId,
         patientId: doc.patientId?._id?.toString() ?? "Unknown",
         patientName: doc.patientId?.name ?? "Unknown",
         patientEmail: doc.patientId?.email,
@@ -233,6 +238,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       {
         $project: {
           id: "$appointmentId",
+          bookingId:1,
           date: 1,
           startTime: 1,
           endTime: 1,

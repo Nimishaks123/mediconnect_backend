@@ -101,4 +101,10 @@ export class UserRepository
     }
     return updated;
   }
+ async updatePassword(userId: string, password: string): Promise<void> {
+    const updated=await UserModel.updateOne({_id:userId},{$set:{passwordHash: password,},});
+    if(updated.matchedCount===0){
+      throw new AppError("user not found");
+    }
+  }
 }

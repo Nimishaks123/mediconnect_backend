@@ -8,6 +8,12 @@ import { StatusCode } from "@common/enums";
 import { DateRange } from "@domain/value-objects/DateRange";
 import { SlotAvailabilityService } from "@domain/services/SlotAvailabilityService";
 import { Slot } from "@domain/entities/Slot";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { IGenerateDoctorSlotsUseCase } from "../../interfaces/schedule/IGenerateDoctorSlotsUseCase";
 
@@ -72,8 +78,50 @@ if (!schedule) return [];
 //  Domain Generation
 const allSlots = schedule.generateSlots(queryRange, this.rrulePolicy);
 
-const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
+// const uniqueSlots = this.availabilityService.deduplicateSlots(allSlots);
 
-return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
+// return this.availabilityService.filterAvailableSlots(uniqueSlots, appointments);
+const tz =
+  schedule.getTimezone() || "UTC";
+
+const now =
+  dayjs().tz(tz);
+
+const futureSlots =
+  allSlots.filter(slot => {
+
+    const slotDateTime =
+      dayjs.tz(
+        `${slot.getDate()} ${slot.getStartTime()}`,
+        "YYYY-MM-DD HH:mm",
+        tz
+      );
+
+    return slotDateTime.isAfter(now);
+  });
+  console.log(
+  "NOW:",
+  now.format()
+);
+
+console.log(
+  "TOTAL SLOTS:",
+  allSlots.length
+);
+
+console.log(
+  "FUTURE SLOTS:",
+  futureSlots.length
+);
+
+const uniqueSlots =
+  this.availabilityService.deduplicateSlots(
+    futureSlots
+  );
+
+return this.availabilityService.filterAvailableSlots(
+  uniqueSlots,
+  appointments
+);
   }
 }

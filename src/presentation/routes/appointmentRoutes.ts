@@ -15,7 +15,7 @@ export function appointmentRoutes(
   const requirePatient = [authMiddleware, allowRoles(UserRole.PATIENT)];
   const requireAdmin = [authMiddleware, allowRoles(UserRole.ADMIN)];
 
-  // Create appointment (payment pending)
+  // Create appointment 
   router.post(
     "/",
     ...requirePatient,

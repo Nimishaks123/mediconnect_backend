@@ -3,6 +3,7 @@ import { PaymentStatus } from "@domain/enums/PaymentStatus";
 
 export class Appointment {
   private readonly id: string;
+  private readonly bookingId:string;
   private readonly doctorId: string;
   private readonly patientId: string;
   private readonly patientName?: string;
@@ -19,6 +20,7 @@ export class Appointment {
 
   constructor(
     id: string,
+    bookingId:string,
     doctorId: string,
     patientId: string,
     date: string,
@@ -34,6 +36,7 @@ export class Appointment {
     patientName?: string
   ) {
     this.id = id;
+    this.bookingId=bookingId;
     this.doctorId = doctorId;
     this.patientId = patientId;
     this.date = date;
@@ -51,6 +54,7 @@ export class Appointment {
 
   static createPending(
     id: string,
+    bookingId:string,
     doctorId: string,
     patientId: string,
     date: string,
@@ -60,6 +64,7 @@ export class Appointment {
   ): Appointment {
     return new Appointment(
       id,
+      bookingId,
       doctorId,
       patientId,
       date,
@@ -75,6 +80,9 @@ export class Appointment {
   }
 
   getId() { return this.id; }
+  getBookingId():string{
+    return this.bookingId;
+  }
   getDoctorId() { return this.doctorId; }
   getPatientId() { return this.patientId; }
   getPatientName() { return this.patientName; }
@@ -160,6 +168,14 @@ export class Appointment {
 
     return false;
   }
+  complete() {
+  if (
+    this.status === AppointmentStatus.CONFIRMED ||
+    this.status === AppointmentStatus.RESCHEDULED
+  ) {
+    this.status = AppointmentStatus.COMPLETED;
+  }
+}
 
 
 

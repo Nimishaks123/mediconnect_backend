@@ -16,6 +16,8 @@ import {
   IResetPasswordUseCase,
   ILoginWithGoogleUseCase,
 } from "@application/interfaces/auth";
+import { IChangePasswordUseCase } from "@application/interfaces/auth/IChangePasswordUseCase";
+import { success } from "zod";
 
 export class AuthController {
   constructor(
@@ -27,7 +29,9 @@ export class AuthController {
     private readonly sendForgotPasswordOtpUseCase: ISendForgotPasswordOtpUseCase,
     private readonly verifyForgotPasswordOtpUseCase: IVerifyForgotPasswordOtpUseCase,
     private readonly resetPasswordUseCase: IResetPasswordUseCase,
-    private readonly loginWithGoogleUseCase: ILoginWithGoogleUseCase
+    private readonly loginWithGoogleUseCase: ILoginWithGoogleUseCase,
+    private readonly changePasswordUseCase:IChangePasswordUseCase
+  
   ) { }
 
   googleAuthUrl = catchAsync(async (req: Request, res: Response) => {
@@ -171,4 +175,11 @@ export class AuthController {
     logger.info("Password reset successful", { email: validated.email });
     res.status(StatusCode.OK).json(result);
   });
+  changePassword=catchAsync(async(req:Request,res:Response)=>{
+    const {currentPassword,newPassword}=req.body;
+
+    await this.changePasswordUseCase.execute({userId:req.user!.id,currentPassword,newPassword});
+   res.status(StatusCode.OK).json({success:true,message:"Password changed successfully"});
+
+  })
 }

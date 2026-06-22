@@ -4,7 +4,7 @@ import { IUserRepository } from "@domain/interfaces/IUserRepository";
 import { AppError } from "@common/AppError";
 import { UserMapper } from "../../mappers/UserMapper";
 import { StatusCode } from "@common/enums";
-
+import { SocketService } from "@infrastructure/services/SocketService";
 
 export class BlockUnblockUserUseCase implements IBlockUnblockUserUseCase {
   constructor(private readonly userRepo: IUserRepository) {}
@@ -34,7 +34,22 @@ export class BlockUnblockUserUseCase implements IBlockUnblockUserUseCase {
     }
 
     const savedUser = await this.userRepo.save(user);
+    const socketService =
+  SocketService.getInstance();
 
-    return UserMapper.toBlockResponse(savedUser, successMessage);
+socketService.emitToAll(
+  "user_block_status_changed",
+  {
+    userId: savedUser.getId(),
+    role: savedUser.getRole(),
+    blocked
   }
-}
+);
+
+return UserMapper.toBlockResponse(
+  savedUser,
+  successMessage
+);
+
+   
+  }}
