@@ -57,7 +57,7 @@ export class CreateAppointmentUseCase implements ICreateAppointmentUseCase {
       date,
       startTime,
       endTime,
-      doctor.consultationFee
+      doctor.getConsultationFee()
     );
 
     await this.appointmentRepo.save(appointment);
