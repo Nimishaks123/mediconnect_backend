@@ -23,6 +23,7 @@ export class ResendOtpUseCase implements IResendOtpUseCase {
     await this.otpRepo.deleteByEmail(email);
 
     const plainOtp = this.otpGenerator.generate();
+    console.log("otp",plainOtp);
     const hashedOtp = await this.passwordHasher.hash(plainOtp);
 
     const expiresAt = new Date(Date.now() + this.otpExpiryMin * 60 * 1000);

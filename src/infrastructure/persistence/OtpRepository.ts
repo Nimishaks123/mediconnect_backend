@@ -22,7 +22,7 @@ export class OtpRepository implements IOtpRepository {
 
     const persistenceData = OtpPersistenceMapper.toPersistence(record);
     await OtpModel.updateOne(
-      { _id: record.getId },
+      { _id: record.getId() },
       { $set: persistenceData }
     ).exec();
   }

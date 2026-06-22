@@ -31,14 +31,13 @@ export class RescheduleAppointmentUseCase {
   ) {}
 
   async execute(dto: RescheduleAppointmentDTO): Promise<void> {
-    const { appointmentId, doctorId, newDateTime } = dto;
-    
-    // Parse newDateTime into separate date, startTime, and endTime
-    const parsedDateTime = dayjs.tz(newDateTime);
-    const date = parsedDateTime.format('YYYY-MM-DD');
-    const startTime = parsedDateTime.format('HH:mm');
-    const endTime = parsedDateTime.add(1, 'hour').format('HH:mm'); // Assuming 1-hour appointment
-
+   const {
+  appointmentId,
+  doctorId,
+  date,
+  startTime,
+  endTime,
+} = dto;
     const appointment = await this.appointmentRepo.findById(appointmentId);
     if (!appointment) {
       throw new AppError("Appointment not found", StatusCode.NOT_FOUND);
@@ -60,13 +59,18 @@ export class RescheduleAppointmentUseCase {
       );
     }
 
-    const schedules = await this.scheduleRepo.findByDoctorId(doctorId);
-    if (!schedules || schedules.length === 0) {
-      throw new AppError("Doctor schedule not found", StatusCode.NOT_FOUND);
-    }
+    const schedule =
+  await this.scheduleRepo.findByDoctorId(
+    doctorId
+  );
 
-    const schedule = schedules[0];
-    const tz = schedule.timezone || "UTC";
+if (!schedule) {
+  throw new AppError(
+    "Doctor schedule not found",
+    StatusCode.NOT_FOUND
+  );
+}
+    const tz = schedule.getTimezone() || "UTC";
     const newSlotTime = dayjs.tz(`${date} ${startTime}`, "YYYY-MM-DD HH:mm", tz);
     const now = dayjs().tz(tz);
 
@@ -74,12 +78,11 @@ export class RescheduleAppointmentUseCase {
       throw new AppError("Cannot reschedule to a past date or time", StatusCode.BAD_REQUEST);
     }
 
-    // ✅ Use domain aggregate for slot generation
     const range = DateRange.create(date, date);
     const availableSlots = schedule.generateSlots(range, this.rrulePolicy);
     
     const slotExists = availableSlots.some(
-      (s) => s.startTime === startTime && s.endTime === endTime
+      (s) => s.getStartTime() === startTime && s.getEndTime()=== endTime
     );
 
     if (!slotExists) {
@@ -121,8 +124,8 @@ export class RescheduleAppointmentUseCase {
     const patient = await this.userRepo.findById(appointment.getPatientId());
     
     const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
-    const doctorName = doctorUser ? doctorUser.name : "your doctor";
-    const patientName = patient ? patient.name : "the patient";
+    const doctorName = doctorUser ? doctorUser.getName() : "your doctor";
+    const patientName = patient ? patient.getName() : "the patient";
 
     // NOTIFY PATIENT
     await this.createNotificationUseCase.execute({
@@ -134,7 +137,7 @@ export class RescheduleAppointmentUseCase {
 
     // NOTIFY DOCTOR
     await this.createNotificationUseCase.execute({
-      userId: doctorUser?.id || appointment.getDoctorId(),
+      userId: doctorUser?.getId()|| appointment.getDoctorId(),
       title: "Appointment Rescheduled",
       message: `You have successfully rescheduled the appointment with ${patientName}`,
       type: NotificationType.APPOINTMENT_RESCHEDULED

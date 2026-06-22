@@ -11,14 +11,8 @@ import {
 
 export function patientRoutes(patientController: PatientController, authMiddleware: RequestHandler) {
   const router = Router();
+const patientAuth = requirePatient(authMiddleware);
 
-  const patientAuth = requirePatient(authMiddleware);
-
-  /**
-   * @route   GET /api/patient/profile
-   * @desc    Get current patient profile
-   * @access  Private (Patient)
-   */
   router.get(
     "/profile",
     ...patientAuth,
@@ -26,11 +20,6 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
     patientController.getProfile
   );
 
-  /**
-   * @route   POST /api/patient/profile
-   * @desc    Create patient profile
-   * @access  Private (Patient)
-   */
   router.post(
     "/profile",
     ...patientAuth,
@@ -39,11 +28,6 @@ export function patientRoutes(patientController: PatientController, authMiddlewa
     patientController.createProfile
   );
 
-  /**
-   * @route   PUT /api/patient/profile
-   * @desc    Update patient profile
-   * @access  Private (Patient)
-   */
   router.put(
     "/profile",
     ...patientAuth,

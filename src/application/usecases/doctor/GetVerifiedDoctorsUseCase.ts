@@ -18,7 +18,7 @@ export class GetVerifiedDoctorsUseCase implements IGetVerifiedDoctorsUseCase {
     const userIds = doctors.map((d) => d.getUserId());
     const users = await this.userRepo.findByIds(userIds);
 
-    const userMap = new Map(users.map((u) => [u.id, u]));
+    const userMap = new Map(users.map((u) => [u.getId(), u]));
 
     return doctors.map((doctor) => {
       const userId = doctor.getUserId();

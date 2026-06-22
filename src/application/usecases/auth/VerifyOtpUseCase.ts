@@ -26,7 +26,7 @@ export class VerifyOtpUseCase implements IVerifyOtpUseCase {
     const providedCode = new OtpCode(rawCode);
 
     const otp = await this.otpRepo.findLatestByEmail(email, OtpContext.SIGNUP);
-
+     console.log("otp",otp);
     if (!otp) {
       throw new AppError(MESSAGES.OTP_INVALID, StatusCode.NOT_FOUND);
     }
@@ -49,9 +49,9 @@ export class VerifyOtpUseCase implements IVerifyOtpUseCase {
     await this.otpRepo.deleteByEmail(email);
     
     let onboardingStatus;
-    if (user.role === UserRole.DOCTOR) {
-        const doc = await this.doctorRepo.findByUserId(user.id!);
-        onboardingStatus = doc?.onboardingStatus;
+    if (user.getRole() === UserRole.DOCTOR) {
+        const doc = await this.doctorRepo.findByUserId(user.getId()!);
+        onboardingStatus = doc?.getOnboardingStatus();
     }
 
     return AuthMapper.toVerifyOtpResponse(user, onboardingStatus);

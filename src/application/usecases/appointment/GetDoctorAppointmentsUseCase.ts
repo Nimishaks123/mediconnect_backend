@@ -41,7 +41,16 @@ export class GetDoctorAppointmentsUseCase {
 
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-
+validAppointments.forEach(appt => {
+  console.log({
+    date: appt.getDate(),
+    startTime: appt.getStartTime(),
+    endTime: appt.getEndTime(),
+    status: appt.getStatus(),
+    upcoming: appt.isUpcoming(),
+    past: appt.isPast(),
+  });
+});
     // Upcoming: Future dates or future time today (must be confirmed/rescheduled)
     const upcoming = validAppointments.filter(appt => appt.isUpcoming());
 
