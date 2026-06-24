@@ -200,18 +200,15 @@ export const chatController = new ChatController(
   getConversationListUseCase
 );
 
-<<<<<<< HEAD
 export const prescriptionController =
   new PrescriptionController(
     createPrescriptionUseCase,
     getPrescriptionUC
   );
-export const callController = new CallController(checkCallEligibilityUseCase);
-=======
+
 export const callController = new CallController(checkCallEligibilityUseCase);
 export const reviewController =
   new ReviewController(
     createReviewUseCase,
     getDoctorReviewsUseCase
   );
->>>>>>> ratings-reviews
