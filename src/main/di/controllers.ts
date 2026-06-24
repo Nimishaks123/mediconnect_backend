@@ -6,7 +6,12 @@ import { DoctorSlotController } from "@presentation/controllers/DoctorSlotContro
 import { AppointmentController } from "@presentation/controllers/AppointmentController";
 import { DoctorAppointmentController } from "@presentation/controllers/DoctorAppointmentController";
 import { PatientWalletController } from "@presentation/controllers/PatientWalletController";
+import { ReviewController } from "@presentation/controllers/ReviewController";
 import { GetUserWalletUseCase } from "@application/usecases/wallet/GetUserWalletUseCase";
+import {
+  createReviewUseCase,
+  getDoctorReviewsUseCase,
+} from "./reviewUsecases";
 import {  tokenService,  passwordHasher, eventBus } from "./services";
 import * as authUC from "./authUsecases";
 import * as doctorUC from "./doctorUsecases";
@@ -178,3 +183,8 @@ export const chatController = new ChatController(
 );
 
 export const callController = new CallController(checkCallEligibilityUseCase);
+export const reviewController =
+  new ReviewController(
+    createReviewUseCase,
+    getDoctorReviewsUseCase
+  );

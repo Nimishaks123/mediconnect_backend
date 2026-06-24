@@ -12,6 +12,9 @@ import { PatientRepository } from "@infrastructure/persistence/PatientRepository
 import { AdminDoctorQueryRepository } from "@infrastructure/persistence/AdminDoctorQueryRepository";
 import { UserQueryRepository } from "@infrastructure/persistence/UserQueryRepository";
 import { WalletQueryRepository } from "@infrastructure/persistence/WalletQueryRepository";
+import { ReviewRepository } from "@infrastructure/persistence/ReviewRepository";
+import { ReviewQueryRepository } from "@infrastructure/persistence/ReviewQueryRepository";
+
 
 import { NotificationRepository } from "@infrastructure/persistence/NotificationRepository";
 import { MessageRepository } from "@infrastructure/persistence/MessageRepository";
@@ -31,3 +34,8 @@ export const appointmentQueryRepo = new AppointmentQueryRepository();
 export const adminDoctorQueryRepo = new AdminDoctorQueryRepository();
 export const userQueryRepo = new UserQueryRepository();
 export const walletQueryRepo = new WalletQueryRepository();
+export const reviewRepository =
+  new ReviewRepository();
+
+export const reviewQueryRepository =
+  new ReviewQueryRepository();

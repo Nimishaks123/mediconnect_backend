@@ -15,6 +15,7 @@ import { AdminWalletController } from "../controllers/AdminWalletController";
 import { DoctorAppointmentController } from "../controllers/DoctorAppointmentController";
 import { PatientWalletController } from "../controllers/PatientWalletController";
 import { PatientController } from "../controllers/PatientController";
+import { ReviewController } from "../controllers/ReviewController";
 import { doctorRoutes } from "./doctorRoutes";
 
 import { adminPublicRoutes } from "./adminPublicRoutes";
@@ -35,6 +36,7 @@ import { notificationRoutes } from "./notificationRoutes";
 import { chatRoutes } from "./chatRoutes";
 import { ChatController } from "../controllers/ChatController";
 import { callRoutes } from "./callRoutes";
+import { reviewRoutes } from "./reviewRoutes";
 import { CallController } from "../controllers/CallController";
 import { ITokenService } from "@application/interfaces/auth/ITokenService";
 import { createAuthMiddleware } from "../middlewares/authMiddleware";
@@ -56,6 +58,7 @@ export function createRoutes(
   notificationController: NotificationController,
   chatController: ChatController,
   callController: CallController,
+  reviewController: ReviewController,
   tokenService: ITokenService
 ) {
   const router = Router();
@@ -88,7 +91,10 @@ export function createRoutes(
   router.use("/patient", patientSlotRoutes(doctorSlotController, auth));
   router.use("/patient", patientAppointmentRoutes(appointmentController, auth));
   router.use("/patient", patientWalletRoutes(patientWalletController, auth));
-
+router.use(
+  "/reviews",
+  reviewRoutes(reviewController, auth)
+);
   router.use("/appointments", auth, appointmentRoutes(appointmentController, auth));
 
 

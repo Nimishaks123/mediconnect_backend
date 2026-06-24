@@ -1,3 +1,4 @@
+import { ReviewResponseDTO } from "@application/dtos/review/ReviewResponseDTO";
 import { Review } from "@domain/entities/Review";
 
 export interface IReviewRepository {

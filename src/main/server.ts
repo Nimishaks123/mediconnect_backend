@@ -24,6 +24,7 @@ import {
   notificationController,
   chatController,
   callController,
+  reviewController,
   tokenService
 } from "../main/di";
 
@@ -78,6 +79,7 @@ app.use(
     notificationController,
     chatController,
     callController,
+    reviewController,
     tokenService
   )
 );
