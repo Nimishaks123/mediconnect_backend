@@ -10,11 +10,11 @@ import { PatientRepository } from "@infrastructure/persistence/PatientRepository
 import { AdminDoctorQueryRepository } from "@infrastructure/persistence/AdminDoctorQueryRepository";
 import { UserQueryRepository } from "@infrastructure/persistence/UserQueryRepository";
 import { WalletQueryRepository } from "@infrastructure/persistence/WalletQueryRepository";
-
+import { ReviewRepository } from "@infrastructure/persistence/ReviewRepository";
+import { ReviewQueryRepository } from "@infrastructure/persistence/ReviewQueryRepository";
 import { NotificationRepository } from "@infrastructure/persistence/NotificationRepository";
 import { MessageRepository } from "@infrastructure/persistence/MessageRepository";
 import { PrescriptionRepository } from "@infrastructure/persistence/PrescriptionRepository";
-import { ReviewRepository } from "@infrastructure/persistence/ReviewRepository";
 
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
@@ -35,3 +35,6 @@ export const prescriptionRepository =
   new PrescriptionRepository();
 export const reviewRepository =
   new ReviewRepository();
+
+export const reviewQueryRepository =
+  new ReviewQueryRepository();
