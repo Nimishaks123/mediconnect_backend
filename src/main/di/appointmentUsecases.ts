@@ -28,7 +28,8 @@ import {
 
 import {
   walletTransactionRepository
-} from "./walletUsecases";
+} from "./repositories";
+import { creditDoctorEarningsUseCase } from "./walletUsecases";
 
 export const createAppointmentUseCase =
   new CreateAppointmentUseCase(
@@ -57,7 +58,8 @@ export const confirmAppointmentUseCase =
   );
   export const autoCompleteAppointmentsUseCase =
   new AutoCompleteAppointmentsUseCase(
-    appointmentRepository
+    appointmentRepository,
+    creditDoctorEarningsUseCase
   );
 
 export const getPatientAppointmentUseCase =

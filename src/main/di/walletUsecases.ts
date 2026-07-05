@@ -1,8 +1,8 @@
-import { walletRepository } from "./repositories";
+import { walletRepository,doctorRepository } from "./repositories";
 import { paymentService } from "./services";
 
-import { WalletTransactionRepository }
-from "@infrastructure/persistence/WalletTransactionRepository";
+import { walletTransactionRepository }
+from "./repositories"
 
 import { TransactionRefGenerator }
 from "@infrastructure/services/TransactionRefGenerator";
@@ -16,12 +16,13 @@ from "@application/usecases/wallet/CreateWalletTransactionUseCase";
 import { CreateWalletTopupSessionUseCase }
 from "@application/usecases/wallet/CreateWalletTopupSessionUseCase";
 import { GetWalletTransactionsUseCase } from "@application/usecases/wallet/GetWalletTransactionsUseCase";
-
+import { CreditWalletUseCase } from "@application/usecases/wallet/CreditWalletUseCase";
+import { CreditDoctorEarningsUseCase }
+from "@application/usecases/wallet/CreditDoctorEarningsUseCase";
 export const transactionRefGenerator =
   new TransactionRefGenerator();
 
-export const walletTransactionRepository =
-  new WalletTransactionRepository();
+
 
 export const getUserWalletUseCase =
   new GetUserWalletUseCase(
@@ -44,4 +45,16 @@ export const createWalletTopupSessionUseCase =
   new GetWalletTransactionsUseCase(
     walletRepository,
     walletTransactionRepository
+  );
+  export const creditWalletUseCase=new CreditWalletUseCase(
+    walletRepository,
+  
+    createWalletTransactionUseCase,
+       walletTransactionRepository,
+
+  );
+  export const creditDoctorEarningsUseCase =
+  new CreditDoctorEarningsUseCase(
+    doctorRepository,
+    creditWalletUseCase
   );

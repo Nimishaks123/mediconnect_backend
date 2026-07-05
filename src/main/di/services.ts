@@ -27,13 +27,13 @@ import { RRulePolicy } from "@infrastructure/services/RRulePolicy";
 import { config } from "@common/config";
 import { StripePaymentService } from "@infrastructure/services/StripePaymentService";
 import { EmailService } from "@infrastructure/services/EmailService";
-import { WalletService } from "@application/services/WalletService";
+//import { WalletService } from "@application/services/WalletService";
 import { BcryptHasher } from "@infrastructure/services/BcryptHasher";
 import { CryptoRandomGenerator } from "@infrastructure/services/CryptoRandomGenerator";
 import { OtpGenerator } from "@infrastructure/services/OtpGenerator";
 import { SocketNotificationService } from "@infrastructure/services/SocketNotificationService";
 import { DoctorDocumentService } from "@application/services/DoctorDocumentService";
-
+import { creditWalletUseCase } from "./walletUsecases";
 // Event Bus & Handlers
 export const eventBus = new InMemoryEventBus();
 
@@ -62,7 +62,7 @@ export const fileStorageService = new CloudinaryService();
 export const doctorDocumentService = new DoctorDocumentService(fileStorageService);
 export const oauthService = new GoogleOAuthService();
 export const rrulePolicy = new RRulePolicy();
-export const walletService = new WalletService(walletRepository);
+//export const walletService = new WalletService(walletRepository);
 const sendAppointmentConfirmationEmailHandler = new SendAppointmentConfirmationEmailHandler(
   userRepository,
   doctorRepository,
@@ -75,7 +75,11 @@ const sendAppointmentCancellationEmailHandler = new SendAppointmentCancellationE
   emailService
 );
 
-const walletRefundHandler = new WalletRefundHandler(walletService);
+//const walletRefundHandler = new WalletRefundHandler(walletService);
+const walletRefundHandler =
+  new WalletRefundHandler(
+    creditWalletUseCase
+  );
 
 const sendPatientCancellationEmailHandler = new SendPatientCancellationEmailHandler(
   userRepository,

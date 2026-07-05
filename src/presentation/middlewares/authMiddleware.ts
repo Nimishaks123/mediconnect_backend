@@ -28,10 +28,8 @@ export const createAuthMiddleware = (tokenService: ITokenService,userRepo:IUserR
       }
 
       const payload = tokenService.verifyAccessToken(token);
-      console.log("JWT PAYLOAD:", payload);
       if(payload.role!=="ADMIN"){
         const user=await userRepo.findById(payload.id);
-      console.log("DB USER:", user);
       if(!user){
         throw new AppError("user not found",StatusCode.NOT_FOUND);
       }

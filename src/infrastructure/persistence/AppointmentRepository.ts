@@ -309,4 +309,8 @@ async findAppointmentsForCompletion(): Promise<Appointment[]> {
         )
     );
 }
+async countAppointments(userId:string):Promise<number>{
+  const count=await AppointmentModel.countDocuments({userId});
+  return count;
+}
 }

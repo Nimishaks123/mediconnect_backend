@@ -26,7 +26,8 @@ import {
   callController,
   tokenService,
   prescriptionController,
-  reviewController
+  reviewController,
+  doctorWalletController
 
 } from "../main/di";
 
@@ -75,6 +76,7 @@ app.use(
     appointmentController,
     doctorAppointmentController,
     patientWalletController,
+    doctorWalletController,
     patientController,
     uploadController,
     adminWalletController,

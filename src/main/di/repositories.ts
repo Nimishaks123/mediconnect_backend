@@ -15,6 +15,7 @@ import { ReviewQueryRepository } from "@infrastructure/persistence/ReviewQueryRe
 import { NotificationRepository } from "@infrastructure/persistence/NotificationRepository";
 import { MessageRepository } from "@infrastructure/persistence/MessageRepository";
 import { PrescriptionRepository } from "@infrastructure/persistence/PrescriptionRepository";
+import { WalletTransactionRepository } from "@infrastructure/persistence/WalletTransactionRepository";
 
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
@@ -26,7 +27,7 @@ export const appointmentRepository = new AppointmentRepository();
 export const walletRepository = new WalletRepositoryImpl();
 export const notificationRepository = new NotificationRepository();
 export const messageRepository = new MessageRepository();
-
+export const walletTransactionRepository=new WalletTransactionRepository();
 export const appointmentQueryRepo = new AppointmentQueryRepository();
 export const adminDoctorQueryRepo = new AdminDoctorQueryRepository();
 export const userQueryRepo = new UserQueryRepository();

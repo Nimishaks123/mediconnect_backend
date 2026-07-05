@@ -10,7 +10,7 @@ import { NotificationType } from "@domain/enums/NotificationType";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { IUserRepository } from "@domain/interfaces/IUserRepository";
 import { ICancelAppointmentByPatientUseCase } from "@application/interfaces/appointment/ICancelAppointmentByPatientUseCase";
-
+import {config}  from "../../../common/config";
 export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPatientUseCase {
   constructor(
     private readonly appointmentRepo: IAppointmentRepository,
@@ -41,8 +41,8 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
     const user = await this.userRepo.findById(dto.patientId);
     
     const doctorUser = doctor ? await this.userRepo.findById(doctor.getUserId()) : null;
-    const doctorName = doctorUser ? doctorUser.name : "your doctor";
-    const patientName = user ? user.name : "the patient";
+    const doctorName = doctorUser ? doctorUser.getName() : "your doctor";
+    const patientName = user ? user.getName() : "the patient";
 
     // CALCULATE REFUND
   
@@ -96,15 +96,15 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
     let cancellationCharge = price;
 
     if (diffInHours > 24) {
-      refundAmount = price;
-      cancellationCharge = 0;
-    } else if (diffInHours > 1) {
-      refundAmount = price * 0.8;
-      cancellationCharge = price * 0.2;
-    } else {
+      refundAmount = (price*config.refundPercentage)/100;
+      cancellationCharge = price-refundAmount;
+    }
+    
+     else {
       refundAmount = 0;
       cancellationCharge = price;
     }
+
 
     return { refundAmount, cancellationCharge };
   }

@@ -7,6 +7,8 @@ import { AppointmentController } from "@presentation/controllers/AppointmentCont
 import { DoctorAppointmentController } from "@presentation/controllers/DoctorAppointmentController";
 import { PatientWalletController } from "@presentation/controllers/PatientWalletController";
 import { ReviewController } from "@presentation/controllers/ReviewController";
+import { DoctorWalletController }
+from "@presentation/controllers/DoctorWalletController";
 import { GetUserWalletUseCase } from "@application/usecases/wallet/GetUserWalletUseCase";
 import {
   createReviewUseCase,
@@ -85,7 +87,8 @@ const getAdminWalletsUseCase = new GetAdminWalletsUseCase(walletQueryRepo);
 const getAdminWalletTransactionsUseCase = new GetAdminWalletTransactionsUseCase(walletQueryRepo);
 const autoCompleteAppointmentsUseCase =
   new AutoCompleteAppointmentsUseCase(
-    appointmentRepository
+    appointmentRepository,
+    walletUC.creditDoctorEarningsUseCase
   );
 const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo,autoCompleteAppointmentsUseCase);
 
@@ -211,4 +214,9 @@ export const reviewController =
   new ReviewController(
     createReviewUseCase,
     getDoctorReviewsUseCase
+  );
+  export const doctorWalletController =
+  new DoctorWalletController(
+    walletUC.getUserWalletUseCase,
+    walletUC.getWalletTransactionsUseCase
   );

@@ -32,7 +32,7 @@ export interface IAppointmentRepository {
 ): Promise<void>;
 findAppointmentsForCompletion():
 Promise<Appointment[]>;
-  //
+  countAppointments(userId:string):Promise<number>;
   countCancelledAppointments(userId:string):Promise<number>;
 
 }
