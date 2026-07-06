@@ -44,7 +44,8 @@ import { DoctorWalletController } from "../controllers/DoctorWalletController";
 import { ITokenService } from "@application/interfaces/auth/ITokenService";
 import { createAuthMiddleware } from "../middlewares/authMiddleware";
 import { userRepository } from "@di";
-
+import { PlatformSettingsController } from "@presentation/controllers/PlatformSettingsController";
+import { adminSettingsRoutes } from "./adminSettingsRoutes";
 
 export function createRoutes(
   authController: AuthController,
@@ -60,6 +61,7 @@ export function createRoutes(
   patientController: PatientController,
   uploadController: UploadController,
   adminWalletController: AdminWalletController,
+  platformSettingsController: PlatformSettingsController,
   notificationController: NotificationController,
   chatController: ChatController,
   callController: CallController,
@@ -86,7 +88,13 @@ export function createRoutes(
   router.use("/admin", adminProtectedRoutes(adminController, auth));
   router.use("/admin/appointments", adminAppointmentRoutes(adminAppointmentController, auth));
   router.use("/admin/wallets", adminWalletRoutes(adminWalletController, auth));
-
+router.use(
+  "/admin",
+  adminSettingsRoutes(
+    platformSettingsController,
+    auth
+  )
+);
 
   router.use("/doctor", doctorRoutes(doctorController, auth));
   router.use("/doctor/appointments", doctorAppointmentRoutes(doctorAppointmentController, auth));

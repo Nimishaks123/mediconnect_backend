@@ -27,7 +27,8 @@ import {
   tokenService,
   prescriptionController,
   reviewController,
-  doctorWalletController
+  doctorWalletController,
+  platformSettingsController
 
 } from "../main/di";
 
@@ -80,12 +81,13 @@ app.use(
     patientController,
     uploadController,
     adminWalletController,
+    platformSettingsController,
     notificationController,
     chatController,
     callController,
     prescriptionController,
     reviewController,
-    tokenService
+    tokenService,
   )
 );
 app.use(errorMiddleware);

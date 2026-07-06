@@ -6,3 +6,4 @@ export * from "./repositories";
 export * from "./scheduleUsecases";
 export * from "./services";
 export * from "./reviewUsecases";
+export * from "./platformSettingsUsecases";

@@ -16,7 +16,8 @@ import { NotificationRepository } from "@infrastructure/persistence/Notification
 import { MessageRepository } from "@infrastructure/persistence/MessageRepository";
 import { PrescriptionRepository } from "@infrastructure/persistence/PrescriptionRepository";
 import { WalletTransactionRepository } from "@infrastructure/persistence/WalletTransactionRepository";
-
+import { PlatformSettingsRepository }
+from "@infrastructure/persistence/PlatformSettingsRepository";
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
 export const doctorRepository = new DoctorRepository();
@@ -39,3 +40,5 @@ export const reviewRepository =
 
 export const reviewQueryRepository =
   new ReviewQueryRepository();
+  export const platformSettingsRepository =
+  new PlatformSettingsRepository();

@@ -31,6 +31,11 @@ import * as patientUC from "./patientUsecases";
 import * as notificationUC from "./notificationUsecases";
 import * as walletUC
 from "./walletUsecases";
+import * as platformSettingsUC
+from "./platformSettingsUsecases";
+
+import { PlatformSettingsController }
+from "@presentation/controllers/PlatformSettingsController";
 import { PatientController } from "@presentation/controllers/PatientController";
 import { ChatController } from "@presentation/controllers/ChatController";
 import { CallController } from "@presentation/controllers/CallController";
@@ -219,4 +224,9 @@ export const reviewController =
   new DoctorWalletController(
     walletUC.getUserWalletUseCase,
     walletUC.getWalletTransactionsUseCase
+  );
+  export const platformSettingsController =
+  new PlatformSettingsController(
+    platformSettingsUC.getPlatformSettingsUseCase,
+    platformSettingsUC.updatePlatformSettingsUseCase
   );
