@@ -18,7 +18,8 @@ import {
   userRepository,
   appointmentQueryRepo,
   doctorScheduleRepository,
-  walletRepository
+  walletRepository,
+  platformSettingsRepository
 } from "./repositories";
 import { eventBus, rrulePolicy, paymentService } from "./services";
 import { createNotificationUseCase } from "./notificationUsecases";
@@ -92,7 +93,8 @@ export const cancelAppointmentByPatientUseCase =
     eventBus,
     createNotificationUseCase,
     doctorRepository,
-    userRepository
+    userRepository,
+    platformSettingsRepository
   );
 
 export const createCheckoutSessionUseCase = 

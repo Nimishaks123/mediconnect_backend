@@ -10,14 +10,15 @@ import { NotificationType } from "@domain/enums/NotificationType";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { IUserRepository } from "@domain/interfaces/IUserRepository";
 import { ICancelAppointmentByPatientUseCase } from "@application/interfaces/appointment/ICancelAppointmentByPatientUseCase";
-import {config}  from "../../../common/config";
+import { IPlatformSettingsRepository } from "@domain/interfaces/IPlatformSettingsRepository";
 export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPatientUseCase {
   constructor(
     private readonly appointmentRepo: IAppointmentRepository,
     private readonly eventBus: IEventBus,
     private readonly createNotificationUseCase: ICreateNotificationUseCase,
     private readonly doctorRepo: IDoctorRepository,
-    private readonly userRepo: IUserRepository
+    private readonly userRepo: IUserRepository,
+     private readonly platformSettingsRepository: IPlatformSettingsRepository
   ) {}
 
   async execute(dto: { appointmentId: string; patientId: string }): Promise<{ refundAmount: number }> {
@@ -46,7 +47,7 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
 
     // CALCULATE REFUND
   
-    const { refundAmount, cancellationCharge } = this.calculateRefund(appointment.getDate(), appointment.getStartTime(), appointment.getPrice());
+    const { refundAmount, cancellationCharge } = await this.calculateRefund(appointment.getDate(), appointment.getStartTime(), appointment.getPrice());
 
     // Update appointment domain model
     appointment.cancel(cancellationCharge, refundAmount);
@@ -86,7 +87,15 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
     return { refundAmount };
   }
 
-  private calculateRefund(dateStr: string, timeStr: string, price: number): { refundAmount: number; cancellationCharge: number } {
+  private async calculateRefund(dateStr: string, timeStr: string, price: number): Promise<{
+  refundAmount: number;
+  cancellationCharge: number;
+}> {
+    const settings =
+  await this.platformSettingsRepository.getSettings();
+
+const refundPercentage =
+  settings.getRefundPercentage();
     const formattedTime = timeStr.includes(":") && timeStr.split(":").length === 2 ? `${timeStr}:00` : timeStr;
     const appointmentDateTime = dayjs(`${dateStr}T${formattedTime}`);
     const now = dayjs();
@@ -96,7 +105,7 @@ export class CancelAppointmentByPatientUseCase implements ICancelAppointmentByPa
     let cancellationCharge = price;
 
     if (diffInHours > 24) {
-      refundAmount = (price*config.refundPercentage)/100;
+      refundAmount = (price*refundPercentage)/100;
       cancellationCharge = price-refundAmount;
     }
     

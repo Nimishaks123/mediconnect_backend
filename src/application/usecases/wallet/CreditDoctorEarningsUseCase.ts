@@ -1,5 +1,5 @@
 import { AppError } from "@common/AppError";
-import { config } from "@common/config";
+import { IPlatformSettingsRepository } from "@domain/interfaces/IPlatformSettingsRepository";
 import { StatusCode } from "@common/enums";
 
 import { CreditDoctorEarningsDTO } from "@application/dtos/wallet/CreditDoctorEarningsDTO";
@@ -18,7 +18,9 @@ export class CreditDoctorEarningsUseCase implements ICreditDoctorEarningsUseCase
       IDoctorRepository,
 
     private readonly creditWalletUseCase:
-      CreditWalletUseCase
+      CreditWalletUseCase,
+      private readonly platformSettingsRepository:
+    IPlatformSettingsRepository
 
   ) {}
 
@@ -39,9 +41,12 @@ export class CreditDoctorEarningsUseCase implements ICreditDoctorEarningsUseCase
       );
     }
 
-    const earning =
-      dto.appointmentAmount -
-      config.platformCommission;
+    const settings =
+  await this.platformSettingsRepository.getSettings();
+
+const earning =
+  dto.appointmentAmount -
+  settings.getPlatformFee();
 
     if (earning <= 0) {
 

@@ -37,12 +37,6 @@ export const config = {
 
   stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
-    platformCommission: Number(
-    process.env.PLATFORM_COMMISSION ?? 50
-  ),
-
-  refundPercentage: Number(
-    process.env.REFUND_PERCENTAGE ?? 75
-  ),
+  
 };
 

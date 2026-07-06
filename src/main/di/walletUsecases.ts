@@ -1,4 +1,4 @@
-import { walletRepository,doctorRepository } from "./repositories";
+import { walletRepository,doctorRepository,platformSettingsRepository, } from "./repositories";
 import { paymentService } from "./services";
 
 import { walletTransactionRepository }
@@ -56,5 +56,6 @@ export const createWalletTopupSessionUseCase =
   export const creditDoctorEarningsUseCase =
   new CreditDoctorEarningsUseCase(
     doctorRepository,
-    creditWalletUseCase
+    creditWalletUseCase,
+    platformSettingsRepository
   );
