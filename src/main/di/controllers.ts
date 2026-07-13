@@ -16,13 +16,15 @@ import {
 } from "./reviewUsecases";
 import {  tokenService,  passwordHasher, eventBus } from "./services";
 import { PrescriptionController } from "@presentation/controllers/PrescriptionController";
-
+import { PlatformWalletController }
+from "@presentation/controllers/PlatformWalletController";
 import {
   createPrescriptionUseCase,
   getPrescriptionUC
 } from "./prescriptionUsecases";
 
-
+import * as platformWalletUC
+from "./platformWalletUseCases";
 import * as authUC from "./authUsecases";
 import * as doctorUC from "./doctorUsecases";
 import * as scheduleUC from "./scheduleUsecases";
@@ -68,7 +70,7 @@ import {
   GetAdminWalletTransactionsUseCase
 } from "@application/usecases/admin";
 import { GetPatientAppointmentUseCase } from "@application/usecases/appointment/GetPatientAppointmentUseCase";
-import { AutoCompleteAppointmentsUseCase } from "@application/usecases/appointment";
+
 import { AdminAppointmentController } from "@presentation/controllers/AdminAppointmentController";
 import { AdminWalletController } from "@presentation/controllers/AdminWalletController";
 
@@ -90,12 +92,8 @@ const getAdminAppointmentDetailsUseCase = new GetAdminAppointmentDetailsUseCase(
 // Optimized Admin Wallet Query
 const getAdminWalletsUseCase = new GetAdminWalletsUseCase(walletQueryRepo);
 const getAdminWalletTransactionsUseCase = new GetAdminWalletTransactionsUseCase(walletQueryRepo);
-const autoCompleteAppointmentsUseCase =
-  new AutoCompleteAppointmentsUseCase(
-    appointmentRepository,
-    walletUC.creditDoctorEarningsUseCase
-  );
-const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo,autoCompleteAppointmentsUseCase);
+
+const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo,appointmentUC.autoCompleteAppointmentsUseCase);
 
 const getAllUsersUseCase = new GetAllUsersUseCase(userQueryRepo);
 
@@ -229,4 +227,9 @@ export const reviewController =
   new PlatformSettingsController(
     platformSettingsUC.getPlatformSettingsUseCase,
     platformSettingsUC.updatePlatformSettingsUseCase
+  );
+  export const platformWalletController =
+  new PlatformWalletController(
+    platformWalletUC.getPlatformWalletUseCase,
+    platformWalletUC.getPlatformWalletTransactionsUseCase
   );

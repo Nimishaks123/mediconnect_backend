@@ -12,6 +12,8 @@ import {
   PayAppointmentWithWalletUseCase,
   AutoCompleteAppointmentsUseCase
 } from "@application/usecases/appointment";
+import { creditPlatformWalletUseCase }
+from "./platformWalletUseCases";
 import { 
   appointmentRepository, 
   doctorRepository,
@@ -60,7 +62,8 @@ export const confirmAppointmentUseCase =
   export const autoCompleteAppointmentsUseCase =
   new AutoCompleteAppointmentsUseCase(
     appointmentRepository,
-    creditDoctorEarningsUseCase
+    creditDoctorEarningsUseCase,
+    creditPlatformWalletUseCase
   );
 
 export const getPatientAppointmentUseCase =

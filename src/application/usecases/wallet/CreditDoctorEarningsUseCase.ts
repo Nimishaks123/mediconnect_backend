@@ -3,7 +3,9 @@ import { IPlatformSettingsRepository } from "@domain/interfaces/IPlatformSetting
 import { StatusCode } from "@common/enums";
 
 import { CreditDoctorEarningsDTO } from "@application/dtos/wallet/CreditDoctorEarningsDTO";
-
+import {
+  CreditDoctorEarningsResult,
+} from "@application/interfaces/wallet/ICreditDoctorEarningsUseCase";
 import { CreditWalletUseCase } from "./CreditWalletUseCase";
 
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
@@ -26,7 +28,7 @@ export class CreditDoctorEarningsUseCase implements ICreditDoctorEarningsUseCase
 
   async execute(
     dto: CreditDoctorEarningsDTO
-  ): Promise<void> {
+  ): Promise<CreditDoctorEarningsResult> {
 
     const doctor =
       await this.doctorRepository.findById(
@@ -43,12 +45,13 @@ export class CreditDoctorEarningsUseCase implements ICreditDoctorEarningsUseCase
 
     const settings =
   await this.platformSettingsRepository.getSettings();
+  const platformFee =
+      settings.getPlatformFee();
 
-const earning =
-  dto.appointmentAmount -
-  settings.getPlatformFee();
+const doctorEarning  =
+  dto.appointmentAmount -platformFee;
 
-    if (earning <= 0) {
+    if (doctorEarning  <= 0) {
 
       throw new AppError(
         "Invalid doctor earning amount",
@@ -62,7 +65,7 @@ const earning =
         doctor.getUserId(),
 
       amount:
-        earning,
+      doctorEarning,
 
       description:
         `Consultation earnings for appointment ${dto.appointmentId}`,
@@ -70,6 +73,12 @@ const earning =
       source:
         TransactionSource.DOCTOR_EARNING,
     });
+    return {
+
+      doctorEarning,
+
+      platformFee,
+    };
 
   }
 

@@ -18,6 +18,8 @@ import { PrescriptionRepository } from "@infrastructure/persistence/Prescription
 import { WalletTransactionRepository } from "@infrastructure/persistence/WalletTransactionRepository";
 import { PlatformSettingsRepository }
 from "@infrastructure/persistence/PlatformSettingsRepository";
+import { PlatformWalletRepository } from "@infrastructure/persistence/PlatformWalletRepository";
+import { PlatformWalletTransactionRepository} from "@infrastructure/persistence/PlatformWalletTransactionRepository";
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
 export const doctorRepository = new DoctorRepository();
@@ -42,3 +44,9 @@ export const reviewQueryRepository =
   new ReviewQueryRepository();
   export const platformSettingsRepository =
   new PlatformSettingsRepository();
+ export const platformWalletRepository =
+  new PlatformWalletRepository();
+
+export const platformWalletTransactionRepository =
+  new PlatformWalletTransactionRepository();
+

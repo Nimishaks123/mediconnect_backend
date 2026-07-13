@@ -46,7 +46,8 @@ import { createAuthMiddleware } from "../middlewares/authMiddleware";
 import { userRepository } from "@di";
 import { PlatformSettingsController } from "@presentation/controllers/PlatformSettingsController";
 import { adminSettingsRoutes } from "./adminSettingsRoutes";
-
+import { PlatformWalletController } from "../controllers/PlatformWalletController";
+import { platformWalletRoutes } from "./platformWalletRoutes";
 export function createRoutes(
   authController: AuthController,
   doctorController: DoctorController,
@@ -62,6 +63,7 @@ export function createRoutes(
   uploadController: UploadController,
   adminWalletController: AdminWalletController,
   platformSettingsController: PlatformSettingsController,
+  platformWalletController: PlatformWalletController,
   notificationController: NotificationController,
   chatController: ChatController,
   callController: CallController,
@@ -92,6 +94,13 @@ router.use(
   "/admin",
   adminSettingsRoutes(
     platformSettingsController,
+    auth
+  )
+);
+router.use(
+  "/admin",
+  platformWalletRoutes(
+    platformWalletController,
     auth
   )
 );

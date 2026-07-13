@@ -5,7 +5,8 @@ import cookieParser from "cookie-parser";
 import { config } from "../common/config";
 import { connectMongoDB } from "../common/database/mongo";
 import logger from "../common/logger";
-
+import { appointmentScheduler }
+from "@main/di/schedulers";
 import { loggerMiddleware } from "../presentation/middlewares/loggerMiddleware";
 import { errorMiddleware } from "../presentation/middlewares/errorMiddleware";
 import {
@@ -28,7 +29,8 @@ import {
   prescriptionController,
   reviewController,
   doctorWalletController,
-  platformSettingsController
+  platformSettingsController,
+  platformWalletController
 
 } from "../main/di";
 
@@ -82,6 +84,7 @@ app.use(
     uploadController,
     adminWalletController,
     platformSettingsController,
+    platformWalletController,
     notificationController,
     chatController,
     callController,
@@ -103,6 +106,8 @@ socketService.init(httpServer);
 (async () => {
   try {
     await connectMongoDB();
+    appointmentScheduler.start();
+
 
     httpServer.listen(config.port, () => {
       logger.info(`Server running on port ${config.port}`);

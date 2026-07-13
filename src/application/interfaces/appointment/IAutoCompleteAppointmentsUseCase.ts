@@ -1,3 +1,3 @@
 export interface IAutoCompleteAppointmentsUseCase {
-  execute(): Promise<void>;
+  execute(): Promise<number>;
 }

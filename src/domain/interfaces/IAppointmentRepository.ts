@@ -28,11 +28,11 @@ export interface IAppointmentRepository {
   findByDoctorAndPatient(doctorId:string,patientId:string):Promise<Appointment[]>;
   updateStatus(
   appointmentId: string,
-  status: AppointmentStatus
-): Promise<void>;
+  currentStatus: AppointmentStatus,
+  newStatus: AppointmentStatus
+): Promise<boolean>;
 findAppointmentsForCompletion():
 Promise<Appointment[]>;
-  countAppointments(userId:string):Promise<number>;
   countCancelledAppointments(userId:string):Promise<number>;
 
 }

@@ -254,16 +254,27 @@ export class AppointmentRepository implements IAppointmentRepository {
    return docs;
     
   }
+  
   async updateStatus(
   appointmentId: string,
-  status: AppointmentStatus
-): Promise<void> {
-  await AppointmentModel.updateOne(
-    { appointmentId },
-    {
-      $set: { status },
-    }
-  );
+  currentStatus: AppointmentStatus,
+  newStatus: AppointmentStatus
+): Promise<boolean> {
+
+  const result =
+    await AppointmentModel.updateOne(
+      {
+        appointmentId,
+        status: currentStatus,
+      },
+      {
+        $set: {
+          status: newStatus,
+        },
+      }
+    );
+
+  return result.modifiedCount === 1;
 }
 async findAppointmentsForCompletion(): Promise<Appointment[]> {
 
@@ -308,9 +319,5 @@ async findAppointmentsForCompletion(): Promise<Appointment[]> {
           doc.createdAt
         )
     );
-}
-async countAppointments(userId:string):Promise<number>{
-  const count=await AppointmentModel.countDocuments({userId});
-  return count;
 }
 }
