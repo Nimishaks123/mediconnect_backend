@@ -16,6 +16,7 @@ import { DoctorAppointmentController } from "../controllers/DoctorAppointmentCon
 import { PatientWalletController } from "../controllers/PatientWalletController";
 import { PatientController } from "../controllers/PatientController";
 import { ReviewController } from "../controllers/ReviewController";
+import { AdminDashboardController } from "@presentation/controllers/AdminDashboardController";
 import { doctorRoutes } from "./doctorRoutes";
 import { prescriptionRoutes } from "./prescriptionRoutes";
 import { adminPublicRoutes } from "./adminPublicRoutes";
@@ -48,10 +49,12 @@ import { PlatformSettingsController } from "@presentation/controllers/PlatformSe
 import { adminSettingsRoutes } from "./adminSettingsRoutes";
 import { PlatformWalletController } from "../controllers/PlatformWalletController";
 import { platformWalletRoutes } from "./platformWalletRoutes";
+import { dashboardRoutes } from "./dashboardRoutes";
 export function createRoutes(
   authController: AuthController,
   doctorController: DoctorController,
   adminController: AdminController,
+  adminDashboardController: AdminDashboardController,
   adminAppointmentController: AdminAppointmentController,
   doctorScheduleController: DoctorScheduleController,
   doctorSlotController: DoctorSlotController,
@@ -101,6 +104,13 @@ router.use(
   "/admin",
   platformWalletRoutes(
     platformWalletController,
+    auth
+  )
+);
+router.use(
+  "/admin",
+  dashboardRoutes(
+    adminDashboardController,
     auth
   )
 );

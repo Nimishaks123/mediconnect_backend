@@ -30,7 +30,8 @@ import {
   reviewController,
   doctorWalletController,
   platformSettingsController,
-  platformWalletController
+  platformWalletController,
+  adminDashboardController
 
 } from "../main/di";
 
@@ -73,6 +74,7 @@ app.use(
     authController,
     doctorController,
     adminController,
+       adminDashboardController,
     adminAppointmentController,
     doctorScheduleController,
     doctorSlotController,
@@ -91,6 +93,7 @@ app.use(
     prescriptionController,
     reviewController,
     tokenService,
+ 
   )
 );
 app.use(errorMiddleware);

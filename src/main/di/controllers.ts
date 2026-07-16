@@ -9,6 +9,7 @@ import { PatientWalletController } from "@presentation/controllers/PatientWallet
 import { ReviewController } from "@presentation/controllers/ReviewController";
 import { DoctorWalletController }
 from "@presentation/controllers/DoctorWalletController";
+ import { AdminDashboardController } from "@presentation/controllers/AdminDashboardController";
 import { GetUserWalletUseCase } from "@application/usecases/wallet/GetUserWalletUseCase";
 import {
   createReviewUseCase,
@@ -22,7 +23,7 @@ import {
   createPrescriptionUseCase,
   getPrescriptionUC
 } from "./prescriptionUsecases";
-
+import { getDashboardOverviewUseCase} from "./adminDashboardUsecases";
 import * as platformWalletUC
 from "./platformWalletUseCases";
 import * as authUC from "./authUsecases";
@@ -232,4 +233,10 @@ export const reviewController =
   new PlatformWalletController(
     platformWalletUC.getPlatformWalletUseCase,
     platformWalletUC.getPlatformWalletTransactionsUseCase
+  );
+ 
+
+export const adminDashboardController =
+  new AdminDashboardController(
+    getDashboardOverviewUseCase
   );

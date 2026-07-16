@@ -33,6 +33,7 @@ export class AutoCompleteAppointmentsUseCase
       await this.appointmentRepo
         .findAppointmentsForCompletion();
 
+
     let completedCount = 0;
 
     for (const appointment of appointments) {
@@ -88,6 +89,7 @@ if (!updated) {
         });
 
         completedCount++;
+        
 
       } catch (error) {
 

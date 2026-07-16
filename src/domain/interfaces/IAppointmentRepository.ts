@@ -34,5 +34,6 @@ export interface IAppointmentRepository {
 findAppointmentsForCompletion():
 Promise<Appointment[]>;
   countCancelledAppointments(userId:string):Promise<number>;
+  findAppointmentCount(userId:string):Promise<number>;
 
 }
