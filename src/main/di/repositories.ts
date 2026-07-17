@@ -21,6 +21,7 @@ from "@infrastructure/persistence/PlatformSettingsRepository";
 import { PlatformWalletRepository } from "@infrastructure/persistence/PlatformWalletRepository";
 import { PlatformWalletTransactionRepository} from "@infrastructure/persistence/PlatformWalletTransactionRepository";
 import { DashboardQueryRepository } from "@infrastructure/persistence/DashboardQueryRepository";
+import { DoctorDashboardQueryRepository } from "@infrastructure/persistence/DoctorDashboardQueryRepository";
 export const userRepository = new UserRepository();
 export const patientRepository = new PatientRepository();
 export const doctorRepository = new DoctorRepository();
@@ -53,3 +54,6 @@ export const platformWalletTransactionRepository =
 
 export const dashboardQueryRepository =
   new DashboardQueryRepository();
+
+export const doctorDashboardQueryRepository =
+  new DoctorDashboardQueryRepository();

@@ -17,6 +17,7 @@ import {
   IGetDoctorByIdUseCase
 } from "@application/interfaces/doctor";
 import { IGetDoctorSpecialtiesUseCase } from "@application/interfaces/doctor/IGetDoctorSpecialtiesUseCase";
+import { IGetRecentActivityUseCase } from "@application/interfaces/doctor/IGetRecentActivityUseCase";
 
 export class DoctorController {
   constructor(
@@ -29,7 +30,8 @@ export class DoctorController {
     private readonly getVerifiedDoctorsUC: IGetVerifiedDoctorsUseCase,
   private readonly getDoctorByIdUseCase:
   IGetDoctorByIdUseCase,
-  private readonly getDoctorBySpecialtyUC:IGetDoctorSpecialtiesUseCase
+  private readonly getDoctorBySpecialtyUC:IGetDoctorSpecialtiesUseCase,
+  private readonly getRecentActivityUC: IGetRecentActivityUseCase
   ) { }
 
   // START ONBOARDING
@@ -170,11 +172,24 @@ getDoctorById = catchAsync(async (
       req.params.id
     );
 
-  res.status(StatusCode.OK).json(
+res.status(StatusCode.OK).json(
     doctor
   );
 
 });
+
+  getRecentActivity = catchAsync(async (
+    req: AuthenticatedRequest,
+    res: Response,
+  ) => {
+    const doctorId = req.user!.id;
+    const result = await this.getRecentActivityUC.execute(doctorId);
+
+    res.status(StatusCode.OK).json({
+      success: true,
+      data: result
+    });
+  });
 
 }
 

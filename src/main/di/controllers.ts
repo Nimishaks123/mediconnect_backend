@@ -23,7 +23,7 @@ import {
   createPrescriptionUseCase,
   getPrescriptionUC
 } from "./prescriptionUsecases";
-import { getDashboardOverviewUseCase} from "./adminDashboardUsecases";
+import { getDashboardOverviewUseCase, getRevenueTrendUseCase, getAppointmentStatusAnalyticsUseCase} from "./adminDashboardUsecases";
 import * as platformWalletUC
 from "./platformWalletUseCases";
 import * as authUC from "./authUsecases";
@@ -129,7 +129,8 @@ export const doctorController = new DoctorController(
   doctorUC.getDoctorProfileUseCase,
   doctorUC.getVerifiedDoctorsUseCase,
   doctorUC.getDoctorByIdUseCase,
-  doctorUC.getDoctorBySpecialtyUC
+  doctorUC.getDoctorBySpecialtyUC,
+  doctorUC.getRecentActivityUseCase
 );
 
 export const adminController = new AdminController(
@@ -238,5 +239,7 @@ export const reviewController =
 
 export const adminDashboardController =
   new AdminDashboardController(
-    getDashboardOverviewUseCase
+    getDashboardOverviewUseCase,
+    getRevenueTrendUseCase,
+    getAppointmentStatusAnalyticsUseCase
   );

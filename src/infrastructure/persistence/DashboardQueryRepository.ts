@@ -1,4 +1,6 @@
 import { DashboardOverviewDTO } from "@application/dtos/admin/DashboardOverviewDTO";
+import { RevenueTrendDTO } from "@application/dtos/admin/RevenueTrendDTO";
+import { AppointmentStatusAnalyticsDTO } from "@application/dtos/admin/AppointmentStatusAnalyticsDTO";
 import { IDashboardQueryRepository } from "@application/interfaces/queries/IDashboardQueryRepository";
 import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
 import { PaymentStatus } from "@domain/enums/PaymentStatus";
@@ -71,5 +73,68 @@ export class DashboardQueryRepository
 
       todayAppointments,
     };
+  }
+
+  async getRevenueTrend(): Promise<RevenueTrendDTO> {
+    const results = await AppointmentModel.aggregate([
+      {
+        $match: {
+          paymentStatus: PaymentStatus.SUCCESS,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          revenue: { $sum: "$price" },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          month: {
+            $dateToString: {
+              format: "%Y-%m",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                },
+              },
+            },
+          },
+          revenue: 1,
+        },
+      },
+    ]);
+
+    return results;
+  }
+
+  async getAppointmentStatusAnalytics(): Promise<AppointmentStatusAnalyticsDTO> {
+    const results = await AppointmentModel.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          status: "$_id",
+          count: 1,
+        },
+      },
+    ]);
+    return results;
   }
 }

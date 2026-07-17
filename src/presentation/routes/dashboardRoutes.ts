@@ -14,5 +14,17 @@ export function dashboardRoutes(
     controller.getDashboardOverview
   );
 
+  router.get(
+    "/dashboard/revenue-trend",
+    ...requireAdmin(authMiddleware),
+    controller.getRevenueTrend
+  );
+
+  router.get(
+    "/dashboard/appointment-status",
+    ...requireAdmin(authMiddleware),
+    controller.getAppointmentStatusAnalytics
+  );
+
   return router;
 }

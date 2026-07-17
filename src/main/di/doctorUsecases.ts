@@ -8,10 +8,12 @@ import {
   GetVerifiedDoctorsUseCase,
   GetDoctorByIdUseCase,
 } from "@application/usecases/doctor";
+import { GetRecentActivityUseCase } from "@application/usecases/doctor/GetRecentActivityUseCase";
 
 import {
   doctorRepository,
   userRepository,
+  doctorDashboardQueryRepository,
 } from "./repositories";
 
 import {
@@ -56,4 +58,4 @@ export const getDoctorByIdUseCase =
     doctorRepository,
       userRepository
   );
-  export const getDoctorBySpecialtyUC=new GetDoctorSpecialtiesUseCase(doctorRepository);
+  export const getDoctorBySpecialtyUC=new GetDoctorSpecialtiesUseCase(doctorRepository);export const getRecentActivityUseCase = new GetRecentActivityUseCase(doctorDashboardQueryRepository);

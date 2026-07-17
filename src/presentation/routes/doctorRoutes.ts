@@ -68,5 +68,12 @@ router.get(
     validateRequest(getDoctorProfileSchema),
     doctorController.getProfile
   );
+
+  // DASHBOARD RECENT ACTIVITY
+  router.get(
+    "/dashboard/recent-activity",
+    doctorController.getRecentActivity
+  );
+
 return router;
 }

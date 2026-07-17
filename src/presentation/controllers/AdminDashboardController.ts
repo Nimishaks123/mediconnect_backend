@@ -5,10 +5,14 @@ import { StatusCode } from "@common/enums";
 import { catchAsync } from "@presentation/utils/catchAsync";
 
 import { IGetDashboardOverviewUseCase } from "@application/interfaces/admin/IGetDashboardOverviewUseCase";
+import { IGetRevenueTrendUseCase } from "@application/interfaces/admin/IGetRevenueTrendUseCase";
+import { IGetAppointmentStatusAnalyticsUseCase } from "@application/interfaces/admin/IGetAppointmentStatusAnalyticsUseCase";
 
 export class AdminDashboardController {
   constructor(
-    private readonly getDashboardOverviewUC: IGetDashboardOverviewUseCase
+    private readonly getDashboardOverviewUC: IGetDashboardOverviewUseCase,
+    private readonly getRevenueTrendUC: IGetRevenueTrendUseCase,
+    private readonly getAppointmentStatusAnalyticsUC: IGetAppointmentStatusAnalyticsUseCase
   ) {}
 
   getDashboardOverview = catchAsync(
@@ -19,6 +23,30 @@ export class AdminDashboardController {
       res.status(StatusCode.OK).json({
         success: true,
         data: dashboard,
+      });
+    }
+  );
+
+  getRevenueTrend = catchAsync(
+    async (_req, res: Response) => {
+      const trend =
+        await this.getRevenueTrendUC.execute();
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: trend,
+      });
+    }
+  );
+
+  getAppointmentStatusAnalytics = catchAsync(
+    async (_req, res: Response) => {
+      const analytics =
+        await this.getAppointmentStatusAnalyticsUC.execute();
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: analytics,
       });
     }
   );
