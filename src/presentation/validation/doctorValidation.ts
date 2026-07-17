@@ -12,6 +12,7 @@ export const startOnboardingSchema = z.object({
  */
 export const updateDoctorProfileSchema = z.object({
   body: z.object({
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(50, "Name cannot exceed 50 characters").regex(/^[A-Za-z\s.'-]+$/, "Name contains invalid characters").optional(),
     specialty: z.string().trim().min(2, "Specialty is required").optional(),
     qualification: z.string().trim().min(2, "Qualification is required").optional(),
     experience: z.coerce.number().min(0, "Experience must be between 0 and 60").max(60).optional(),

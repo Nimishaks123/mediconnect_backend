@@ -1,13 +1,17 @@
 import { IUpdateDoctorProfileUseCase } from "@application/interfaces/doctor/IUpdateDoctorProfileUseCase";
 import { UpdateDoctorProfileDTO, UpdateDoctorProfileResponseDTO } from "@application/dtos/doctor/UpdateDoctorProfileDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
 import { AppError } from "@common/AppError";
 import { MESSAGES } from "@common/constants";
 import { StatusCode } from "@common/enums";
 import { DoctorMapper } from "@application/mappers/DoctorMapper";
 
 export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
-  constructor(private readonly doctorRepo: IDoctorRepository) {}
+  constructor(
+    private readonly doctorRepo: IDoctorRepository,
+    private readonly userRepo: IUserRepository
+  ) {}
 
   async execute(input: UpdateDoctorProfileDTO): Promise<UpdateDoctorProfileResponseDTO> {
     const { userId, updates } = input;
@@ -57,9 +61,29 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
     existing.advanceOnboardingStep();
 
     const updated = await this.doctorRepo.save(existing);
+    
+    // PART 6: Update User Name
+    let userName = "";
+    if (sanitizedUpdates.name) {
+      const user = await this.userRepo.findById(userId);
+      if (user) {
+        user.name = sanitizedUpdates.name.trim();
+        await this.userRepo.save(user);
+        userName = user.name;
+      }
+    } else {
+      const user = await this.userRepo.findById(userId);
+      if (user) {
+        userName = user.name;
+      }
+    }
 
     return {
       doctor: DoctorMapper.toResponse(updated),
+      user: {
+        id: userId,
+        name: userName
+      },
       message: MESSAGES.DOCTOR_PROFILE_UPDATED,
     };
   }

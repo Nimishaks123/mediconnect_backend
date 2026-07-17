@@ -142,6 +142,12 @@ export const adminController = new AdminController(
   getAllUsersUseCase
 );
 
+import * as publicUC from "./publicUsecases";
+import { PublicController } from "@presentation/controllers/PublicController";
+export const publicController = new PublicController(
+  publicUC.getPlatformStatsUseCase
+);
+
 export const adminAppointmentController = new AdminAppointmentController(
   getAdminAppointmentsUseCase,
   getAdminAppointmentDetailsUseCase

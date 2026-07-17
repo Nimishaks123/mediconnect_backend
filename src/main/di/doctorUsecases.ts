@@ -31,7 +31,7 @@ export const createDoctorProfileUseCase =
   new CreateDoctorProfileUseCase(doctorRepository);
 
 export const updateDoctorProfileUseCase =
-  new UpdateDoctorProfileUseCase(doctorRepository);
+  new UpdateDoctorProfileUseCase(doctorRepository, userRepository);
 
 export const uploadDoctorDocumentsUseCase =
   new UploadDoctorDocumentsUseCase(

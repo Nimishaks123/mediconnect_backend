@@ -31,7 +31,8 @@ import {
   doctorWalletController,
   platformSettingsController,
   platformWalletController,
-  adminDashboardController
+  adminDashboardController,
+  publicController
 
 } from "../main/di";
 
@@ -92,6 +93,7 @@ app.use(
     callController,
     prescriptionController,
     reviewController,
+    publicController,
     tokenService,
  
   )

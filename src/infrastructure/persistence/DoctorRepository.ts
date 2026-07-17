@@ -90,12 +90,20 @@ const skip=
 
 const blockedUsers=await UserModel.find({blocked:true},{_id:1});
 const blockedIds=blockedUsers.map(user=>user._id);
+
 const filter:any={
-
-verificationStatus:
-"APPROVED",userId:{$nin:blockedIds}
-
+   verificationStatus: "APPROVED",
+   userId:{$nin:blockedIds}
 };
+
+if(dto?.searchQuery){
+   const matchingUsers = await UserModel.find(
+      { name: { $regex: dto.searchQuery, $options: "i" }, role: "DOCTOR" },
+      { _id: 1 }
+   );
+   const matchingUserIds = matchingUsers.map(u => u._id);
+   filter.userId = { $in: matchingUserIds, $nin: blockedIds };
+}
 
 if(dto?.specialty){
 

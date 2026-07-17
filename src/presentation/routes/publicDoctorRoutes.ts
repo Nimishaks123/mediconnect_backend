@@ -10,7 +10,6 @@ export function publicDoctorRoutes(
   // view verified doctors
   router.get(
     "/verified",
-    authMiddleware, // user must be logged in
     doctorController.getVerifiedDoctors
   );
 

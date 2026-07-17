@@ -3,7 +3,6 @@ export interface GetVerifiedDoctorsDTO{
     limit:number;
     specialty?:string,
     experience?:string,
-    sortBy?:string
-
-
+    sortBy?:string,
+    searchQuery?:string
 }

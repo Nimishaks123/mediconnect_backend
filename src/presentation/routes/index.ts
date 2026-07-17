@@ -21,6 +21,8 @@ import { doctorRoutes } from "./doctorRoutes";
 import { prescriptionRoutes } from "./prescriptionRoutes";
 import { adminPublicRoutes } from "./adminPublicRoutes";
 import { adminProtectedRoutes } from "./adminProtectedRoutes";
+import { publicRoutes } from "./publicRoutes";
+import { PublicController } from "../controllers/PublicController";
 //import {loggerMiddleware } from "../middlewares/loggerMiddleware";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import { publicDoctorRoutes } from "./publicDoctorRoutes";
@@ -72,6 +74,7 @@ export function createRoutes(
   callController: CallController,
     prescriptionController: PrescriptionController,
   reviewController: ReviewController,
+  publicController: PublicController,
   tokenService: ITokenService
 ) {
   const router = Router();
@@ -79,6 +82,7 @@ export function createRoutes(
 
   // --- PUBLIC ROUTES ---
   router.use("/auth", authRoutes(authController, auth));
+  router.use("/public", publicRoutes(publicController));
 
   router.use("/admin/auth", adminPublicRoutes(adminController));
   router.use("/doctors", publicDoctorRoutes(doctorController, auth)); // Some doctor routes are public

@@ -157,6 +157,7 @@ export class DoctorController {
       specialty:req.query.specialty?String(req.query.specialty):undefined,
       experience:req.query.experience?String(req.query.experience):undefined,
       sortBy:req.query.sortBy?String(req.query.sortBy):undefined,
+      searchQuery:req.query.searchQuery?String(req.query.searchQuery):undefined,
     });
     res.status(StatusCode.OK).json(result);
   }
