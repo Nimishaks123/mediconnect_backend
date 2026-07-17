@@ -45,19 +45,19 @@ export class LoginWithGoogleUseCase implements ILoginWithGoogleUseCase {
       user = await this.userRepo.create(newUser);
 
       if (assignedRole === UserRole.DOCTOR) {
-        const doc = Doctor.startOnboarding(user.id!);
+        const doc = Doctor.startOnboarding(user.getId()!);
         await this.doctorRepo.createDoctor(doc);
       }
     }
 
-    if (user.blocked) {
+    if (user.isBlocked()) {
       throw new AppError("User is blocked", StatusCode.FORBIDDEN);
     }
 
     let onboardingStatus;
-    if (user.role === UserRole.DOCTOR) {
-      const doc = await this.doctorRepo.findByUserId(user.id!);
-      onboardingStatus = doc ? doc.onboardingStatus : 'PENDING';
+    if (user.getRole() === UserRole.DOCTOR) {
+      const doc = await this.doctorRepo.findByUserId(user.getId()!);
+      onboardingStatus = doc ? doc.getOnboardingStatus() : 'PENDING';
     }
 
     const payload: any = AuthMapper.toTokenPayload(user);

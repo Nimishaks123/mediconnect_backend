@@ -18,7 +18,7 @@ export class AdminMapper {
   static toApproveDoctorDTO(req: AuthenticatedRequest): ApproveRejectDoctorDTO {
     return {
       userId: req.body.userId,
-      adminId: req.user?.id,
+      adminId: req.user?.id ?? "",
     };
   }
 
@@ -26,14 +26,14 @@ export class AdminMapper {
     return {
       userId: req.body.userId,
       reason: req.body.reason,
-      adminId: req.user?.id,
+      adminId: req.user?.id ?? "",
     };
   }
 
   static toBlockUnblockDTO(req: AuthenticatedRequest): BlockUnblockUserDTO {
     return {
       userId: req.body.userId,
-      adminId: req.user?.id,
+      adminId: req.user?.id ?? "",
     };
   }
 

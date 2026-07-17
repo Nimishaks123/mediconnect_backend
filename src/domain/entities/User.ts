@@ -95,6 +95,10 @@ isBlocked(): boolean {
     this.blocked = false;
   }
 
+  updateName(newName: string) {
+    this.name = newName;
+  }
+
   changePassword(newHash: string) {
     this.passwordHash = newHash;
   }

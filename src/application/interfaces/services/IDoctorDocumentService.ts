@@ -1,7 +1,7 @@
 export interface DoctorUploadFilesDTO {
-  licenseDocument?: { buffer: Buffer }[];
-  profilePhoto?: { buffer: Buffer }[];
-  certifications?: { buffer: Buffer }[];
+  licenseDocument?: Express.Multer.File[];
+  profilePhoto?: Express.Multer.File[];
+  certifications?: Express.Multer.File[];
 }
 
 export interface DoctorUploadResults {
@@ -11,9 +11,6 @@ export interface DoctorUploadResults {
 }
 
 export interface IDoctorDocumentService {
-  /**
-   * Uploads all doctor-related documents to the appropriate storage folders.
-   * Encapsulates folder paths and batch uploading logic.
-   */
+
   uploadAll(files: DoctorUploadFilesDTO): Promise<DoctorUploadResults>;
 }

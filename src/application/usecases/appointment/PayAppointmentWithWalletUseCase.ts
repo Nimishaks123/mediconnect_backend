@@ -40,7 +40,7 @@ export class PayAppointmentWithWalletUseCase implements IPayAppointmentWithWalle
 
         }
         //debit wallet
-        wallet.debit(amount,"appointment payment");
+        wallet.debit(amount);
         appointment.confirm();
         //save wallet
         await this.walletRepo.save(wallet);

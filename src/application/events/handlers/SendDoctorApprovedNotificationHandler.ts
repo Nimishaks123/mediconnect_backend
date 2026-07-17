@@ -10,8 +10,8 @@ export class SendDoctorApprovedNotificationHandler {
 
   async handle(event: DoctorApprovedEvent): Promise<void> {
     const user = await this.userRepository.findById(event.userId);
-    if (!user || !user.email) return;
+    if (!user || !user.getEmail()) return;
 
-    await this.notificationService.sendDoctorApproved(user.email);
+    await this.notificationService.sendDoctorApproved(user.getEmail());
   }
 }

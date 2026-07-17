@@ -1,5 +1,5 @@
 import { Notification } from "../../domain/entities/Notification";
-import { INotificationDocument } from "./models/NotificationModel";
+import { INotificationDocument } from "../../infrastructure/persistence/models/NotificationModel";
 
 export class NotificationMapper {
   public static toDomain(doc: INotificationDocument): Notification {

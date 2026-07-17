@@ -38,7 +38,7 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
       sanitizedUpdates.registrationNumber = sanitizedUpdates.registrationNumber.trim().toUpperCase();
       
       // Optional: Check uniqueness if registration number changed
-      if (sanitizedUpdates.registrationNumber !== existing.registrationNumber) {
+      if (sanitizedUpdates.registrationNumber !== existing.getRegistrationNumber()) {
         const duplicate = await this.doctorRepo.findOneByRegistrationNumber(sanitizedUpdates.registrationNumber);
         if (duplicate) {
           throw new AppError("Registration number already exists", StatusCode.BAD_REQUEST);
@@ -67,14 +67,14 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
     if (sanitizedUpdates.name) {
       const user = await this.userRepo.findById(userId);
       if (user) {
-        user.name = sanitizedUpdates.name.trim();
+        user.updateName(sanitizedUpdates.name.trim());
         await this.userRepo.save(user);
-        userName = user.name;
+        userName = user.getName();
       }
     } else {
       const user = await this.userRepo.findById(userId);
       if (user) {
-        userName = user.name;
+        userName = user.getName();
       }
     }
 

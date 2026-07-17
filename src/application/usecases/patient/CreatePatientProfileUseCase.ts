@@ -24,7 +24,7 @@ export class CreatePatientProfileUseCase implements ICreatePatientProfileUseCase
     }
 
     // Age calculation logic
-    let age = data.age;
+    let age = 0;
     if (data.dateOfBirth) {
       const today = new Date();
       const birthDate = new Date(data.dateOfBirth);

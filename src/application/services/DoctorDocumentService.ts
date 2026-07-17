@@ -16,26 +16,23 @@ export class DoctorDocumentService implements IDoctorDocumentService {
 
     // 1. License Document
     if (files.licenseDocument?.[0]) {
-      results.licenseDocument = await this.fileStorage.upload(
-        files.licenseDocument[0].buffer,
-        folders.license
+      results.licenseDocument = await this.fileStorage.uploadSingle(
+        files.licenseDocument[0]
       );
     }
 
     // 2. Profile Photo
     if (files.profilePhoto?.[0]) {
-      results.profilePhoto = await this.fileStorage.upload(
-        files.profilePhoto[0].buffer,
-        folders.photo
+      results.profilePhoto = await this.fileStorage.uploadSingle(
+        files.profilePhoto[0]
       );
     }
 
     // 3. Certifications (Handles loops and grouping)
     if (files.certifications?.length) {
-      const uploadPromises = files.certifications.map(file => 
-        this.fileStorage.upload(file.buffer, folders.cert)
+      results.certifications = await this.fileStorage.uploadMultiple(
+        files.certifications
       );
-      results.certifications = await Promise.all(uploadPromises);
     }
 
     return results;

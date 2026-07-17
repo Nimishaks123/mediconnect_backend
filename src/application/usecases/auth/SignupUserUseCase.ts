@@ -46,8 +46,8 @@ export class SignupUserUseCase implements ISignupUserUseCase {
 
     const createdUser = await this.userRepo.create(user);
 
-    if (createdUser.role === UserRole.DOCTOR) {
-        const doc = Doctor.startOnboarding(createdUser.id!);
+    if (createdUser.getRole() === UserRole.DOCTOR) {
+        const doc = Doctor.startOnboarding(createdUser.getId()!);
         await this.doctorRepo.createDoctor(doc);
     }
 
@@ -69,8 +69,8 @@ export class SignupUserUseCase implements ISignupUserUseCase {
     return {
       success: true,
       message: MESSAGES.USER_CREATED_OTP_SENT,
-      userId: createdUser.id!,
-      email: createdUser.email,
+      userId: createdUser.getId()!,
+      email: createdUser.getEmail(),
     };
   }
 }

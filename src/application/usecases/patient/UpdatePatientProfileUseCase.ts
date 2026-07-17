@@ -26,7 +26,7 @@ export class UpdatePatientProfileUseCase implements IUpdatePatientProfileUseCase
       throw new AppError(MESSAGES.PATIENT_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
     }
 
-    let age = updates.age;
+    let age = undefined;
     if (updates.dateOfBirth) {
       const today = new Date();
       const birthDate = new Date(updates.dateOfBirth);

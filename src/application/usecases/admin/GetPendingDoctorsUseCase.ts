@@ -16,7 +16,6 @@ export class GetPendingDoctorsUseCase implements IGetPendingDoctorsUseCase {
     const page = Math.max(1, Number(input.page) || 1);
     const limit = Math.min(50, Math.max(1, Number(input.limit) || 10));
     const sort = input.sort === "OLDEST" ? "OLDEST" : "NEWEST";
-    
-    return this.adminDoctorQueryRepo.getPendingDoctors(page, limit, input.search, sort);
+    return this.adminDoctorQueryRepo.getAdminDoctors("PENDING", page, limit, input.search, sort);
   }
 }

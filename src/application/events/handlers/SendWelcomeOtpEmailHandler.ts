@@ -6,6 +6,6 @@ export class SendWelcomeOtpEmailHandler {
 
   async handle(event: UserSignedUpEvent): Promise<void> {
     const { user, plainOtp } = event;
-    await this.mailer.sendOtp(user.email, plainOtp);
+    await this.mailer.sendOtp(user.getEmail(), plainOtp);
   }
 }

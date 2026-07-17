@@ -18,11 +18,11 @@ export class SendAppointmentConfirmationEmailHandler {
       if (patient && doctorProfile) {
         const doctorUser = await this.userRepository.findById(doctorProfile.getUserId());
 
-        if (patient.email && patient.name && doctorUser?.name) {
+        if (patient.getEmail() && patient.getName() && doctorUser?.getName()) {
           await this.emailService.sendAppointmentConfirmedEmail({
-            patientEmail: patient.email,
-            patientName: patient.name,
-            doctorName: doctorUser.name,
+            patientEmail: patient.getEmail(),
+            patientName: patient.getName(),
+            doctorName: doctorUser.getName(),
             date: event.date,
             startTime: event.startTime,
             endTime: event.endTime,

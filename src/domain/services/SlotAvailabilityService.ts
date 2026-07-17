@@ -16,8 +16,8 @@ export class SlotAvailabilityService {
     return allSlots.filter((slot) => {
       const isBooked = appointments.some((appointment) => {
         return (
-          appointment.getDate() === slot.date &&
-          appointment.getStartTime() === slot.startTime &&
+          appointment.getDate() === slot.getDate() &&
+          appointment.getStartTime() === slot.getStartTime() &&
           activeAppointmentStatuses.includes(appointment.getStatus())
         );
       });
@@ -33,19 +33,19 @@ export class SlotAvailabilityService {
     return allSlots.map((slot) => {
       const booked = appointments.find((appointment) => {
         return (
-          appointment.getDate() === slot.date &&
-          appointment.getStartTime() === slot.startTime &&
+          appointment.getDate() === slot.getDate() &&
+          appointment.getStartTime() === slot.getStartTime() &&
           appointment.getStatus() !== AppointmentStatus.CANCELLED
         );
       });
 
-      const compositeId = `${slot.scheduleId}|${slot.id}`;
+      const compositeId = `${slot.getScheduleId()}|${slot.getId()}`;
       return {
         _id: compositeId,
-        id: slot.id,
-        date: slot.date,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
+        id: slot.getId(),
+        date: slot.getDate(),
+        startTime: slot.getStartTime(),
+        endTime: slot.getEndTime(),
         isBooked: !!booked,
       };
     });

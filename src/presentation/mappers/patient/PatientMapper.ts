@@ -44,26 +44,26 @@ export class PatientMapper {
 
   static toResponse(patient: Patient): PatientResponseDTO {
     // Dynamic age calculation with fallback for backward compatibility
-    let calculatedAge = patient.age; 
-    if (patient.dateOfBirth) {
-      calculatedAge = this.calculateAge(new Date(patient.dateOfBirth));
+    let calculatedAge = patient.getAge(); 
+    if (patient.getDateOfBirth()) {
+      calculatedAge = this.calculateAge(new Date(patient.getDateOfBirth()!));
     }
 
     return {
-      id: patient.id ?? "",
-      userId: patient.userId,
-      name: patient.name,
+      id: patient.getId() ?? "",
+      userId: patient.getUserId(),
+      name: patient.getName(),
       age: calculatedAge,
-      gender: patient.gender,
-      phone: patient.phone,
-      address: patient.address,
-      profileImage: patient.profileImage,
-      dateOfBirth: patient.dateOfBirth,
-      medicalHistory: patient.medicalHistory,
-      allergies: patient.allergies,
-      bloodGroup: patient.bloodGroup,
-      emergencyContactName: patient.emergencyContactName,
-      emergencyContactPhone: patient.emergencyContactPhone,
+      gender: patient.getGender(),
+      phone: patient.getPhone(),
+      address: patient.getAddress(),
+      profileImage: patient.getProfileImage(),
+      dateOfBirth: patient.getDateOfBirth(),
+      medicalHistory: patient.getMedicalHistory(),
+      allergies: patient.getAllergies(),
+      bloodGroup: patient.getBloodGroup(),
+      emergencyContactName: patient.getEmergencyContactName(),
+      emergencyContactPhone: patient.getEmergencyContactPhone(),
     };
   }
 
@@ -71,10 +71,10 @@ export class PatientMapper {
     return {
       user: {
         id: user.getId(),
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role
+        name: user.getName(),
+        email: user.getEmail(),
+        phoneNumber: user.getPhoneNumber(),
+        role: user.getRole()
       },
       patient: this.toResponse(patient)
     };

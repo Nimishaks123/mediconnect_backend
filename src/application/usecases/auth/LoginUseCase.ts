@@ -26,23 +26,23 @@ export class LoginUseCase implements ILoginUseCase {
       throw new AppError(MESSAGES.INVALID_CREDENTIALS, StatusCode.BAD_REQUEST);
     }
 
-    const isValid = await this.passwordHasher.compare(password, user.passwordHash);
+    const isValid = await this.passwordHasher.compare(password, user.getPasswordHash());
     if (!isValid) {
       throw new AppError(MESSAGES.INVALID_CREDENTIALS, StatusCode.BAD_REQUEST);
     }
 
-    if (user.blocked) {
+    if (user.isBlocked()) {
       throw new AppError("User is blocked", StatusCode.FORBIDDEN);
     }
 
-    if (!user.isVerified) {
+    if (!user.isUserVerified()) {
        throw new AppError("User not verified", StatusCode.BAD_REQUEST);
     }
 
     let onboardingStatus;
-    if (user.role === UserRole.DOCTOR) {
-      const doc = await this.doctorRepo.findByUserId(user.id!);
-      onboardingStatus = doc?.onboardingStatus;
+    if (user.getRole() === UserRole.DOCTOR) {
+      const doc = await this.doctorRepo.findByUserId(user.getId()!);
+      onboardingStatus = doc?.getOnboardingStatus();
     }
 
     const payload: any = AuthMapper.toTokenPayload(user);

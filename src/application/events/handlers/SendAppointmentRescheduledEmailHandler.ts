@@ -22,12 +22,12 @@ export class SendAppointmentRescheduledEmailHandler {
     if (!patient || !doctorProfile) return;
 
     const doctorUser = await this.userRepository.findById(doctorProfile.getUserId());
-    if (!doctorUser || !patient.email || !patient.name || !doctorUser.name) return;
+    if (!doctorUser || !patient.getEmail() || !patient.getName() || !doctorUser.getName()) return;
 
     await this.emailService.sendAppointmentRescheduledEmail({
-      patientEmail: patient.email,
-      patientName: patient.name,
-      doctorName: doctorUser.name,
+      patientEmail: patient.getEmail(),
+      patientName: patient.getName(),
+      doctorName: doctorUser.getName(),
       date,
       startTime,
       endTime,

@@ -133,7 +133,7 @@ export class DoctorDashboardQueryRepository implements IDoctorDashboardQueryRepo
           $match: {
             walletId: wallet._id,
             type: TransactionType.CREDIT,
-            status: TransactionStatus.COMPLETED,
+            status: TransactionStatus.SUCCESS,
           },
         },
         { $sort: { createdAt: -1 } },

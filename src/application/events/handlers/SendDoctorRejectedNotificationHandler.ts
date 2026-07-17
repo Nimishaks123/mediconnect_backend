@@ -10,10 +10,10 @@ export class SendDoctorRejectedNotificationHandler {
 
   async handle(event: DoctorRejectedEvent): Promise<void> {
     const user = await this.userRepository.findById(event.userId);
-    if (!user || !user.email) return;
+    if (!user || !user.getEmail()) return;
 
     await this.notificationService.sendDoctorRejected(
-      user.email,
+      user.getEmail(),
       event.reason
     );
   }
