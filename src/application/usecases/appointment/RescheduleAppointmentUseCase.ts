@@ -76,11 +76,12 @@ if (
     const permittedStatuses = [
       AppointmentStatus.CONFIRMED,
       AppointmentStatus.RESCHEDULED,
+      AppointmentStatus.NO_SESSION,
     ];
 
     if (!permittedStatuses.includes(appointment.getStatus())) {
       throw new AppError(
-        "Only confirmed or rescheduled appointments can be rescheduled",
+        "Only confirmed, rescheduled, or missed appointments can be rescheduled",
         StatusCode.BAD_REQUEST
       );
     }

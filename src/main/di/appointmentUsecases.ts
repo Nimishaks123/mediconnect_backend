@@ -10,7 +10,9 @@ import {
   VerifyWebhookUseCase,
   HandleStripeWebhookUseCase,
   PayAppointmentWithWalletUseCase,
-  AutoCompleteAppointmentsUseCase
+  AutoCompleteAppointmentsUseCase,
+  StartConsultationSessionUseCase,
+  CompleteConsultationSessionUseCase
 } from "@application/usecases/appointment";
 import { creditPlatformWalletUseCase }
 from "./platformWalletUseCases";
@@ -59,11 +61,23 @@ export const confirmAppointmentUseCase =
     eventBus,
     createNotificationUseCase
   );
-  export const autoCompleteAppointmentsUseCase =
-  new AutoCompleteAppointmentsUseCase(
+
+export const startConsultationSessionUseCase =
+  new StartConsultationSessionUseCase(
+    appointmentRepository
+  );
+
+export const completeConsultationSessionUseCase =
+  new CompleteConsultationSessionUseCase(
     appointmentRepository,
     creditDoctorEarningsUseCase,
     creditPlatformWalletUseCase
+  );
+
+export const autoCompleteAppointmentsUseCase =
+  new AutoCompleteAppointmentsUseCase(
+    appointmentRepository,
+    completeConsultationSessionUseCase
   );
 
 export const getPatientAppointmentUseCase =
@@ -125,4 +139,4 @@ export const handleStripeWebhookUseCase =
     appointmentRepository,
     walletRepository,
     createNotificationUseCase
-  )
+  );

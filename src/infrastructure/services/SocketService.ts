@@ -1,12 +1,16 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import logger from "@common/logger";
+import { IStartConsultationSessionUseCase } from "@application/interfaces/appointment/IStartConsultationSessionUseCase";
+import { ICompleteConsultationSessionUseCase } from "@application/interfaces/appointment/ICompleteConsultationSessionUseCase";
 
 export class SocketService {
   private static instance: SocketService;
   private io: Server | null = null;
   private userSockets: Map<string, string[]> = new Map(); // userId -> socketIds[]
   private activeCalls: Map<string, { doctorId: string; startTime: Date }> = new Map();
+  private startConsultationSessionUC: IStartConsultationSessionUseCase | null = null;
+  private completeConsultationSessionUC: ICompleteConsultationSessionUseCase | null = null;
 
   private constructor() {}
 
@@ -17,15 +21,23 @@ export class SocketService {
     return SocketService.instance;
   }
 
+  public setConsultationUseCases(
+    startUC: IStartConsultationSessionUseCase,
+    completeUC: ICompleteConsultationSessionUseCase
+  ): void {
+    this.startConsultationSessionUC = startUC;
+    this.completeConsultationSessionUC = completeUC;
+  }
+
   public init(server: HttpServer): void {
     this.io = new Server(server, {
       cors: {
-        origin: "*", // Adjust in production
+        origin: "*", 
         methods: ["GET", "POST"]
       }
-    });
-
+    })
     this.io.on("connection", (socket) => {
+
       const userId = socket.handshake.query.userId as string;
       
       if (userId) {
@@ -38,7 +50,7 @@ export class SocketService {
         this.emitToAll("user_status", { userId, status: "online" });
       }
 
-      // 1. Typing Indicator
+      //  Typing Indicator
       socket.on("typing", (data: { receiverId: string, conversationId: string }) => {
         this.emitToUser(data.receiverId, "user_typing", { 
           senderId: userId, 
@@ -54,14 +66,6 @@ export class SocketService {
           isTyping: false 
         });
       });
-
-      // 2. Read Receipts (Real-time)
-      // socket.on("message_seen", (data: { senderId: string, conversationId: string }) => {
-      //   this.emitToUser(data.senderId, "messages_seen", {
-      //     receiverId: userId,
-      //     conversationId: data.conversationId
-      //   });
-      // });
       socket.on("message_seen", (data) => {
   this.emitToUser(
     data.senderId,
@@ -88,14 +92,10 @@ socket.on(
     );
   }
 );
-
-
-
-      // 3. Video Call Signaling
+ //  Video Call Signaling
       socket.on("join_call_room", ({ appointmentId }) => {
         socket.join(appointmentId);
         logger.info(`Socket ${socket.id} joined call room: ${appointmentId}`);
-        console.log(`[Socket] User joined room: ${appointmentId}`);
       });
 
       socket.on("start_call", async ({ appointmentId, userId, doctorName, receiverId }) => {
@@ -108,7 +108,7 @@ socket.on(
 
         logger.info(`Doctor ${userId} starting call for patient ${receiverId} (Appointment: ${appointmentId})`);
         
-        // Emit to the specific patient directly (reaches all their tabs)
+        // Emit to the specific patient directly
         this.emitToUser(receiverId, "incoming_call", { 
           appointmentId, 
           doctorName: doctorName || "Your Doctor" 
@@ -125,19 +125,16 @@ socket.on(
         this.activeCalls.delete(appointmentId);
         this.io?.to(appointmentId).emit("call_rejected");
       });
-socket.on("end_call", ({ appointmentId }) => {
-  console.log(
-    `[Socket] Call ended: ${appointmentId}`
-  );
+      socket.on("end_call", ({ appointmentId }) => {
+        this.activeCalls.delete(appointmentId);
+        socket.to(appointmentId).emit("call_ended");
+        if (appointmentId && this.completeConsultationSessionUC) {
+          this.completeConsultationSessionUC.execute({ appointmentId }).catch((err) => {
+            logger.error(`Failed to complete consultation session for ${appointmentId}`, err);
+          });
+        }
+      });
 
-  this.activeCalls.delete(
-    appointmentId
-  );
-
-  socket.to(appointmentId).emit(
-    "call_ended"
-  );
-});
       socket.on("join_call", ({ appointmentId, userId }) => {
         socket.join(appointmentId);
         socket.to(appointmentId).emit("user_joined", { userId });
@@ -155,6 +152,11 @@ socket.on("end_call", ({ appointmentId }) => {
           answer: data.answer,
           senderId: userId
         });
+        if (data?.appointmentId && this.startConsultationSessionUC) {
+          this.startConsultationSessionUC.execute({ appointmentId: data.appointmentId }).catch((err) => {
+            logger.error(`Failed to start consultation session for ${data.appointmentId}`, err);
+          });
+        }
       });
 
       socket.on("ice_candidate", (data) => {
@@ -201,10 +203,8 @@ socket.on("end_call", ({ appointmentId }) => {
     }
 
     const sockets = this.userSockets.get(userId);
-    console.log(`[SocketService] Found ${sockets?.length || 0} active sockets for user: ${userId}`);
     if (sockets && sockets.length > 0) {
       sockets.forEach(socketId => {
-        console.log(`[SocketService] Emitting event '${event}' to socket: ${socketId}`);
         this.io?.to(socketId).emit(event, data);
       });
       logger.info(`Notification sent to user ${userId}: ${event}`);

@@ -32,8 +32,9 @@ import {
   platformSettingsController,
   platformWalletController,
   adminDashboardController,
-  publicController
-
+  publicController,
+  startConsultationSessionUseCase,
+  completeConsultationSessionUseCase
 } from "../main/di";
 
 import { createRoutes } from "../presentation/routes";
@@ -106,6 +107,10 @@ const httpServer = createServer(app);
 
 // Initialize Socket io
 const socketService = SocketService.getInstance();
+socketService.setConsultationUseCases(
+  startConsultationSessionUseCase,
+  completeConsultationSessionUseCase
+);
 socketService.init(httpServer);
 
 (async () => {

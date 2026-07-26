@@ -140,7 +140,11 @@ export class Appointment {
   }
 
   isUpcoming(): boolean {
-    if (this.status === AppointmentStatus.CANCELLED || this.status === AppointmentStatus.COMPLETED) {
+    if (
+      this.status === AppointmentStatus.CANCELLED ||
+      this.status === AppointmentStatus.COMPLETED ||
+      this.status === AppointmentStatus.NO_SESSION
+    ) {
       return false;
     }
     
@@ -155,7 +159,11 @@ export class Appointment {
   }
 
   isPast(): boolean {
-    if (this.status === AppointmentStatus.CANCELLED || this.status === AppointmentStatus.COMPLETED) {
+    if (
+      this.status === AppointmentStatus.CANCELLED ||
+      this.status === AppointmentStatus.COMPLETED ||
+      this.status === AppointmentStatus.NO_SESSION
+    ) {
       return true;
     }
 
@@ -168,19 +176,37 @@ export class Appointment {
 
     return false;
   }
-  complete() {
-  if (
-    this.status === AppointmentStatus.CONFIRMED ||
-    this.status === AppointmentStatus.RESCHEDULED
-  ) {
-    this.status = AppointmentStatus.COMPLETED;
+
+  startSession() {
+    if (
+      this.status === AppointmentStatus.CONFIRMED ||
+      this.status === AppointmentStatus.RESCHEDULED
+    ) {
+      this.status = AppointmentStatus.IN_PROGRESS;
+    }
   }
-}
 
+  markNoSession() {
+    if (
+      this.status === AppointmentStatus.CONFIRMED ||
+      this.status === AppointmentStatus.RESCHEDULED
+    ) {
+      this.status = AppointmentStatus.NO_SESSION;
+    }
+  }
 
+  complete() {
+    if (this.status === AppointmentStatus.IN_PROGRESS) {
+      this.status = AppointmentStatus.COMPLETED;
+    }
+  }
 
   canStartVideoCall(): boolean {
-    if (this.status !== AppointmentStatus.CONFIRMED && this.status !== AppointmentStatus.RESCHEDULED) {
+    if (
+      this.status !== AppointmentStatus.CONFIRMED &&
+      this.status !== AppointmentStatus.RESCHEDULED &&
+      this.status !== AppointmentStatus.IN_PROGRESS
+    ) {
       return false;
     }
 

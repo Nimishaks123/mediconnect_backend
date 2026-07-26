@@ -7,7 +7,7 @@ export class DoctorDocumentService implements IDoctorDocumentService {
   async uploadAll(files: DoctorUploadFilesDTO): Promise<DoctorUploadResults> {
     const results: DoctorUploadResults = {};
 
-    // 🔗 Centralized folder configuration logic (No magic strings in UseCase)
+    //  Centralized folder configuration logic 
     const folders = {
       license: "mediconnect/doctors/licenses",
       photo: "mediconnect/doctors/photos",

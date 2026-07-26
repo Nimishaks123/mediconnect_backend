@@ -31,7 +31,9 @@ export interface IAppointmentRepository {
   currentStatus: AppointmentStatus,
   newStatus: AppointmentStatus
 ): Promise<boolean>;
-findAppointmentsForCompletion():
+findPastUnstartedAppointments():
+Promise<Appointment[]>;
+findPastInProgressAppointments():
 Promise<Appointment[]>;
   countCancelledAppointments(userId:string):Promise<number>;
   findAppointmentCount(userId:string):Promise<number>;

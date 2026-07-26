@@ -276,7 +276,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   return result.modifiedCount === 1;
 }
-async findAppointmentsForCompletion(): Promise<Appointment[]> {
+async findPastUnstartedAppointments(): Promise<Appointment[]> {
 
   const docs =
     await AppointmentModel.find({
@@ -298,6 +298,38 @@ async findAppointmentsForCompletion(): Promise<Appointment[]> {
           `${doc.date}T${doc.endTime}:00`
         );
 
+      return appointmentEnd < now;
+    })
+    .map(
+      (doc) =>
+        new Appointment(
+          doc.appointmentId,
+          doc.bookingId,
+          doc.doctorId.toString(),
+          doc.patientId.toString(),
+          doc.date,
+          doc.startTime,
+          doc.endTime,
+          doc.status,
+          doc.paymentStatus,
+          doc.price,
+          doc.cancellationCharge,
+          doc.refundAmount,
+          doc.expiresAt,
+          doc.createdAt
+        )
+    );
+}
+async findPastInProgressAppointments(): Promise<Appointment[]> {
+  const docs = await AppointmentModel.find({
+    status: AppointmentStatus.IN_PROGRESS,
+  });
+
+  const now = new Date();
+
+  return docs
+    .filter((doc) => {
+      const appointmentEnd = new Date(`${doc.date}T${doc.endTime}:00`);
       return appointmentEnd < now;
     })
     .map(
