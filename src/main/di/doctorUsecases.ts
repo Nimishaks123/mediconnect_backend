@@ -13,12 +13,14 @@ import { GetRecentActivityUseCase } from "@application/usecases/doctor/GetRecent
 import {
   doctorRepository,
   userRepository,
+  adminRepository,
   doctorDashboardQueryRepository,
 } from "./repositories";
 
 import {
   fileStorageService,
 } from "./services";
+import { createNotificationUseCase } from "./notificationUsecases";
 import { GetDoctorSpecialtiesUseCase } from "@application/usecases/doctor/GetDoctorSpecialtiesUseCase";
 
 export const startDoctorOnboardingUseCase =
@@ -31,7 +33,12 @@ export const createDoctorProfileUseCase =
   new CreateDoctorProfileUseCase(doctorRepository);
 
 export const updateDoctorProfileUseCase =
-  new UpdateDoctorProfileUseCase(doctorRepository, userRepository);
+  new UpdateDoctorProfileUseCase(
+    doctorRepository,
+    userRepository,
+    adminRepository,
+    createNotificationUseCase
+  );
 
 export const uploadDoctorDocumentsUseCase =
   new UploadDoctorDocumentsUseCase(
@@ -40,7 +47,12 @@ export const uploadDoctorDocumentsUseCase =
   );
 
 export const submitForVerificationUseCase =
-  new SubmitForVerificationUseCase(doctorRepository);
+  new SubmitForVerificationUseCase(
+    doctorRepository,
+    userRepository,
+    adminRepository,
+    createNotificationUseCase
+  );
 
 export const getDoctorProfileUseCase =
   new GetDoctorProfileUseCase(
@@ -53,9 +65,12 @@ export const getVerifiedDoctorsUseCase =
     doctorRepository,
     userRepository
   );
+
 export const getDoctorByIdUseCase =
   new GetDoctorByIdUseCase(
     doctorRepository,
-      userRepository
+    userRepository
   );
-  export const getDoctorBySpecialtyUC=new GetDoctorSpecialtiesUseCase(doctorRepository);export const getRecentActivityUseCase = new GetRecentActivityUseCase(doctorDashboardQueryRepository);
+
+export const getDoctorBySpecialtyUC = new GetDoctorSpecialtiesUseCase(doctorRepository);
+export const getRecentActivityUseCase = new GetRecentActivityUseCase(doctorDashboardQueryRepository);

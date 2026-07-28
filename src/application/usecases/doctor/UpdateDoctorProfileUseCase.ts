@@ -2,6 +2,10 @@ import { IUpdateDoctorProfileUseCase } from "@application/interfaces/doctor/IUpd
 import { UpdateDoctorProfileDTO, UpdateDoctorProfileResponseDTO } from "@application/dtos/doctor/UpdateDoctorProfileDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
 import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IAdminRepository } from "@domain/interfaces/IAdminRepository";
+import { ICreateNotificationUseCase } from "@application/interfaces/notification/ICreateNotificationUseCase";
+import { NotificationType } from "@domain/enums/NotificationType";
+import { DoctorOnboardingStatus } from "@domain/enums/DoctorOnboardingStatus";
 import { AppError } from "@common/AppError";
 import { MESSAGES } from "@common/constants";
 import { StatusCode } from "@common/enums";
@@ -10,7 +14,9 @@ import { DoctorMapper } from "@application/mappers/DoctorMapper";
 export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
   constructor(
     private readonly doctorRepo: IDoctorRepository,
-    private readonly userRepo: IUserRepository
+    private readonly userRepo: IUserRepository,
+    private readonly adminRepo: IAdminRepository,
+    private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
 
   async execute(input: UpdateDoctorProfileDTO): Promise<UpdateDoctorProfileResponseDTO> {
@@ -21,23 +27,20 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
       throw new AppError(MESSAGES.DOCTOR_PROFILE_NOT_FOUND, StatusCode.NOT_FOUND);
     }
 
-    // PART 5: Sensitive Document Lock
-    // Only specialty, qualification, experience, fee, and about me can be updated via this usecase.
-    // License and certs are handled via specialized upload flow.
+    const isAlreadyApproved = existing.getOnboardingStatus() === DoctorOnboardingStatus.APPROVED;
+
     const forbiddenFields = ['licenseDocument', 'certifications'];
     const attemptedForbidden = Object.keys(updates).filter(key => forbiddenFields.includes(key));
     if (attemptedForbidden.length > 0) {
       throw new AppError("Professional documents cannot be edited directly after submission.", StatusCode.BAD_REQUEST);
     }
 
-    // Sanitize and validate business rules
     const sanitizedUpdates = { ...updates };
     if (sanitizedUpdates.specialty) sanitizedUpdates.specialty = sanitizedUpdates.specialty.trim();
     if (sanitizedUpdates.qualification) sanitizedUpdates.qualification = sanitizedUpdates.qualification.trim();
     if (sanitizedUpdates.registrationNumber) {
       sanitizedUpdates.registrationNumber = sanitizedUpdates.registrationNumber.trim().toUpperCase();
-      
-      // Optional: Check uniqueness if registration number changed
+
       if (sanitizedUpdates.registrationNumber !== existing.getRegistrationNumber()) {
         const duplicate = await this.doctorRepo.findOneByRegistrationNumber(sanitizedUpdates.registrationNumber);
         if (duplicate) {
@@ -46,8 +49,7 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
       }
     }
     if (sanitizedUpdates.aboutMe) sanitizedUpdates.aboutMe = sanitizedUpdates.aboutMe.trim();
-    
-    // PART 4: Profile Photo Logic (Direct URL)
+
     if (sanitizedUpdates.profilePhoto) {
       if (!sanitizedUpdates.profilePhoto.includes("res.cloudinary.com")) {
         throw new AppError("Invalid profile photo URL. Only internal Cloudinary URLs are allowed.", StatusCode.BAD_REQUEST);
@@ -56,13 +58,10 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
     }
 
     existing.updateProfile(sanitizedUpdates);
-    
-   
     existing.advanceOnboardingStep();
 
     const updated = await this.doctorRepo.save(existing);
-    
-    // PART 6: Update User Name
+
     let userName = "";
     if (sanitizedUpdates.name) {
       const user = await this.userRepo.findById(userId);
@@ -75,6 +74,18 @@ export class UpdateDoctorProfileUseCase implements IUpdateDoctorProfileUseCase {
       const user = await this.userRepo.findById(userId);
       if (user) {
         userName = user.getName();
+      }
+    }
+
+    if (isAlreadyApproved) {
+      const adminId = await this.adminRepo.findAdminId();
+      if (adminId) {
+        await this.createNotificationUseCase.execute({
+          userId: adminId,
+          title: "Doctor Profile Updated",
+          message: `Dr. ${userName || "Doctor"} updated profile information requiring review.`,
+          type: NotificationType.DOCTOR_PROFILE_UPDATED,
+        });
       }
     }
 

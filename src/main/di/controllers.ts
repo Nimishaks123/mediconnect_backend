@@ -79,8 +79,8 @@ import { AdminWalletController } from "@presentation/controllers/AdminWalletCont
 const adminLoginUseCase = new AdminLoginUseCase(adminRepository, tokenService, passwordHasher);
 
 const getAdminDoctorsUseCase = new GetAdminDoctorsUseCase(adminDoctorQueryRepo);
-const approveDoctorUseCase = new ApproveDoctorUseCase(doctorRepository, eventBus, notificationUC.createNotificationUseCase);
-const rejectDoctorUseCase = new RejectDoctorUseCase(doctorRepository, eventBus, notificationUC.createNotificationUseCase);
+const approveDoctorUseCase = new ApproveDoctorUseCase(doctorRepository, userRepository, adminRepository, eventBus, notificationUC.createNotificationUseCase);
+const rejectDoctorUseCase = new RejectDoctorUseCase(doctorRepository, userRepository, adminRepository, eventBus, notificationUC.createNotificationUseCase);
 
 const getPatientAppointmentsWithDoctor = new GetPatientAppointmentsWithDoctor(appointmentQueryRepo);
 

@@ -1,6 +1,8 @@
 import { IApproveDoctorUseCase } from "@application/interfaces/admin/IApproveDoctorUseCase";
 import { ApproveRejectDoctorDTO, ApproveRejectDoctorResponseDTO } from "@application/dtos/admin/ApproveRejectDoctorDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IAdminRepository } from "@domain/interfaces/IAdminRepository";
 import { IEventBus } from "@application/interfaces/IEventBus";
 import { DoctorApprovedEvent } from "@domain/events/DoctorApprovedEvent";
 import { AppError } from "@common/AppError";
@@ -13,6 +15,8 @@ import { NotificationType } from "@domain/enums/NotificationType";
 export class ApproveDoctorUseCase implements IApproveDoctorUseCase {
   constructor(
     private readonly doctorRepo: IDoctorRepository,
+    private readonly userRepo: IUserRepository,
+    private readonly adminRepo: IAdminRepository,
     private readonly eventBus: IEventBus,
     private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
@@ -43,6 +47,19 @@ export class ApproveDoctorUseCase implements IApproveDoctorUseCase {
       message: "Congratulations! Your professional profile has been verified.",
       type: NotificationType.SYSTEM
     });
+
+    const doctorUser = await this.userRepo.findById(userId);
+    const doctorName = doctorUser ? doctorUser.getName() : "Doctor";
+
+    const targetAdminId = (await this.adminRepo.findAdminId()) || adminId;
+    if (targetAdminId) {
+      await this.createNotificationUseCase.execute({
+        userId: targetAdminId,
+        title: "Doctor Approved",
+        message: `Dr. ${doctorName} has been approved successfully.`,
+        type: NotificationType.DOCTOR_APPROVED,
+      });
+    }
 
     return DoctorMapper.toApproveDoctorResponse(savedDoctor);
   }

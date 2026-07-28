@@ -4,6 +4,8 @@ import {
   RejectDoctorResponseDTO,
 } from "@application/dtos/admin/RejectDoctorDTO";
 import { IDoctorRepository } from "@domain/interfaces/IDoctorRepository";
+import { IUserRepository } from "@domain/interfaces/IUserRepository";
+import { IAdminRepository } from "@domain/interfaces/IAdminRepository";
 import { IEventBus } from "@application/interfaces/IEventBus";
 import { AppError } from "@common/AppError";
 import { DoctorRejectedEvent } from "@domain/events/DoctorRejectedEvent";
@@ -15,6 +17,8 @@ import { NotificationType } from "@domain/enums/NotificationType";
 export class RejectDoctorUseCase implements IRejectDoctorUseCase {
   constructor(
     private readonly doctorRepo: IDoctorRepository,
+    private readonly userRepo: IUserRepository,
+    private readonly adminRepo: IAdminRepository,
     private readonly eventBus: IEventBus,
     private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
@@ -31,13 +35,10 @@ export class RejectDoctorUseCase implements IRejectDoctorUseCase {
       throw new AppError("Doctor not found", 404);
     }
 
-    // Apply Domain Logic
     doctor.reject(adminId, reason);
 
-    // Persist Aggregate Root
     const savedDoctor = await this.doctorRepo.save(doctor);
 
-    // Emit Event for Side Effects (Notifications)
     await this.eventBus.publish(
       new DoctorRejectedEvent(
         savedDoctor.getId()!,
@@ -54,7 +55,19 @@ export class RejectDoctorUseCase implements IRejectDoctorUseCase {
       type: NotificationType.SYSTEM
     });
 
-    // Delegate Response Mapping
+    const doctorUser = await this.userRepo.findById(userId);
+    const doctorName = doctorUser ? doctorUser.getName() : "Doctor";
+
+    const targetAdminId = (await this.adminRepo.findAdminId()) || adminId;
+    if (targetAdminId) {
+      await this.createNotificationUseCase.execute({
+        userId: targetAdminId,
+        title: "Doctor Rejected",
+        message: `Dr. ${doctorName} has been rejected.`,
+        type: NotificationType.DOCTOR_REJECTED,
+      });
+    }
+
     return DoctorMapper.toRejectDoctorResponse(savedDoctor);
   }
 }
