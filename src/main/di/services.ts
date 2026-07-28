@@ -25,15 +25,14 @@ import { CloudinaryService } from "@infrastructure/services/CloudinaryService";
 import { GoogleOAuthService } from "@infrastructure/services/GoogleOAuthService";
 import { RRulePolicy } from "@infrastructure/services/RRulePolicy";
 import { config } from "@common/config";
-import { StripePaymentService } from "@infrastructure/services/StripePaymentService";
 import { EmailService } from "@infrastructure/services/EmailService";
-//import { WalletService } from "@application/services/WalletService";
 import { BcryptHasher } from "@infrastructure/services/BcryptHasher";
 import { CryptoRandomGenerator } from "@infrastructure/services/CryptoRandomGenerator";
 import { OtpGenerator } from "@infrastructure/services/OtpGenerator";
 import { SocketNotificationService } from "@infrastructure/services/SocketNotificationService";
 import { DoctorDocumentService } from "@application/services/DoctorDocumentService";
 import { creditWalletUseCase } from "./walletUsecases";
+
 // Event Bus & Handlers
 export const eventBus = new InMemoryEventBus();
 
@@ -42,7 +41,7 @@ export const notificationService = new SocketNotificationService();
 export const passwordHasher = new BcryptHasher();
 export const randomGenerator = new CryptoRandomGenerator();
 export const otpGenerator = new OtpGenerator();
-export const paymentService = new StripePaymentService();
+
 
 export const tokenService = new JwtTokenService(
   config.accessTokenSecret,

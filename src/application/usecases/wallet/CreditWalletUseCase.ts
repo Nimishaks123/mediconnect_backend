@@ -19,6 +19,7 @@ export class CreditWalletUseCase {
   async execute(
     dto: CreditWalletDTO
   ): Promise<void> {
+    console.log("credit wallet usecase called",dto);
 
     const wallet =
       await this.getOrCreateWallet(

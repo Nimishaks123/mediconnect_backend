@@ -32,6 +32,7 @@ import {
   platformSettingsController,
   platformWalletController,
   adminDashboardController,
+  analyticsReportController,
   publicController,
   startConsultationSessionUseCase,
   completeConsultationSessionUseCase
@@ -76,7 +77,8 @@ app.use(
     authController,
     doctorController,
     adminController,
-       adminDashboardController,
+    adminDashboardController,
+    analyticsReportController,
     adminAppointmentController,
     doctorScheduleController,
     doctorSlotController,

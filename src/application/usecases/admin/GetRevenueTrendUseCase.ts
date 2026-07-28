@@ -7,7 +7,7 @@ export class GetRevenueTrendUseCase implements IGetRevenueTrendUseCase {
     private readonly dashboardQueryRepository: IDashboardQueryRepository
   ) {}
 
-  async execute(): Promise<RevenueTrendDTO> {
-    return await this.dashboardQueryRepository.getRevenueTrend();
+  async execute(period?: string): Promise<RevenueTrendDTO> {
+    return await this.dashboardQueryRepository.getRevenueTrend(period);
   }
 }

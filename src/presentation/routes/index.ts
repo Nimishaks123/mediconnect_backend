@@ -51,12 +51,15 @@ import { PlatformSettingsController } from "@presentation/controllers/PlatformSe
 import { adminSettingsRoutes } from "./adminSettingsRoutes";
 import { PlatformWalletController } from "../controllers/PlatformWalletController";
 import { platformWalletRoutes } from "./platformWalletRoutes";
+import { AnalyticsReportController } from "@presentation/controllers/AnalyticsReportController";
+import { analyticsReportRoutes } from "./analyticsReportRoutes";
 import { dashboardRoutes } from "./dashboardRoutes";
 export function createRoutes(
   authController: AuthController,
   doctorController: DoctorController,
   adminController: AdminController,
   adminDashboardController: AdminDashboardController,
+  analyticsReportController: AnalyticsReportController,
   adminAppointmentController: AdminAppointmentController,
   doctorScheduleController: DoctorScheduleController,
   doctorSlotController: DoctorSlotController,
@@ -72,7 +75,7 @@ export function createRoutes(
   notificationController: NotificationController,
   chatController: ChatController,
   callController: CallController,
-    prescriptionController: PrescriptionController,
+  prescriptionController: PrescriptionController,
   reviewController: ReviewController,
   publicController: PublicController,
   tokenService: ITokenService
@@ -115,6 +118,13 @@ router.use(
   "/admin",
   dashboardRoutes(
     adminDashboardController,
+    auth
+  )
+);
+router.use(
+  "/admin",
+  analyticsReportRoutes(
+    analyticsReportController,
     auth
   )
 );

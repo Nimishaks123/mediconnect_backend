@@ -1,9 +1,7 @@
 import { walletRepository,doctorRepository,platformSettingsRepository, } from "./repositories";
-import { paymentService } from "./services";
-
 import { walletTransactionRepository }
 from "./repositories"
-
+import { paymentService } from "./paymentServices";
 import { TransactionRefGenerator }
 from "@infrastructure/services/TransactionRefGenerator";
 

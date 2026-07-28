@@ -40,6 +40,7 @@ export class CreateWalletTransactionUseCase {
   async execute(
     dto: CreateWalletTransactionDTO
   ): Promise<WalletTransaction> {
+    console.log("createwallettransactionusecase",dto);
 
     const transactionRef =
       await this.transactionRefGenerator

@@ -28,9 +28,10 @@ export class AdminDashboardController {
   );
 
   getRevenueTrend = catchAsync(
-    async (_req, res: Response) => {
+    async (req, res: Response) => {
+      const period = req.query.period as string | undefined;
       const trend =
-        await this.getRevenueTrendUC.execute();
+        await this.getRevenueTrendUC.execute(period);
 
       res.status(StatusCode.OK).json({
         success: true,

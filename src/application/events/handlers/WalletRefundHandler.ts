@@ -11,10 +11,14 @@ export class WalletRefundHandler {
   async handle(
     event: PatientCancelledAppointmentEvent
   ): Promise<void> {
+       console.log("===== WalletRefundHandler =====");
+    console.log(event);
 
     if (event.refundAmount <= 0) {
+       console.log("Refund amount is 0. Skipping refund.");
       return;
     }
+        console.log("Calling CreditWalletUseCase...");
 
     await this.creditWalletUseCase.execute({
       userId: event.patientId,
@@ -27,5 +31,6 @@ export class WalletRefundHandler {
       source:
         TransactionSource.APPOINTMENT_REFUND,
     });
+     console.log("CreditWalletUseCase completed.");
   }
 }

@@ -243,9 +243,24 @@ export const reviewController =
   );
  
 
+import { AnalyticsReportController } from "@presentation/controllers/AnalyticsReportController";
+import { PdfExporterService } from "../../infrastructure/services/PdfExporterService";
+import { ExcelExporterService } from "../../infrastructure/services/ExcelExporterService";
+import { getAnalyticsReportUseCase } from "./adminDashboardUsecases";
+
+export const pdfExporterService = new PdfExporterService();
+export const excelExporterService = new ExcelExporterService();
+
 export const adminDashboardController =
   new AdminDashboardController(
     getDashboardOverviewUseCase,
     getRevenueTrendUseCase,
     getAppointmentStatusAnalyticsUseCase
+  );
+
+export const analyticsReportController =
+  new AnalyticsReportController(
+    getAnalyticsReportUseCase,
+    pdfExporterService,
+    excelExporterService
   );

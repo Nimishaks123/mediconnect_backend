@@ -25,7 +25,8 @@ import {
   walletRepository,
   platformSettingsRepository
 } from "./repositories";
-import { eventBus, rrulePolicy, paymentService } from "./services";
+import { eventBus, rrulePolicy} from "./services";
+import { paymentService } from "./paymentServices";
 import { createNotificationUseCase } from "./notificationUsecases";
 import {
   ProcessWalletTopupWebhookUseCase
