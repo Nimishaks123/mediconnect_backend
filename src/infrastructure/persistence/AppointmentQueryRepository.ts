@@ -5,6 +5,8 @@ import { DoctorSlotWithBookingDTO } from "@application/dtos/appointment/DoctorSl
 import { IAppointmentQueryRepository } from "@application/interfaces/queries/IAppointmentQueryRepository";
 import { AppointmentForDoctorDTO } from "@application/dtos/appointment/AppointmentForDoctorDTO";
 import { PatientAppointmentDTO } from "@application/dtos/appointment/PatientAppointmentDTO";
+import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
+import { PaymentStatus } from "@domain/enums/PaymentStatus";
 
 import { AdminAppointmentListItemDTO, AdminAppointmentDetailsDTO } from "@application/dtos/admin/AdminAppointmentDTO";
 
@@ -28,102 +30,75 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
     } else if (type === "RECENT") {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
-      match.date = { $gte: sevenDaysAgoStr, $lte: today };
+      match.date = { $gte: sevenDaysAgo.toISOString().split("T")[0] };
     }
 
     if (status) {
       match.status = status;
     }
 
-    const sortOrder = sort === "OLDEST" ? 1 : -1;
-    const sortObj: any = { date: sortOrder, startTime: sortOrder };
+    if (search) {
+      const isObjectId = Types.ObjectId.isValid(search);
+      const searchRegex = new RegExp(search, "i");
+      
+      const doctorUserMatches = await AppointmentModel.aggregate([
+        {
+          $lookup: {
+            from: "doctors",
+            localField: "doctorId",
+            foreignField: "_id",
+            as: "doc"
+          }
+        },
+        { $unwind: "$doc" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "doc.userId",
+            foreignField: "_id",
+            as: "docUser"
+          }
+        },
+        { $unwind: "$docUser" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "patientId",
+            foreignField: "_id",
+            as: "patUser"
+          }
+        },
+        { $unwind: "$patUser" },
+        {
+          $match: {
+            $or: [
+              { "docUser.name": searchRegex },
+              { "patUser.name": searchRegex },
+              { bookingId: searchRegex },
+              { appointmentId: searchRegex }
+            ]
+          }
+        },
+        { $project: { _id: 1 } }
+      ]);
+
+      const matchingIds = doctorUserMatches.map(m => m._id);
+
+      const orConditions: any[] = [{ _id: { $in: matchingIds } }];
+      if (isObjectId) {
+        orConditions.push({ _id: new Types.ObjectId(search) });
+      }
+
+      match.$or = orConditions;
+    }
+
+    const sortOption: any = sort === "OLDEST" ? { date: 1, startTime: 1 } : { date: -1, startTime: -1 };
 
     const pipeline: any[] = [
       { $match: match },
-      {
-        $lookup: {
-          from: "users",
-          localField: "patientId",
-          foreignField: "_id",
-          as: "patient"
-        }
-      },
-      { $unwind: { path: "$patient", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "doctors",
-          localField: "doctorId",
-          foreignField: "_id",
-          as: "doctor"
-        }
-      },
-      { $unwind: { path: "$doctor", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "users",
-          localField: "doctor.userId",
-          foreignField: "_id",
-          as: "doctorUser"
-        }
-      },
-      { $unwind: { path: "$doctorUser", preserveNullAndEmptyArrays: true } }
-    ];
-
-    // Add search match 
-    if (search) {
-      pipeline.push({
-        $match: {
-          $or: [
-            { "patient.name": { $regex: search, $options: "i" } },
-            { "doctorUser.name": { $regex: search, $options: "i" } },
-            { "appointmentId": { $regex: search, $options: "i" } }
-          ]
-        }
-      });
-    }
-
-  const countPipeline = [...pipeline, { $count: "total" }];
-
-    pipeline.push({ $sort: sortObj });
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: limit });
-    pipeline.push({
-      $project: {
-        appointmentId: 1,
-        patientName: { $ifNull: ["$patient.name", "Unknown"] },
-        doctorName: { $ifNull: ["$doctorUser.name", "Unknown"] },
-        date: 1,
-        startTime: 1,
-        endTime: 1,
-        status: 1,
-        paymentStatus: 1,
-        _id: 0
-      }
-    });
-
-    const [data, countResult] = await Promise.all([
-      AppointmentModel.aggregate(pipeline),
-      AppointmentModel.aggregate(countPipeline)
-    ]);
-
-    const total = countResult[0]?.total || 0;
-
-    return { data, total };
-  }
-
-  async findAdminAppointmentById(id: string): Promise<AdminAppointmentDetailsDTO | null> {
-    const pipeline: any[] = [
-      { $match: { appointmentId: id } },
-      {
-        $lookup: {
-          from: "users",
-          localField: "patientId",
-          foreignField: "_id",
-          as: "patient"
-        }
-      },
-      { $unwind: { path: "$patient", preserveNullAndEmptyArrays: true } },
+      { $sort: sortOption },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: "doctors",
@@ -143,63 +118,128 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       },
       { $unwind: { path: "$doctorUser", preserveNullAndEmptyArrays: true } },
       {
+        $lookup: {
+          from: "users",
+          localField: "patientId",
+          foreignField: "_id",
+          as: "patientUser"
+        }
+      },
+      { $unwind: { path: "$patientUser", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
-          appointmentId: 1,
+          id: "$appointmentId",
+          bookingId: 1,
           date: 1,
           startTime: 1,
           endTime: 1,
           status: 1,
           paymentStatus: 1,
           price: 1,
-          patient: {
-            id: { $toString: "$patient._id" },
-            name: { $ifNull: ["$patient.name", "Unknown"] },
-            email: { $ifNull: ["$patient.email", "N/A"] },
-            phone: { $ifNull: ["$patient.phoneNumber", "N/A"] }
-          },
+          doctorName: { $ifNull: ["$doctorUser.name", "Unknown"] },
+          patientName: { $ifNull: ["$patientUser.name", "Unknown"] },
+          patientId: { $toString: "$patientUser._id" },
+          specialty: { $ifNull: ["$doctor.specialty", "General Medicine"] },
+          _id: 0
+        }
+      }
+    ];
+
+    const data = await AppointmentModel.aggregate(pipeline);
+    const total = await AppointmentModel.countDocuments(match);
+
+    return { data, total };
+  }
+
+  async findAdminAppointmentById(appointmentId: string): Promise<AdminAppointmentDetailsDTO | null> {
+    const isObjectId = Types.ObjectId.isValid(appointmentId);
+    const matchQuery = isObjectId 
+      ? { $or: [{ _id: new Types.ObjectId(appointmentId) }, { appointmentId }] }
+      : { appointmentId };
+
+    const pipeline: any[] = [
+      { $match: matchQuery },
+      {
+        $lookup: {
+          from: "doctors",
+          localField: "doctorId",
+          foreignField: "_id",
+          as: "doctor"
+        }
+      },
+      { $unwind: { path: "$doctor", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "doctor.userId",
+          foreignField: "_id",
+          as: "doctorUser"
+        }
+      },
+      { $unwind: { path: "$doctorUser", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "patientId",
+          foreignField: "_id",
+          as: "patientUser"
+        }
+      },
+      { $unwind: { path: "$patientUser", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          id: "$appointmentId",
+          bookingId: 1,
+          date: 1,
+          startTime: 1,
+          endTime: 1,
+          status: 1,
+          paymentStatus: 1,
+          price: 1,
+          cancellationCharge: 1,
+          refundAmount: 1,
+          createdAt: 1,
           doctor: {
             id: { $toString: "$doctor._id" },
             name: { $ifNull: ["$doctorUser.name", "Unknown"] },
-            specialty: { $ifNull: ["$doctor.specialty", "N/A"] },
-            email: { $ifNull: ["$doctorUser.email", "N/A"] }
+            email: { $ifNull: ["$doctorUser.email", "Unknown"] },
+            specialty: { $ifNull: ["$doctor.specialty", "General Medicine"] },
+            profilePhoto: { $ifNull: ["$doctor.profilePhoto", null] }
+          },
+          patient: {
+            id: { $toString: "$patientUser._id" },
+            name: { $ifNull: ["$patientUser.name", "Unknown"] },
+            email: { $ifNull: ["$patientUser.email", "Unknown"] }
           },
           _id: 0
         }
       }
     ];
 
-    const results = await AppointmentModel.aggregate(pipeline);
-    return results[0] || null;
+    const result = await AppointmentModel.aggregate(pipeline);
+    return result.length > 0 ? result[0] : null;
   }
 
   async findByDoctorId(doctorId: string): Promise<AppointmentForDoctorDTO[]> {
-    console.log(" AppointmentQueryRepository.findByDoctorId CALLED");
+    const appointments = await AppointmentModel
+      .find({ doctorId: new Types.ObjectId(doctorId) })
+      .populate<{ patientId: { _id: Types.ObjectId; name: string; email: string } }>(
+        "patientId",
+        "name email"
+      )
+      .sort({ date: -1, startTime: -1 });
 
-    const docs = await AppointmentModel.find({
-      doctorId: new Types.ObjectId(doctorId),
-      status: { $in: ["CONFIRMED", "RESCHEDULED"] },
-    })
-      .populate("patientId", "name email")
-      .sort({ date: 1, startTime: 1 });
+    const todayStr = new Date().toISOString().split("T")[0];
 
-    const now = new Date();
-    const today = now.toISOString().split("T")[0];
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-    
-
-    return docs.map((doc: any) => {
-      console.log("DOC BOOKING ID:", doc.bookingId);
-      const isToday = doc.date === today;
-      const [startHours, startMinutes] = (doc.startTime as string).split(":").map(Number);
-      const startMins = startHours * 60 + startMinutes;
-      const [endHours, endMinutes] = (doc.endTime as string).split(":").map(Number);
-      const endMins = endHours * 60 + endMinutes;
-
-      const videoCallAvailable = isToday && currentMins >= (startMins - 15) && currentMins <= endMins;
+    return appointments.map((doc: any) => {
+      const videoCallAvailable =
+        doc.paymentStatus === "SUCCESS" &&
+        doc.date >= todayStr &&
+        doc.status !== "CANCELLED";
 
       return {
         appointmentId: doc.appointmentId,
-        bookingId:doc.bookingId,
+        bookingId: doc.bookingId,
         patientId: doc.patientId?._id?.toString() ?? "Unknown",
         patientName: doc.patientId?.name ?? "Unknown",
         patientEmail: doc.patientId?.email,
@@ -214,6 +254,25 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
   }
 
   async findByPatientId(patientId: string): Promise<PatientAppointmentDTO[]> {
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    await AppointmentModel.updateMany(
+      {
+        patientId: new Types.ObjectId(patientId),
+        status: AppointmentStatus.PAYMENT_PENDING,
+        $or: [
+          { expiresAt: { $lt: new Date() } },
+          { date: { $lt: todayStr } }
+        ]
+      },
+      {
+        $set: {
+          status: AppointmentStatus.EXPIRED,
+          paymentStatus: PaymentStatus.FAILED
+        }
+      }
+    );
+
     const pipeline: any[] = [
       { $match: { patientId: new Types.ObjectId(patientId) } },
       { $sort: { createdAt: -1 } },
@@ -238,7 +297,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
       {
         $project: {
           id: "$appointmentId",
-          bookingId:1,
+          bookingId: 1,
           date: 1,
           startTime: 1,
           endTime: 1,
@@ -253,7 +312,7 @@ export class AppointmentQueryRepository implements IAppointmentQueryRepository {
             name: { $ifNull: ["$doctorUser.name", "Unknown"] },
             specialty: { $ifNull: ["$doctor.specialty", "Medical Specialist"] },
             profilePhoto: { $ifNull: ["$doctor.profilePhoto", null] },
-            experience:{$ifNull:["$doctor.experience",0]}
+            experience: { $ifNull: ["$doctor.experience", 0] }
           },
           _id: 0
         }

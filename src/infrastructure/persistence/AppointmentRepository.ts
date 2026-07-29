@@ -1,13 +1,12 @@
-import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepository";
 import { Appointment } from "@domain/entities/Appointment";
-import { AppointmentModel } from "../persistence/models/AppointmentModel";
+import { IAppointmentRepository } from "@domain/interfaces/IAppointmentRepository";
+import { AppointmentModel } from "./models/AppointmentModel";
+import { AppError } from "../../common/AppError";
+import { StatusCode } from "../../common/enums";
 import { AppointmentStatus } from "@domain/enums/AppointmentStatus";
 import { Types } from "mongoose";
-import { AppError } from "@common/AppError";
-import { StatusCode } from "@common/enums";
 
 export class AppointmentRepository implements IAppointmentRepository {
-
   async save(appointment: Appointment): Promise<void> {
     try {
       await AppointmentModel.updateOne(
@@ -15,7 +14,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         {
           $set: {
             appointmentId: appointment.getId(),
-            bookingId:appointment.getBookingId(),
+            bookingId: appointment.getBookingId(),
             doctorId: new Types.ObjectId(appointment.getDoctorId()),
             patientId: new Types.ObjectId(appointment.getPatientId()),
             date: appointment.getDate(),
@@ -27,6 +26,7 @@ export class AppointmentRepository implements IAppointmentRepository {
             cancellationCharge: appointment.getCancellationCharge(),
             refundAmount: appointment.getRefundAmount(),
             expiresAt: appointment.getExpiresAt(),
+            createdAt: appointment.getCreatedAt() || new Date(),
           },
         },
         { upsert: true }
@@ -40,9 +40,12 @@ export class AppointmentRepository implements IAppointmentRepository {
   }
 
   async findById(id: string): Promise<Appointment | null> {
-    const doc = await AppointmentModel.findOne({
-      appointmentId: id,
-    });
+    const isObjectId = Types.ObjectId.isValid(id);
+    const query = isObjectId
+      ? { $or: [{ _id: new Types.ObjectId(id) }, { appointmentId: id }] }
+      : { appointmentId: id };
+
+    const doc = await AppointmentModel.findOne(query);
 
     if (!doc) return null;
 
@@ -70,9 +73,8 @@ export class AppointmentRepository implements IAppointmentRepository {
     startTime: string,
     endTime: string
   ): Promise<Appointment | null> {
-
     const doc = await AppointmentModel.findOne({
-      doctorId: new Types.ObjectId(doctorId), 
+      doctorId: new Types.ObjectId(doctorId),
       date,
       startTime,
       endTime,
@@ -106,9 +108,8 @@ export class AppointmentRepository implements IAppointmentRepository {
     endTime: string,
     excludeAppointmentId?: string
   ): Promise<boolean> {
-
     const query: any = {
-      doctorId: new Types.ObjectId(doctorId), 
+      doctorId: new Types.ObjectId(doctorId),
       date,
       status: {
         $in: [
@@ -136,7 +137,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async findByPatientId(patientId: string): Promise<Appointment[]> {
     const docs = await AppointmentModel.find({
-      patientId: new Types.ObjectId(patientId), 
+      patientId: new Types.ObjectId(patientId),
     }).sort({ createdAt: -1 });
 
     return docs.map(
@@ -165,7 +166,6 @@ export class AppointmentRepository implements IAppointmentRepository {
     from: string,
     to: string
   ): Promise<Appointment[]> {
-
     const docs = await AppointmentModel.find({
       doctorId: new Types.ObjectId(doctorId),
       date: { $gte: from, $lte: to },
@@ -195,10 +195,12 @@ export class AppointmentRepository implements IAppointmentRepository {
   async findAllByDoctorId(doctorId: string): Promise<Appointment[]> {
     const docs = await AppointmentModel.find({
       doctorId: new Types.ObjectId(doctorId),
-    }).populate("patientId").sort({
-    date: -1,
-    startTime: -1,
-  });
+    })
+      .populate("patientId")
+      .sort({
+        date: -1,
+        startTime: -1,
+      });
 
     return docs.map(
       (doc: any) =>
@@ -221,48 +223,50 @@ export class AppointmentRepository implements IAppointmentRepository {
         )
     );
   }
+
   async findByDoctorAndPatient(doctorId: string, patientId: string): Promise<Appointment[]> {
-    const docs=await AppointmentModel.find({
-      doctorId:new Types.ObjectId(doctorId),
-      patientId:new Types.ObjectId(patientId)
+    const docs = await AppointmentModel.find({
+      doctorId: new Types.ObjectId(doctorId),
+      patientId: new Types.ObjectId(patientId),
     }).sort({
-      createdAt:1
+      createdAt: 1,
     });
-    return docs.map((doc)=>
-      new Appointment(
-        doc.appointmentId,
-        doc.bookingId,
-        doc.doctorId.toString(),
-        doc.patientId.toString(),
-        doc.date,
-        doc.startTime,
-        doc.endTime,
-        doc.status,
-        doc.paymentStatus,
-        doc.price,
-        doc.cancellationCharge,
-        doc.refundAmount,
-        doc.expiresAt,
-        doc.createdAt
 
-      )
-    )
+    return docs.map(
+      (doc) =>
+        new Appointment(
+          doc.appointmentId,
+          doc.bookingId,
+          doc.doctorId.toString(),
+          doc.patientId.toString(),
+          doc.date,
+          doc.startTime,
+          doc.endTime,
+          doc.status,
+          doc.paymentStatus,
+          doc.price,
+          doc.cancellationCharge,
+          doc.refundAmount,
+          doc.expiresAt,
+          doc.createdAt
+        )
+    );
   }
-  //
+
   async countCancelledAppointments(userId: string): Promise<number> {
-   const docs= await AppointmentModel.countDocuments({patientId:new Types.ObjectId(userId),status:"CANCELLED"});
-   return docs;
-    
+    const docs = await AppointmentModel.countDocuments({
+      patientId: new Types.ObjectId(userId),
+      status: "CANCELLED",
+    });
+    return docs;
   }
-  
-  async updateStatus(
-  appointmentId: string,
-  currentStatus: AppointmentStatus,
-  newStatus: AppointmentStatus
-): Promise<boolean> {
 
-  const result =
-    await AppointmentModel.updateOne(
+  async updateStatus(
+    appointmentId: string,
+    currentStatus: AppointmentStatus,
+    newStatus: AppointmentStatus
+  ): Promise<boolean> {
+    const result = await AppointmentModel.updateOne(
       {
         appointmentId,
         status: currentStatus,
@@ -274,86 +278,79 @@ export class AppointmentRepository implements IAppointmentRepository {
       }
     );
 
-  return result.modifiedCount === 1;
-}
-async findPastUnstartedAppointments(): Promise<Appointment[]> {
+    return result.modifiedCount === 1;
+  }
 
-  const docs =
-    await AppointmentModel.find({
+  async findPastUnstartedAppointments(): Promise<Appointment[]> {
+    const docs = await AppointmentModel.find({
       status: {
-        $in: [
-          AppointmentStatus.CONFIRMED,
-          AppointmentStatus.RESCHEDULED,
-        ],
+        $in: [AppointmentStatus.CONFIRMED, AppointmentStatus.RESCHEDULED],
       },
     });
 
-  const now = new Date();
+    const now = new Date();
 
-  return docs
-    .filter((doc) => {
+    return docs
+      .filter((doc) => {
+        const appointmentEnd = new Date(`${doc.date}T${doc.endTime}:00`);
+        return appointmentEnd < now;
+      })
+      .map(
+        (doc) =>
+          new Appointment(
+            doc.appointmentId,
+            doc.bookingId,
+            doc.doctorId.toString(),
+            doc.patientId.toString(),
+            doc.date,
+            doc.startTime,
+            doc.endTime,
+            doc.status,
+            doc.paymentStatus,
+            doc.price,
+            doc.cancellationCharge,
+            doc.refundAmount,
+            doc.expiresAt,
+            doc.createdAt
+          )
+      );
+  }
 
-      const appointmentEnd =
-        new Date(
-          `${doc.date}T${doc.endTime}:00`
-        );
+  async findPastInProgressAppointments(): Promise<Appointment[]> {
+    const docs = await AppointmentModel.find({
+      status: AppointmentStatus.IN_PROGRESS,
+    });
 
-      return appointmentEnd < now;
-    })
-    .map(
-      (doc) =>
-        new Appointment(
-          doc.appointmentId,
-          doc.bookingId,
-          doc.doctorId.toString(),
-          doc.patientId.toString(),
-          doc.date,
-          doc.startTime,
-          doc.endTime,
-          doc.status,
-          doc.paymentStatus,
-          doc.price,
-          doc.cancellationCharge,
-          doc.refundAmount,
-          doc.expiresAt,
-          doc.createdAt
-        )
-    );
-}
-async findPastInProgressAppointments(): Promise<Appointment[]> {
-  const docs = await AppointmentModel.find({
-    status: AppointmentStatus.IN_PROGRESS,
-  });
+    const now = new Date();
 
-  const now = new Date();
+    return docs
+      .filter((doc) => {
+        const appointmentEnd = new Date(`${doc.date}T${doc.endTime}:00`);
+        return appointmentEnd < now;
+      })
+      .map(
+        (doc) =>
+          new Appointment(
+            doc.appointmentId,
+            doc.bookingId,
+            doc.doctorId.toString(),
+            doc.patientId.toString(),
+            doc.date,
+            doc.startTime,
+            doc.endTime,
+            doc.status,
+            doc.paymentStatus,
+            doc.price,
+            doc.cancellationCharge,
+            doc.refundAmount,
+            doc.expiresAt,
+            doc.createdAt
+          )
+      );
+  }
 
-  return docs
-    .filter((doc) => {
-      const appointmentEnd = new Date(`${doc.date}T${doc.endTime}:00`);
-      return appointmentEnd < now;
-    })
-    .map(
-      (doc) =>
-        new Appointment(
-          doc.appointmentId,
-          doc.bookingId,
-          doc.doctorId.toString(),
-          doc.patientId.toString(),
-          doc.date,
-          doc.startTime,
-          doc.endTime,
-          doc.status,
-          doc.paymentStatus,
-          doc.price,
-          doc.cancellationCharge,
-          doc.refundAmount,
-          doc.expiresAt,
-          doc.createdAt
-        )
-    );
-}
-async findAppointmentCount(userId:string):Promise<number>{
-  const result=await AppointmentModel.countDocuments({userId});
-  return result;
-}
+  async findAppointmentCount(userId: string): Promise<number> {
+    const result = await AppointmentModel.countDocuments({ patientId: new Types.ObjectId(userId) });
+    return result;
+  }
 }
