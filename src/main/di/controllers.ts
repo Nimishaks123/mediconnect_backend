@@ -94,7 +94,7 @@ const getAdminAppointmentDetailsUseCase = new GetAdminAppointmentDetailsUseCase(
 const getAdminWalletsUseCase = new GetAdminWalletsUseCase(walletQueryRepo);
 const getAdminWalletTransactionsUseCase = new GetAdminWalletTransactionsUseCase(walletQueryRepo);
 
-const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo,appointmentUC.autoCompleteAppointmentsUseCase);
+const getPatientAppointmentsUseCase = new GetPatientAppointmentUseCase(appointmentQueryRepo);
 
 const getAllUsersUseCase = new GetAllUsersUseCase(userQueryRepo);
 

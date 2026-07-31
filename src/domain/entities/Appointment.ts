@@ -140,36 +140,43 @@ export class Appointment {
   }
 
   isUpcoming(): boolean {
-    if (
-      this.status === AppointmentStatus.CANCELLED ||
-      this.status === AppointmentStatus.COMPLETED ||
-      this.status === AppointmentStatus.NO_SESSION
-    ) {
+    const isActionable =
+      this.status === AppointmentStatus.CONFIRMED ||
+      this.status === AppointmentStatus.RESCHEDULED ||
+      this.status === AppointmentStatus.IN_PROGRESS;
+
+    if (!isActionable) {
       return false;
     }
-    
+
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-    const timeStr = now.toTimeString().slice(0, 5); // HH:mm
+    const timeStr = now.toTimeString().slice(0, 5);
 
     if (this.date > todayStr) return true;
-    if (this.date === todayStr) return this.startTime > timeStr;
-    
+    if (this.date === todayStr) return this.endTime >= timeStr;
+
     return false;
   }
 
   isPast(): boolean {
-    if (
-      this.status === AppointmentStatus.CANCELLED ||
+    const isAlwaysPast =
       this.status === AppointmentStatus.COMPLETED ||
-      this.status === AppointmentStatus.NO_SESSION
-    ) {
+      this.status === AppointmentStatus.CANCELLED ||
+      this.status === AppointmentStatus.EXPIRED ||
+      this.status === AppointmentStatus.NO_SESSION;
+
+    if (isAlwaysPast) {
       return true;
+    }
+
+    if (this.status === AppointmentStatus.PAYMENT_PENDING) {
+      return false;
     }
 
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-    const timeStr = now.toTimeString().slice(0, 5); // HH:mm
+    const timeStr = now.toTimeString().slice(0, 5);
 
     if (this.date < todayStr) return true;
     if (this.date === todayStr) return this.endTime < timeStr;

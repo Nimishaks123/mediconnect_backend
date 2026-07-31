@@ -77,21 +77,18 @@ export const completeConsultationSessionUseCase =
 
 export const autoCompleteAppointmentsUseCase =
   new AutoCompleteAppointmentsUseCase(
-    appointmentRepository,
-    completeConsultationSessionUseCase
+    appointmentRepository
   );
 
 export const getPatientAppointmentUseCase =
   new GetPatientAppointmentUseCase(
-    appointmentQueryRepo,
-    autoCompleteAppointmentsUseCase
+    appointmentQueryRepo
   );
 
 export const getDoctorAppointmentsUseCase = 
   new GetDoctorAppointmentsUseCase(
     appointmentRepository,
-    doctorRepository,
-    autoCompleteAppointmentsUseCase
+    doctorRepository
   );
 
 export const rescheduleAppointmentUseCase = 
